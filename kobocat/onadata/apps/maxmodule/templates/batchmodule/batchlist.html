@@ -1,0 +1,382 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% load app_filters %}
+{% block additional-headers %}
+    <title>
+        {% block title %} {{ xform.title }}{% endblock %}
+    </title>
+    <!-- start: css for data view and filters -->
+    <style>
+        {#       th {#}
+        {#            text-align: center !important;#}
+        {#            width: auto !important;#}
+        {#        } #}
+
+        .chart-filter {
+            float: left;
+            padding: 10px;
+        }
+
+        .chart-header-btn {
+            float: left;
+            margin-left: 25px;
+            padding: 1px;
+            position: relative;
+            font-size: 13px;
+        }
+
+        .chart-main-container {
+            width: inherit;
+            height: 400px;
+            min-height: 200px;
+            float: center;
+            padding: 2px;
+            border: 2px rgb(89, 89, 89) double;
+        }
+
+        .table-control-container {
+            margin: 0px 2px !important;
+        }
+
+        .exportMargin {
+
+            margin-bottom: 2%;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: 0px solid #111 !important;
+        }
+
+    </style>
+    <link href="/static/css/datepicker.css" rel="stylesheet">
+    <link href="/static/css/data_view.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/js/DataTables/datatables.css">
+    <link rel="stylesheet" href="/static/css/blueimp-gallery.min.css">
+
+    <!-- For DROPDOWN FILTERING -->
+    <link rel="stylesheet" href="/static/assets/css/style_dropdown_filtering.css">
+{% endblock %}
+
+
+{% block content %}
+
+
+
+    <div class="row">
+        {#        <div class="col-md-12">#}
+        {#            <button type="button" class="btn btn-primary"><span aria-hidden="true"><a#}
+        {#                    style="color: white ; text-decoration: none"#}
+        {#                    href="/usermodule/{{ username }}/projects-views/{{ id_string }}/"> Data List </a></span>#}
+        {#            </button>#}
+        {#        </div>#}
+
+        <div class="col-md-12">
+            <h2>Batch Details</h2><br>
+        </div>
+    </div>
+
+    <div class="row">
+        <div id="batchInfoDiv" class="form-group col-md-12">
+            <div class="row">
+                <div class="form-group col-md-12">
+                    <span class="control-label btn btn-primary"><b>Batch Information</b></span>
+                </div>
+            </div>
+
+
+            <div class="form-group col-md-12">
+                <label class="control-label"><b>Batch ID</b> : </label>
+            </div>
+            <div class="form-group col-md-12">
+                <label class="control-label"><b>Form</b> : </label>
+            </div>
+            <div class="form-group col-md-12">
+                <label class="control-label"><b>Selected Filters</b> : </label>
+            </div>
+            <div class="form-group col-md-12">
+                <label class="control-label"><b>Total Data</b> : </label>
+            </div>
+            <div class="form-group col-md-12">
+                <label class="control-label"><b>Total Verified Data </b> : </label>
+            </div>
+
+
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="form-group col-md-12">
+            <div class="row">
+                <div class="form-group col-md-12">
+                    <span class="control-label btn btn-primary"><b>Batch Calculation</b></span>
+                </div>
+            </div>
+            <div class="form-group col-md-12">
+                <label class="control-label"><b>Assigned to Call Center</b> : </label>
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label"><b>Verified By Call Center</b> : </label>
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label"><b>Verified by ME M&F Officer</b> : </label>
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label"><b>Accuracy</b> : </label>
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label"><b>Accuracy </b> : </label>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <ul class="nav nav-tabs">
+        <li class="active"><a style="font-size: 13px;" href="#tab_bach_data" data-toggle="tab"><b>Batch Data</b> </a></li>
+        <li class=""><a style="font-size: 13px;" href="#tab_call_center_data" data-toggle="tab"><b>Call Center Data </b></a></li>
+        <li class=""><a style="font-size: 13px;" href="#tab_field_verification_data" data-toggle="tab"><b>Field Verification Data</b></a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade active in" id="tab_bach_data">
+
+            <div class="row">
+                <div class="col-md-12">
+                    <table id="batchListTable" class="table table-bordered table-hover exportMargin">
+                        <caption class="textAlign">
+
+                        </caption>
+                        <thead>
+
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade " id="tab_call_center_data">
+            <div class="row">
+                <div class="col-md-12">
+                    <table id="callCenterTable" class="table table-bordered table-hover exportMargin">
+                        <caption class="textAlign">
+
+                        </caption>
+                        <thead>
+
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade " id="tab_field_verification_data">
+            <div class="row">
+                <div class="col-md-12">
+                    <table id="fieldVerificationTable" class="table table-bordered table-hover exportMargin">
+                        <caption class="textAlign">
+
+                        </caption>
+                        <thead>
+
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+
+
+    <!--Data Table -->
+    <!--  <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/DT_bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/DataTables/datatables.js"></script>
+  -->
+
+    <!--datatable -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.3.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.print.min.js"></script>
+    <!--datatable ended-->
+
+    <script type="text/javascript" src="/static/js/custom_data_view.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+    <script type="text/javascript">
+
+        jsonBatchDetails = {{ jsonBatchDetails | safe }}
+            batchDetailsInfo = jsonBatchDetails.batchDetails
+        getBatchInfo = jsonBatchDetails.getBatchInfoList
+        callCenterBatchDetailsInfo = jsonBatchDetails.callCenterbatchDetails
+        username = jsonBatchDetails.username
+
+        console.log(callCenterBatchDetailsInfo)
+
+        $(document).ready(function () {
+
+            infoBlock()
+            generateFeedbackTable()
+
+        });
+
+
+        function infoBlock() {
+
+
+            var div = ''
+
+            div += '<div class="row"> <div class="form-group col-md-12"> <span class="control-label btn btn-primary"><b>Batch Information</b></span> </div> </div>'
+
+            for (var i = 0; i < getBatchInfo.length; i++) {
+
+                div += '<div class="form-group col-md-12"> <label class="control-label"><b>Batch ID</b> :  <b>' + getBatchInfo[i][0] + '</b> </label> </div> ' +
+                    '<div class="form-group col-md-12"> <label class="control-label"><b>Form</b> :  <b>' + getBatchInfo[i][1] + '</b></label> </div> ' +
+                    '<div class="form-group col-md-12"> <label class="control-label"><b>Selected Filters</b> :  <b>' + getBatchInfo[i][2] + ' </b></label> </div> ' +
+                    '<div class="form-group col-md-12"> <label class="control-label"><b>Total Data</b> :  <b>' + getBatchInfo[i][3] + '</b></label> </div> ' +
+                    '<div class="form-group col-md-12"> <label class="control-label"><b>Total Verified Data </b> : </label> </div>'
+
+            }
+
+            $('#batchInfoDiv').html(div)
+
+        }
+
+
+        function generateFeedbackTable() {
+
+
+            var thead = ''
+            thead += '<tr><th>Unique ID</th> <th>Contact Person</th><th> Sender Name </th> <th> Collection Date</th><th>Action</th><th>Status</th><th>Cycle</th><th></th></tr>'
+
+            var tbody = ''
+            for (var i = 0; i < batchDetailsInfo.length; i++) {
+
+                if (batchDetailsInfo[i][3] == null)
+                    batchDetailsInfo[i][3] = ''
+
+                viewLink = '/' + username + '/' + 'forms' + '/' + getBatchInfo[0][1] + '/' + 'instance' + '/' + '?s_id=' + batchDetailsInfo[i][0] + '#/' + batchDetailsInfo[i][0]
+                tbody += '<tr>'
+                tbody += '<td>' + batchDetailsInfo[i][0] + '</td><td>' + batchDetailsInfo[i][1] + '</td><td>' + batchDetailsInfo[i][2] + '</td><td>' + batchDetailsInfo[i][3] + '</td><td>' + batchDetailsInfo[i][4] + '</td><td></td><td></td><td><a href = "' + viewLink + '" class="btn btn-primary">View </a></td></tr>'
+
+
+            }
+
+
+            $('#batchListTable').find('thead').html(thead)
+
+            $('#batchListTable').find('tbody').html(tbody)
+
+            var dTablewithData = $('#batchListTable').DataTable({
+                "retrieve": true,
+                "bFilter": true,
+                "paging": true,
+                "scrollCollapse": true,
+                select: true,
+                //ordering: true,
+                "scrollX": true,
+                "bLengthChange": true,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+
+            });
+
+
+        }
+
+
+        // ****************** Call Center Data **********
+
+
+        var count = 1
+
+
+        function generateCallCenterTable() {
+            
+            if(count == 1){
+
+
+
+            var thead = ''
+            thead += '<tr><th>Unique ID</th> <th>Contact Person</th><th> Sender Name </th> <th> Collection Date</th><th>Action</th><th>Status</th><th>Cycle</th><th></th></tr>'
+
+            var tbody = ''
+            for (var i = 0; i < callCenterBatchDetailsInfo.length; i++) {
+
+                if (callCenterBatchDetailsInfo[i][3] == null)
+                    callCenterBatchDetailsInfo[i][3] = ''
+
+                viewLink = '/' + username + '/' + 'forms' + '/' + getBatchInfo[0][1] + '/' + 'instance' + '/' + '?s_id=' + batchDetailsInfo[i][0] + '#/' + batchDetailsInfo[i][0]
+                tbody += '<tr>'
+                tbody += '<td>' + callCenterBatchDetailsInfo[i][1] + '</td><td>' + callCenterBatchDetailsInfo[i][2] + '</td><td>' + callCenterBatchDetailsInfo[i][3] + '</td><td>' + callCenterBatchDetailsInfo[i][4] + '</td><td>' + callCenterBatchDetailsInfo[i][7] + '</td><td>' + callCenterBatchDetailsInfo[i][8] + '</td><td></td><td><a href = "' + viewLink + '" class="btn btn-primary">View </a></td></tr>'
+
+
+            }
+
+
+            $('#callCenterTable').find('thead').html(thead)
+            $('#callCenterTable').find('tbody').html(tbody)
+
+            $('#callCenterTable').DataTable({
+                "retrieve": true,
+                "bFilter": true,
+                "paging": true,
+                "scrollCollapse": true,
+                select: true,
+                //ordering: true,
+                "scrollX": true,
+                "bLengthChange": true,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+
+            });
+
+            }
+
+            count++
+        }
+
+
+    // ************* Tab  change Function call **********
+
+        $(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
+            var tab_id = $(e.target).attr('href');
+            if (tab_id == '#tab_call_center_data') {
+                generateCallCenterTable()
+            } else if (tab_id == '#tab_field_verification_data') {
+
+            }
+
+        })
+
+
+    </script>
+
+{% endblock %}
+
