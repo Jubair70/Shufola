@@ -44,6 +44,10 @@ urlpatterns = patterns('',
                        url(r'^cais_module/cropStageCreate/$', views_cais.cropStageCreate, name="cropStageCreate"),
                        url(r'^cais_module/crop_Stage_Edit/$', views_cais.crop_Stage_Edit, name="crop_Stage_Edit"),
 
+                       url(r'^cais_module/crop_variety/$', views_cais.crop_variety, name="crop_variety"),
+                       url(r'^cais_module/cropVarietyCreate/$', views_cais.cropVarietyCreate, name="cropVarietyCreate"),
+                       url(r'^cais_module/crop_variety_Edit/$', views_cais.crop_variety_Edit, name="crop_variety_Edit"),
+
                        url(r'^cais_module/crop_stage_alert/$', views_cais.crop_stage_alert, name="crop_stage_alert"),
                        url(r'^cais_module/cropStageAlertCreate/$', views_cais.cropStageAlertCreate, name="cropStageAlertCreate"),
                        url(r'^cais_module/crop_stage_alert_Edit/$', views_cais.crop_stage_alert_Edit, name="crop_stage_alert_Edit"),

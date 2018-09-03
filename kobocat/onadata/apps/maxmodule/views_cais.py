@@ -183,6 +183,62 @@ def crop_Stage_Edit(request):
 """
 
 
+"""
+@@ **************  Crop Variety (Start) ***********@@
+"""
+
+@login_required
+def crop_variety(request):
+
+    queryCropNameList = 'SELECT id, crop_name FROM public.crop order by id'
+    cropNameList = multipleValuedQuryExecution(queryCropNameList)
+
+    queryCropVarietyInfoList = 'SELECT id, (select crop_name from public.crop where id = crop_id )crop_name, variety_name FROM public.crop_variety order by id'
+    cropVarietyInfoList = multipleValuedQuryExecution(queryCropVarietyInfoList)
+
+    jsonCropVarietyInfoList = json.dumps({'cropVarietyInfoList':cropVarietyInfoList},default=decimal_date_default)
+    content = {
+        'cropNameList':cropNameList,
+        'jsonCropVarietyInfoList':jsonCropVarietyInfoList
+    }
+    return render(request,'cais_module/crop_variety.html',content)
+
+
+@login_required
+def cropVarietyCreate(request):
+    username = request.user.username
+    crop_id = request.POST.get('crop_id', '')
+    variety_name = request.POST.get('variety_name', '')
+    isEdit = request.POST.get('isEdit')
+
+    if isEdit !='':
+        queryEditCropStage = "UPDATE public.crop_variety SET crop_id= "+str(crop_id)+", variety_name='"+str(variety_name)+"'  WHERE id= "+str(isEdit)
+        __db_commit_query(queryEditCropStage)  ## Query Execution Function
+    else:
+        queryCreateCropVariety =  "INSERT INTO public.crop_variety (id, crop_id, variety_name, created_at, created_by, updated_at, updated_by) VALUES(nextval('crop_variety_id_seq'::regclass), "+str(crop_id)+", '"+str(variety_name)+"', now(), '"+str(username)+"', now(), '"+str(username)+"'); "
+        __db_commit_query(queryCreateCropVariety) ## Query Execution Function
+
+    return HttpResponseRedirect('/maxmodule/cais_module/crop_variety/')
+
+@login_required
+def crop_variety_Edit(request):
+
+    id = request.POST.get('id')
+
+
+    queryFetchSelecteCropVariety = "SELECT id, crop_id, variety_name  FROM public.crop_variety where id = "+str(id)
+    getFetchSelecteCropVariety = singleValuedQuryExecution(queryFetchSelecteCropVariety)
+
+    jsonFetchSelecteCropVariety = json.dumps({'getFetchSelecteCropVariety': getFetchSelecteCropVariety}, default=decimal_date_default)
+    return HttpResponse(jsonFetchSelecteCropVariety)
+
+
+"""
+@@ **************  Crop Variety (End) ***********@@
+"""
+
+
+
 
 """
 @@ **************  Crop Stage Alert(End) ***********@@
