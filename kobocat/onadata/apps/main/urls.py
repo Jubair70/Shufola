@@ -23,6 +23,7 @@ urlpatterns = patterns(
     url(r'^usermodule/', include('onadata.apps.usermodule.urls', namespace="usermodule")),
     url(r'^bgmodule/', include('onadata.apps.bgmodule.urls', namespace="bgmodule")),
     url(r'^maxmodule/', include('onadata.apps.maxmodule.urls', namespace="maxmodule")),
+    url(r'^ifcmodule/', include('onadata.apps.ifcmodule.urls', namespace="ifcmodule")),
     url(r'^dashboard/', include('onadata.apps.dashboard.urls', namespace="dashboard")),
     url(r'^dashboard_tool/', include('onadata.apps.dashboard_tool.urls', namespace="dashboard_tool")),
     url(r'^approve-status/', include('onadata.apps.approval.urls', namespace="approval-status")),
