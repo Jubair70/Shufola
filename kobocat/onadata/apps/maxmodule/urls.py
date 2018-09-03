@@ -70,7 +70,7 @@ urlpatterns = patterns('',
                        url(r'^cais_module/farmer/$', views_cais.farmer, name="farmer"),
                        url(r'^cais_module/farmerCreate/$', views_cais.farmerCreate, name="farmerCreate"),
                        url(r'^cais_module/farmer_Edit/$', views_cais.farmer_Edit, name="farmer_Edit"),
-
+                       url(r'^cais_module/getProgramList/$', views_cais.getProgramList, name="getProgramList"),
 
                        url(r'^cais_module/farmer_group/$', views_cais.farmer_group, name="farmer_group"),
                        url(r'^cais_module/farmer_groupCreate/$', views_cais.farmer_groupCreate, name="farmer_groupCreate"),

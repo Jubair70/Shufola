@@ -422,18 +422,28 @@ def crop_group_Edit(request):
 @login_required
 def farmer(request):
 
-    queryCreateFarmer = 'SELECT id, farmer_name, mobile_number, (SELECT "name" FROM public.geo_district where id = district_id )district_name, (SELECT "name" FROM public.geo_upazilla where id = upazila_id )upazila_name, (SELECT "name" FROM public.geo_union where id = union_id )union_name, village_name FROM public.farmer order by id; '
+    print("Enter ")
+
+    queryCreateFarmer = 'SELECT id, farmer_name, mobile_number, ' \
+                        '(SELECT "name" FROM public.geo_district where id = district_id )district_name, (SELECT "name" FROM public.geo_upazilla where id = upazila_id )upazila_name, ' \
+                        '(SELECT "name" FROM public.geo_union where id = union_id )union_name, (SELECT organization FROM public.usermodule_organizations where id = organization_id )organization_name , ' \
+                        ' (SELECT program_name FROM public.usermodule_programs where id = program_id) program_name  FROM public.farmer order by id desc '
     farmerInfoList = multipleValuedQuryExecution(queryCreateFarmer)
 
 ##  Get Geo District List
     disQuery = "select id,name from public.geo_district"
     dist_List = makeTableList(disQuery)
 
+    ##  Get Organization  List
+    organizationQuery = "select id,organization from public.usermodule_organizations"
+    organization_List = makeTableList(organizationQuery)
+
     jsonFarmerInfoList = json.dumps({'farmerInfoList':farmerInfoList},default=decimal_date_default)
 
     content = {
       'jsonFarmerInfoList':jsonFarmerInfoList,
-      'dist_List':dist_List
+      'dist_List':dist_List,
+      'organization_List':organization_List
     }
 
 
@@ -448,14 +458,15 @@ def farmerCreate(request):
     district_id = request.POST.get('district_id', '')
     upazila_id = request.POST.get('upazila_id', '')
     union_id = request.POST.get('union_id', '')
-    village_id = request.POST.get('village_id', '')
+    organization_id = request.POST.get('organization_id', '')
+    program_id = request.POST.get('program_id', '')
 
     isEdit = request.POST.get('isEdit')
     if isEdit != '':
-        queryEditFarmer = "UPDATE public.farmer SET farmer_name='"+farmer_name+"', district_id= "+district_id+", upazila_id= "+upazila_id+", union_id="+union_id+", village_name='"+village_id+"', mobile_number='"+mobile_num+"' WHERE id= "+str(isEdit)
+        queryEditFarmer = "UPDATE public.farmer SET farmer_name='"+farmer_name+"', district_id= "+district_id+", upazila_id= "+upazila_id+", union_id="+union_id+", program_id="+program_id+", organization_id = "+ organization_id +" , mobile_number='"+mobile_num+"' WHERE id= "+str(isEdit)
         __db_commit_query(queryEditFarmer)
     else:
-        queryCreateCropGroup = "INSERT INTO public.farmer(id, farmer_name, district_id, upazila_id, union_id, village_name, mobile_number, created_at, created_by, updated_at, updated_by) VALUES(nextval('farmer_id_seq'::regclass), '"+str(farmer_name)+"', "+str(district_id)+", "+str(upazila_id)+", "+str(union_id)+", '"+str(village_id)+"', '"+str(mobile_num)+"', now(), '"+str(username)+"', now(), '"+str(username)+"');"
+        queryCreateCropGroup = "INSERT INTO public.farmer(id, farmer_name, district_id, upazila_id, union_id,  organization_id , program_id , mobile_number, created_at, created_by, updated_at, updated_by) VALUES(nextval('farmer_id_seq'::regclass), '"+str(farmer_name)+"', "+str(district_id)+", "+str(upazila_id)+", "+str(union_id)+", "+str(organization_id)+","+str(program_id)+", '"+str(mobile_num)+"', now(), '"+str(username)+"', now(), '"+str(username)+"');"
         __db_commit_query(queryCreateCropGroup)
 
     return HttpResponseRedirect('/maxmodule/cais_module/farmer/')
@@ -463,11 +474,39 @@ def farmerCreate(request):
 @login_required
 def farmer_Edit(request):
     id = request.POST.get('id')
-    queryFetchSelectedFarmer = "SELECT id, farmer_name, district_id, upazila_id, union_id, village_name, mobile_number FROM public.farmer where id = "+str(id) ;
+
+    queryFetchSelectedFarmer = "SELECT id, farmer_name, district_id, upazila_id, union_id, organization_id, program_id , mobile_number FROM public.farmer where id = "+str(id) ;
     getFetchSelectedFarmer = singleValuedQuryExecution(queryFetchSelectedFarmer)
 
-    jsonFetchSelectedFarmer = json.dumps({'getFetchSelectedFarmer':getFetchSelectedFarmer},default=decimal_date_default)
+    upazilaQuery = "select id,name from geo_upazilla where geo_district_id =" + str(getFetchSelectedFarmer[2])
+    upazila_List = makeTableList(upazilaQuery)
+    #jsonUpaList = json.dumps({'upazila_List': upazila_List}, default=decimal_date_default)
+
+    unionQuery = "select id,name from geo_union where geo_upazilla_id = " + str(getFetchSelectedFarmer[3])
+    union_List = makeTableList(unionQuery)
+    #jsonUnionList = json.dumps({'union_List': union_List}, default=decimal_date_default)
+
+    programQuery = "select id, program_name from usermodule_programs where org_id =" + str(getFetchSelectedFarmer[5])
+    program_List = makeTableList(programQuery)
+    #jsonProgramList = json.dumps({'program_List': program_List}, default=decimal_date_default)
+
+
+    jsonFetchSelectedFarmer = json.dumps({'getFetchSelectedFarmer':getFetchSelectedFarmer,
+                                          'upazila_List':upazila_List,
+                                          'union_List':union_List,
+                                          'program_List':program_List
+                                          },default=decimal_date_default)
     return HttpResponse(jsonFetchSelectedFarmer)
+
+
+@login_required
+def getProgramList(request):
+    selectedOrganization = request.POST.get('organization')
+    programQuery = "select id, program_name from usermodule_programs where org_id =" + selectedOrganization
+    program_List = makeTableList(programQuery)
+    jsonProgramList = json.dumps({'program_List': program_List}, default=decimal_date_default)
+
+    return HttpResponse(jsonProgramList)
 
 
 
