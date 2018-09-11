@@ -427,7 +427,7 @@ def farmer(request):
     queryCreateFarmer = 'SELECT id, farmer_name, mobile_number, ' \
                         '(SELECT "name" FROM public.geo_district where id = district_id )district_name, (SELECT "name" FROM public.geo_upazilla where id = upazila_id )upazila_name, ' \
                         '(SELECT "name" FROM public.geo_union where id = union_id )union_name, (SELECT organization FROM public.usermodule_organizations where id = organization_id )organization_name , ' \
-                        ' (SELECT program_name FROM public.usermodule_programs where id = program_id) program_name  FROM public.farmer order by id desc '
+                        ' (SELECT program_name FROM public.usermodule_programs where id = program_id) program_name,status  FROM public.farmer order by id desc '
     farmerInfoList = multipleValuedQuryExecution(queryCreateFarmer)
 
 ##  Get Geo District List

@@ -404,8 +404,10 @@
 
             for (var i = 0; i < farmerInfoList.length; i++) {
 
-                tbody += '<tr><td>' + count + '</td><td>' + farmerInfoList[i][1] + '</td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
-
+                if(farmerInfoList[i][8]==1)
+                tbody += '<tr><td>' + count + '</td><td><a href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                else
+                tbody += '<tr><td>' + count + '</td><td><a style="color:red;" href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
                 count++;
             }
 

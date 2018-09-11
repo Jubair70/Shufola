@@ -49,6 +49,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection
 from collections import OrderedDict
+import decimal
 import os
 
 
@@ -177,3 +178,93 @@ def delete_program_form(request, program_id):
     messages.success(request, '<i class="fa fa-check-circle"></i> Program Info has been deleted successfully!',
                              extra_tags='alert-success crop-both-side')
     return HttpResponseRedirect("/ifcmodule/program_list/")
+
+@login_required
+def farmer_profile_view(request,farmer_id):
+    # Farmer Details Information Query
+    query = "select farmer_name,(select name from geo_district where id = district_id limit 1) division_name ,(select name from geo_upazilla where id = upazila_id limit 1) upazilla_name ,(select name from geo_union where id = union_id limit 1) union_name,mobile_number,(select organization from usermodule_organizations where id = organization_id limit 1)organization,(select program_name from usermodule_programs where id = program_id limit 1) as program,status from farmer where organization_id is not null and program_id is not null and id = " + str(farmer_id)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    farmer_name = df.farmer_name.tolist()[0]
+    division_name = df.division_name.tolist()[0]
+    upazilla_name = df.upazilla_name.tolist()[0]
+    union_name = df.union_name.tolist()[0]
+    mobile_number = df.mobile_number.tolist()[0]
+    organization = df.organization.tolist()[0]
+    program = df.program.tolist()[0]
+    status = df.status.tolist()[0]
+
+    # Crop List
+    query = "select (select crop_name from crop where id = crop_id limit 1),(select season_name from cropping_season where id = season_id limit 1),(select variety_name from crop_variety where id = crop_variety_id),sowing_date,land_size || ' '|| (select unit_name from land_units where id = unit_id limit 1) land_size from farmer_crop_info where farmer_id = "+str(farmer_id)
+    crop_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+
+    print(status)
+    return render(request, 'ifcmodule/farmer_profile_view.html',
+                  {'farmer_name': farmer_name
+                      ,'division_name': division_name
+                      , 'upazilla_name': upazilla_name
+                      , 'union_name': union_name
+                      , 'mobile_number': mobile_number
+                      , 'organization': organization
+                      , 'program': program
+                      ,'farmer_id':farmer_id
+                   ,'crop_list':crop_list
+                   ,'status':status})
+
+@login_required
+def add_crop_form(request,farmer_id):
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select id,unit_name from land_units"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    unit_id = df.id.tolist()
+    unit_name = df.unit_name.tolist()
+    unit = zip(unit_id, unit_name)
+
+    return render(request, 'ifcmodule/add_crop_form.html',{'farmer_id':farmer_id,'season': season,'crop':crop,'unit':unit})
+
+@login_required
+def getVariety(request):
+    crop_id = request.POST.get('obj')
+    query = "select id,variety_name from crop_variety where crop_id = "+str(crop_id)
+    data = json.dumps(__db_fetch_values_dict(query))
+    return HttpResponse(data)
+
+
+@login_required
+def insert_crop_form(request):
+    if request.POST:
+        farmer_id = request.POST.get('farmer_id')
+        season = request.POST.get('season')
+        crop = request.POST.get('crop')
+        crop_variety = request.POST.get('crop_variety')
+        sowing_date = request.POST.get('sowing_date')
+        unit = request.POST.get('unit')
+        land_size = request.POST.get('land_size')
+        user_id = request.user.id
+        insert_query = "INSERT INTO public.farmer_crop_info(farmer_id, crop_id, season_id, crop_variety_id, sowing_date, unit_id, land_size, created_at, created_by, updated_at, updated_by)VALUES("+str(farmer_id)+", "+str(crop)+", "+str(season)+", "+str(crop_variety)+", '"+str(sowing_date)+"', "+str(unit)+", '"+str(land_size)+"', now(), "+str(user_id)+", now(), "+str(user_id)+")"
+        __db_commit_query(insert_query)
+        messages.success(request, '<i class="fa fa-check-circle"></i> New Crop Info has been added to this farmer successfully!',
+                             extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect("/ifcmodule/farmer_profile_view/"+str(farmer_id)+"/")
+
+@login_required
+def change_status(request):
+    status = abs(int(request.POST.get('status'))-1)
+    farmer_id = request.POST.get('farmer_id')
+    query = " update farmer set status = "+str(status)+" where id="+str(farmer_id)
+    __db_commit_query(query)
+    return HttpResponse("")
