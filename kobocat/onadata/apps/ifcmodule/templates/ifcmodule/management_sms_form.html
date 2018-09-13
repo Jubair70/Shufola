@@ -1,0 +1,199 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="fa fa-reorder"></i> Add Crop To Farmer
+            </div>
+        </div>
+
+        <div class="portlet-body">
+            <form class="horizontal-form" id="" method="post" action="/ifcmodule/insert_crop_form/" id="form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="farmer_id" id="farmer_id" value="{{ farmer_id }}">
+                <div class="form-body">
+                <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Season: </label>
+                                <select class="form-control" name="season" id="season" required>
+                                    <option value="">Select One</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Crop: </label>
+                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" required>
+                                    <option value="">Select One</option>
+                                    {% for m,n in crop %}
+                                        <option value="{{ m }}">{{ n }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Variety of the Crop: </label>
+                                <select class="form-control" name="crop_variety" id="crop_variety" required>
+                                    <option value="">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                 <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label >Sowing Date: </label>
+                                <input type="text" class="datepicker form-control"  name="sowing_date" id="sowing_date" autocomplete="off" required>
+                            </div>
+                        </div>
+                    </div>
+                <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Unit of the Cultivable land: </label>
+                                <select class="form-control" name="unit" id="unit" required>
+                                    <option value="">Select One</option>
+                                    {% for w,e in unit %}
+                                        <option value="{{ w }}">{{ e }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Size of cultivable land:</label>
+                                <input type="number" step="0.001" min="0" class="form-control" name="land_size" id="land_size" required>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+        <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+{#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
+{#    <script type="text/javascript" src="/static/js/calendar.min.js"></script>#}
+    <script>
+
+$(function () {
+            $('#sowing_date').datepicker({
+                endDate: '0d',
+                format: 'yyyy-mm-dd',
+                todayHighlight: true
+            }).on('changeDate', function () {
+                $(this).datepicker('hide');
+            });
+
+
+
+        });
+$('#sowing_date').on('keydown', function(e) {
+    e.preventDefault(); // Don't allow direct editing
+});
+
+
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+    </script>
+
+{% endblock %}
