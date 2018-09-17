@@ -15,4 +15,7 @@ urlpatterns = patterns('',
     url(r'^getVariety/$', views.getVariety, name='getVariety'),
     url(r'^insert_crop_form/$', views.insert_crop_form, name='insert_crop_form'),
     url(r'^change_status/$', views.change_status, name='change_status'),
+    url(r'^management_sms_form/$', views.management_sms_form, name='management_sms_form'),
+    url(r'^getProgram/$', views.getProgram, name='getProgram'),
+    url(r'^insert_management_sms_form/$', views.insert_management_sms_form, name='insert_management_sms_form'),
     )
