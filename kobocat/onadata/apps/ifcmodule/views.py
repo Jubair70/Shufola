@@ -51,7 +51,7 @@ from django.db import connection
 from collections import OrderedDict
 import decimal
 import os
-
+import shutil
 
 def __db_fetch_values(query):
     cursor = connection.cursor()
@@ -327,3 +327,83 @@ def insert_management_sms_form(request):
         messages.success(request, '<i class="fa fa-check-circle"></i>New SMS has been added successfully!',
                              extra_tags='alert-success crop-both-side')
     return HttpResponseRedirect("/ifcmodule/management_sms_form/")
+
+
+def weather_forecast(request):
+    # os.system("sudo -S chmod -R 777 /home/ftpuserifc/20180826_00")
+    start = datetime.now()
+    query = "select * from weather_forecast"
+    # directory = "20180916_00"
+    # os.system("echo ''|sudo -S chmod -R 777 /home/ftpuserifc/20180916_00")
+    directory = str(datetime.now().date()).replace('-','')+'_00'
+    print(directory)
+    if not os.path.exists("onadata/media/weather_files/"):
+        os.makedirs("onadata/media/weather_files/")
+    if not os.path.exists("onadata/media/weather_files/"+str(directory)) and os.path.exists('/home/ftpuserifc/'+str(directory)):
+        shutil.copytree('/home/ftpuserifc/'+str(directory),'onadata/media/weather_files/'+str(directory))
+        #list_of_files in that directory
+        list_of_files = os.listdir('onadata/media/weather_files/'+str(directory))
+        # print(list_of_files)
+        for each in list_of_files:
+            print('.txt' in each)
+            if '.txt' in each:
+                # read from directory
+                # shutil.copyfile('onadata/media/test/Tar_02.txt', 'onadata/media/uploaded_files/Tar_02.txt')
+                file = open('onadata/media/weather_files/'+str(directory)+'/'+str(each), 'r')
+                insert_content = file.read()
+                file.close()
+                insert_content = insert_content.split('\n')
+                for each in insert_content:
+                    # print(re.split(r"\s+",each,maxsplit=6))
+                    temp_data = each.split(None,6)
+                    place_name = ''
+                    date_time = ''
+                    temperature = ''
+                    humidity = ''
+                    wind_speed = ''
+                    wind_direction = ''
+                    rainfall = ''
+
+                    if len(temp_data):
+                        place_name = temp_data[0]
+                        date_time = str(temp_data[1]).split(':')
+                        temperature = temp_data[2]
+                        humidity = temp_data[3]
+                        wind_speed = temp_data[4]
+                        wind_direction = temp_data[5]
+                        rainfall = temp_data[6].strip()
+                        if rainfall[0] == 'E':
+                            rainfall = '-1'
+
+                        # formatting the date_time
+                        res_date = ''
+                        res_date = date_time[0]+'-'
+                        if int(date_time[1]) <= 9:
+                            res_date += '0'+date_time[1]+'-'
+                        else:
+                            res_date += date_time[1] + '-'
+                        if int(date_time[2]) <= 9:
+                            res_date += '0'+date_time[2]
+                        else:
+                            res_date += date_time[2]
+                        if int(date_time[3]) <= 9:
+                            res_date += ' 0' + date_time[3]+ ':00'+ ':00'
+                        else:
+                            res_date += ' ' + date_time[3] + ':00' + ':00'
+
+                        # check if data is exists or not
+                        query = "select id from weather_forecast where place_name = '"+str(place_name)+"' and date_time = '"+str(res_date)+"'"
+                        df = pandas.DataFrame()
+                        df = pandas.read_sql(query,connection)
+                        if not df.empty:
+                            # update query
+                            id = df.id.tolist()[0]
+                            update_query = "UPDATE public.weather_forecast SET temperature='"+str(temperature)+"', humidity='"+str(humidity)+"', wind_speed='"+str(wind_speed)+"', wind_direction='"+str(wind_direction)+"', rainfall='"+str(rainfall)+"' where id = "+str(id)
+                            __db_commit_query(update_query)
+                        else:
+                            # insert query
+                            insert_query = "INSERT INTO public.weather_forecast (place_name, date_time, temperature, humidity, wind_speed, wind_direction, rainfall,data_type) VALUES('"+str(place_name)+"', '"+str(res_date)+"', '"+str(temperature)+"', '"+str(humidity)+"', '"+str(wind_speed)+"', '"+str(wind_direction)+"', '"+str(rainfall)+"','forecast')"
+                            __db_commit_query(insert_query)
+    print(datetime.now()-start)
+    # return render(request,'ifcmodule/index.html')
+    return HttpResponse('')
