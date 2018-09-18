@@ -132,17 +132,24 @@ def crop_Edit(request):
 
 @login_required
 def crop_Stage (request):
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
 
     queryCropNameList = 'SELECT id, crop_name FROM public.crop order by id'
     cropNameList = multipleValuedQuryExecution(queryCropNameList)
 
-    queryCropStageInfoList = 'SELECT id, (select crop_name from public.crop where id = crop_id )crop_name, stage_name, start_day, end_day FROM public.crop_stage order by id'
+    queryCropStageInfoList = "SELECT id, (select crop_name from public.crop where id = crop_id )crop_name, stage_name,case when crop_variety_id::int = 0 then 'ALL' else (select variety_name from crop_variety where id = crop_variety_id::int) end variety_name,case when season_id::int = 0 then 'ALL' else (select season_name from cropping_season where id = season_id::int) end season, start_day, end_day FROM public.crop_stage order by id"
     cropStageInfoList = multipleValuedQuryExecution(queryCropStageInfoList)
 
     jsonCropStageInfoList = json.dumps({'cropStageInfoList':cropStageInfoList},default=decimal_date_default)
     content = {
         'cropNameList':cropNameList,
-        'jsonCropStageInfoList':jsonCropStageInfoList
+        'jsonCropStageInfoList':jsonCropStageInfoList,
+        'season':season
     }
     return render(request,'cais_module/crop_Stage.html',content)
 
@@ -154,13 +161,15 @@ def cropStageCreate(request):
     stage_name = request.POST.get('stage_name', '')
     start_day = request.POST.get('start_day', '')
     end_day = request.POST.get('end_day', '')
+    season = request.POST.get('season','')
+    crop_variety = request.POST.get('crop_variety','')
     isEdit = request.POST.get('isEdit')
 
     if isEdit !='':
         queryEditCropStage = "UPDATE public.crop_stage SET crop_id= "+str(crop_id)+", stage_name='"+str(stage_name)+"', start_day= "+str(start_day)+", end_day= "+str(end_day)+"  WHERE id= "+str(isEdit)
         __db_commit_query(queryEditCropStage)  ## Query Execution Function
     else:
-        queryCreateCropStage =  "INSERT INTO public.crop_stage (id, crop_id, stage_name, start_day, end_day, created_at, created_by, updated_at, updated_by) VALUES(nextval('crop_stage_id_seq'::regclass), "+str(crop_id)+", '"+str(stage_name)+"', "+str(start_day)+", "+str(end_day)+", now(), '"+str(username)+"', now(), '"+str(username)+"'); "
+        queryCreateCropStage =  "INSERT INTO public.crop_stage (id, crop_id, stage_name, start_day, end_day, created_at, created_by, updated_at, updated_by,crop_variety_id,season_id) VALUES(nextval('crop_stage_id_seq'::regclass), "+str(crop_id)+", '"+str(stage_name)+"', "+str(start_day)+", "+str(end_day)+", now(), '"+str(username)+"', now(), '"+str(username)+"', '"+str(crop_variety)+"', '"+str(season)+"'); "
         __db_commit_query(queryCreateCropStage) ## Query Execution Function
 
     return HttpResponseRedirect('/maxmodule/cais_module/crop_Stage/')
@@ -171,7 +180,7 @@ def crop_Stage_Edit(request):
     id = request.POST.get('id')
 
 
-    queryFetchSelecteCropStage = "SELECT id, crop_id, stage_name, start_day, end_day  FROM public.crop_stage where id = "+str(id)
+    queryFetchSelecteCropStage = "SELECT id, crop_id, stage_name, start_day, end_day,season_id,crop_variety_id  FROM public.crop_stage where id = "+str(id)
     getFetchSelecteCropStage = singleValuedQuryExecution(queryFetchSelecteCropStage)
 
     jsonFetchSelecteCropStage = json.dumps({'getFetchSelecteCropStage': getFetchSelecteCropStage}, default=decimal_date_default)

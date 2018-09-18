@@ -109,7 +109,7 @@
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
 
-                        <select type="select" name="crop_id" id="crop_id" class="form-control " required>
+                        <select type="select" name="crop_id" id="crop_id" onclick="load_variety(this)" class="form-control " required>
                             <option value="">Select Any</option>
                             {% for list in cropNameList %}
                                 <option value="{{ list.0 }}">{{ list.1 }}</option>
@@ -119,6 +119,40 @@
 
                     </div>
                 </div>
+             <div class="row">
+                 <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Variety of the Crop:</b></label>
+
+                    </div>
+                        <div class="col-xs-3 col-md-3">
+                            <div class="form-group">
+
+                                <select class="form-control" name="crop_variety" id="crop_variety">
+                                    <option value="0">ALL</option>
+                                </select>
+
+                            </div>
+                        </div>
+             </div>
+
+            <div class="row">
+                 <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Season:</b></label>
+
+                    </div>
+                        <div class="col-xs-3 col-md-3">
+                            <div class="form-group">
+
+                               <select class="form-control" name="season" id="season">
+                                    <option value="0">ALL</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                        </div>
+             </div>
 
                 <div class="row">
                     <div class="col-xs-2 col-md-2 ">
@@ -198,8 +232,11 @@
                     <th> SI No.</th>
                     <th> Crop Name</th>
                     <th> Stage Name</th>
+                    <th> Variety </th>
+                    <th> Season </th>
                     <th> Start Day</th>
                     <th> End day</th>
+
                     <th></th>
                 </tr>
 
@@ -268,7 +305,7 @@
             for (var i = 0; i < cropStageInfoList.length; i++) {
 
 
-                tbody += '<tr><td>' + count + '</td><td>' + cropStageInfoList[i][1] + '</td><td>' + cropStageInfoList[i][2] + '</td><td>' + cropStageInfoList[i][3] + '</td><td>' + cropStageInfoList[i][4] + '</td><td><button onclick="getEditId(' + cropStageInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>' + cropStageInfoList[i][1] + '</td><td>' + cropStageInfoList[i][2] + '</td><td>' + cropStageInfoList[i][3] + '</td><td>' + cropStageInfoList[i][4] + '</td><td>' + cropStageInfoList[i][5] + '</td><td>' + cropStageInfoList[i][6] + '</td><td><button onclick="getEditId(' + cropStageInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
@@ -310,16 +347,99 @@
                     console.log(list)
 
                     $("#crop_id").val("" + list.getFetchSelecteCropStage[1] + "").change();
+{#                    $("#crop_id").trigger('click');#}
                     $('#stage_name').attr("value", list.getFetchSelecteCropStage[2]);
                     $('#start_day').attr("value", list.getFetchSelecteCropStage[3]);
                     $('#end_day').attr("value", list.getFetchSelecteCropStage[4]);
 
+{#                    $("#crop_variety").val("" + list.getFetchSelecteCropStage[5] + "").change();#}
+                    $("#season").val("" + list.getFetchSelecteCropStage[5] + "").change();
+
+                    ajaxcall();
+                    obj = list.getFetchSelecteCropStage[1];
+                    $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"0\">ALL</option>";
+                        for (i = 0; i < result.length; i++) {
+                            console.log(list.getFetchSelecteCropStage[6])
+                            if(result[i].id == list.getFetchSelecteCropStage[6])
+                            html_code += "<option value=\"" + result[i].id + "\" selected> " + result[i].variety_name + "</option>";
+                            else
+                                html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
 
                 }
 
             });
 
 
+        }
+
+
+        function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"0\">ALL</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"0\">ALL</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
         }
 
     </script>
