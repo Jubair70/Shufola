@@ -623,6 +623,8 @@ def farmer_group_Edit(request):
 """
 @@*************************** Get Geo Location (Start) **************************
 """
+
+
 @login_required
 def getUpazilas(request):
     selectedDistrict = request.POST.get('district')
