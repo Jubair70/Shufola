@@ -407,3 +407,26 @@ def weather_forecast(request):
     print(datetime.now()-start)
     # return render(request,'ifcmodule/index.html')
     return HttpResponse('')
+
+
+def update_stage(request):
+    query = "select id, sowing_date from farmer_crop_info"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    farmer_crop_id = []
+    sowing_date = []
+    if not df.empty:
+        farmer_crop_id = df.id.tolist()
+        sowing_date = df.sowing_date.tolist()
+    for i in range(len(farmer_crop_id)):
+        query  = "select * from farmer_crop_stage where farmer_crop_id = "+str(farmer_crop_id[i])
+        df = pandas.DataFrame()
+        df = pandas.read_sql(query, connection)
+        if df.empty:
+            insert_query = "INSERT INTO farmer_crop_stage(farmer_crop_id, stage) VALUES ("+str(farmer_crop_id[i])+", (SELECT (SELECT CASE WHEN crop_variety_id :: INT = 0 AND season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+"))"
+            __db_commit_query(insert_query)
+        else:
+            update_query = "update farmer_crop_stage set stage =(SELECT (SELECT CASE WHEN crop_variety_id :: INT = 0 AND season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: DATE - t.sowing_date >= start_day AND Now() :: DATE - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: DATE - t.sowing_date >= start_day AND Now() :: DATE - t.sowing_date <= end_day AND t.id ="+str(farmer_crop_id[i])+") END FROM crop_stage WHERE crop_id = t.crop_id limit 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+") where id ="+str(farmer_crop_id[i])
+            __db_commit_query(update_query)
+    # return render(request,'ifcmodule/index.html')
+    return HttpResponse('')
