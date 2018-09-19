@@ -226,7 +226,7 @@ def farmer_profile_view(request, farmer_id):
         farmer_id)
     crop_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
 
-    print(query)
+
     return render(request, 'ifcmodule/farmer_profile_view.html',
                   {'farmer_name': farmer_name
                       , 'district_name': district_name
@@ -414,6 +414,10 @@ def insert_management_sms_form(request):
                          extra_tags='alert-success crop-both-side')
     return HttpResponseRedirect("/ifcmodule/management_sms_form/")
 
+
+import shutil
+# import pwd
+# import grp
 
 def weather_forecast(request):
     # os.system("sudo -S chmod -R 777 /home/ftpuserifc/20180826_00")
