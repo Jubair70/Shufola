@@ -462,8 +462,6 @@ def farmer(request):
                         '(SELECT "name" FROM public.geo_union where id = union_id )union_name, (SELECT organization FROM public.usermodule_organizations where id = organization_id )organization_name , ' \
                         ' (SELECT program_name FROM public.usermodule_programs where id = program_id) program_name,status  FROM public.farmer order by id desc '
 
-    print(queryCreateFarmer)
-
     farmerInfoList = multipleValuedQuryExecution(queryCreateFarmer)
 
     ##  Get Geo Country List

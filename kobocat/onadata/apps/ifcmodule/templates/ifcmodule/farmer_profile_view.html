@@ -39,7 +39,7 @@ height: 100%;
                                         <td>{{ mobile_number }}</td>
                                     </tr>
                                     <tr>
-                                        <th>Division</th>
+                                        <th>District</th>
                                         <td>{{ division_name }}</td>
                                     </tr>
                                     <tr>
@@ -90,6 +90,9 @@ height: 100%;
                             <th class="td-center">Variety</th>
                             <th class="td-center">Sowing Date</th>
                             <th class="td-center">Size of cultivating land</th>
+                            <th class="td-center">District</th>
+                            <th class="td-center">Upazila</th>
+                            <th class="td-center">Union</th>
                             </thead>
                             <tbody>
                             </tbody>
@@ -154,7 +157,7 @@ height: 100%;
         var tbody = '';
         var crop_list = {{ crop_list|safe }};
         for (var idx in crop_list) {
-            tbody += '<tr><td>' + crop_list[idx].season_name + '</td><td>' + crop_list[idx].crop_name + '</td><td>'+crop_list[idx].variety_name+'</td><td>'+crop_list[idx].sowing_date+'</td><td>'+crop_list[idx].land_size+'</td></tr>';
+            tbody += '<tr><td>' + crop_list[idx].season_name + '</td><td>' + crop_list[idx].crop_name + '</td><td>'+crop_list[idx].variety_name+'</td><td>'+crop_list[idx].sowing_date+'</td><td>'+crop_list[idx].land_size+'</td><td>'+crop_list[idx].district_name+'</td><td>'+crop_list[idx].upazila_name+'</td><td>'+crop_list[idx].union_name+'</td></tr>';
         }
 
         $("#crop_list_table").find('tbody').html(tbody);
