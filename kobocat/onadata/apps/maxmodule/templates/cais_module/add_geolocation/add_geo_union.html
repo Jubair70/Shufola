@@ -92,15 +92,16 @@
 
 
     <ul class="nav nav-tabs">
-        <li class="active"><a style="font-size:17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_zone/">Add
+        <li class=""><a style="font-size:17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_zone/">Add
             Zone </a>
         </li>
-        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_district/" >Add District </a>
+        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_district/"
+                        data-toggle="tab">Add District </a>
         </li>
-        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_upazila/" >Add
+        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_upazila/">Add
             Upazila </a>
         </li>
-        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_union/" > Add
+        <li class="active"><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_union/"> Add
             Union </a>
         </li>
     </ul>
@@ -113,7 +114,7 @@
 
         -->
 
-        <form action="/maxmodule/cais_module/add_geolocation/geo_zone_Create/" enctype="multipart/form-data"
+        <form action="/maxmodule/cais_module/add_geolocation/geo_union_Create/" enctype="multipart/form-data"
               method="post">
             {% csrf_token %}
             <div class="col-md-12">
@@ -140,27 +141,75 @@
                 </div>
 
                 <div class="row">
+
                     <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Zone Name</b></label>
+                        <label class="control-label"><b>Zone </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="zone_id" id="zone_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>District </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="district_id" id="district_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Upazila </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="upazila_id" id="upazila_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Union Name</b></label>
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
 
 
-                        <input type="text" class="form-control " name="zone_name" id="zone_name" required>
+                        <input type="text" class="form-control " name="union_name" id="union_name" required>
 
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Zone Code</b></label>
+                        <label class="control-label"><b>Union Code</b></label>
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
 
 
-                        <input type="text" class="form-control " name="zone_code" id="zone_code" required>
+                        <input type="text" class="form-control " name="union_code" id="union_code" required>
 
                     </div>
                 </div>
@@ -182,7 +231,7 @@
 
     <div class="row">
         <div class="form-group col-md-12">
-            <span class="control-label btn btn-primary"><b>Zone List</b></span>
+            <span class="control-label btn btn-primary"><b>Union List</b></span>
         </div>
     </div>
 
@@ -196,7 +245,7 @@
         </div>
 
         <div class="col-md-12">
-            <table id="zoneInfoListTable" class="table table-bordered table-hover exportMargin">
+            <table id="unionInfoListTable" class="table table-bordered table-hover exportMargin">
                 <caption class="textAlign">
 
                 </caption>
@@ -204,8 +253,11 @@
                 <tr>
                     <th> SI No.</th>
                     <th> Country</th>
-                    <th> Zone Name</th>
-                    <th> Zone Code</th>
+                    <th> Zone</th>
+                    <th> District</th>
+                    <th> Upazila</th>
+                    <th> Union Name</th>
+                    <th> Union Code</th>
                     <th></th>
                 </tr>
 
@@ -255,34 +307,117 @@
 
     <script type="text/javascript">
 
-        var jsonZoneInfoList =
-        {{ jsonZoneInfoList |safe }}
-        var zoneInfoList = jsonZoneInfoList.zoneInfoList
+        var jsonUnionInfoList =
+        {{ jsonUnionInfoList |safe }}
+        var unionInfoList = jsonUnionInfoList.unionInfoList
+        var idEdit = ''
 
-        console.log(zoneInfoList)
+        var country = ''
+        var zone = ''
 
         $(document).ready(function () {
 
-            getZoneList() // Making the crop Variety info List table
+            getUnionList() // Making the crop Variety info List table
 
         });
 
 
-        function getZoneList() {
+        $(document).on("change", "#country_id", function () {
+            country = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getZones/',
+                data: {
+
+                    'country': country,
+                },
+
+
+                success: function (data) {
+                    list = JSON.parse(data)
+
+
+                    $('#zone_id').find('option').remove()
+                    $('#zone_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.zone_List.length; i++) {
+                        $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
+                    }
+
+
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+
+        $(document).on("change", "#zone_id", function () {
+            zone = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getDistricts/',
+                data: {
+
+                    'zone': zone,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#district_id').find('option').remove()
+                    $('#district_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.district_List.length; i++) {
+                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+        $(document).on("change", "#district_id", function () {
+            district = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getUpazilas/',
+                data: {
+
+                    'district': district,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#upazila_id').find('option').remove()
+                    $('#upazila_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.upazila_List.length; i++) {
+                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+
+        function getUnionList() {
 
             var count = 1
             var tbody = ''
 
-            for (var i = 0; i < zoneInfoList.length; i++) {
+            for (var i = 0; i < unionInfoList.length; i++) {
 
 
-                tbody += '<tr><td>' + count + '</td><td>' + zoneInfoList[i][1] + '</td><td>' + zoneInfoList[i][2] + '</td><td>' + zoneInfoList[i][3] + '</td><td><button onclick="getEditId(' + zoneInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>' + unionInfoList[i][1] + '</td><td>' + unionInfoList[i][2] + '</td><td>' + unionInfoList[i][3] + '</td><td>' + unionInfoList[i][4] + '</td><td>' + unionInfoList[i][5] + '</td><td>' + unionInfoList[i][6] + '</td><td><button disabled onclick="getEditId(' + unionInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
 
-            $('#zoneInfoListTable').find('tbody').html(tbody)
-            dTablewithData = $('#zoneInfoListTable').DataTable({
+            $('#unionInfoListTable').find('tbody').html(tbody)
+            dTablewithData = $('#unionInfoListTable').DataTable({
                 "retrieve": true,
                 "bFilter": true,
                 "paging": true,
@@ -303,10 +438,12 @@
         function getEditId(id) {
 
             $('#isEdit').attr("value", id);
+            idEdit = id
+
 
             $.ajax({
                 type: 'POST',
-                url: '/maxmodule/cais_module/add_geolocation/geo_zone_Edit/',
+                url: '/maxmodule/cais_module/add_geolocation/geo_union_Edit/',
                 data: {
 
                     'id': id,
@@ -315,11 +452,20 @@
 
                     list = JSON.parse(data)
 
-                    console.log(list)
+                    $("#country_id").val("" + list.getFetchSelectedDistrict[1] + "").change();
 
-                    $("#country_id").val("" + list.getFetchSelectedZone[1] + "").change();
-                    $('#zone_name').attr("value", list.getFetchSelectedZone[2]);
-                    $('#zone_code').attr("value", list.getFetchSelectedZone[3]);
+                    $('#zone_id').find('option').remove()
+                    $('#zone_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.zone_List.length; i++) {
+
+                        $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
+                    }
+
+                    $("#zone_id").val("" + getFetchSelectedDistrict[2] + "").prop('selected', true)
+                    $('#district_name').attr("value", list.getFetchSelectedDistrict[3]);
+                    $('#district_code').attr("value", list.getFetchSelectedDistrict[4]);
+
+                    $("#zone_id").val(list.getFetchSelectedDistrict[2]).prop('selected', true)
 
                 }
 

@@ -82,7 +82,6 @@ def makeTableList(tableListQuery):
 @@ Add Geo Location (Start)
 """
 
-
 ##************ Zone (Start) ***********
 
 @login_required
@@ -90,7 +89,7 @@ def add_geo_zone(request):
     queryCountryList = 'SELECT id, name , code  FROM public.geo_country order by id asc '
     countryList = multipleValuedQuryExecution(queryCountryList)
 
-    queryZoneInfoList = 'SELECT id ,  (select name from public.geo_country where id = geo_country_id ) country_name, name  , code FROM public.geo_zone order by id asc'
+    queryZoneInfoList = 'SELECT id , country_name, name  , code FROM public.vwdivision order by id asc'
     zoneInfoList = multipleValuedQuryExecution(queryZoneInfoList)
 
     jsonZoneInfoList = json.dumps({'zoneInfoList': zoneInfoList}, default=decimal_date_default)
@@ -124,7 +123,7 @@ def geo_zone_Create(request):
 @login_required
 def geo_zone_Edit(request):
     id = request.POST.get('id')
-    queryFetchSelectedZone = "SELECT id, geo_country_id, name , code  FROM public.geo_zone where id = " + str(id)
+    queryFetchSelectedZone = "SELECT id, geo_country_id, name , code  FROM public.vwdivision where id = " + str(id)
     getFetchSelectedZone = singleValuedQuryExecution(queryFetchSelectedZone)
 
     jsonFetchSelectedZone = json.dumps({'getFetchSelectedZone': getFetchSelectedZone},
@@ -132,6 +131,176 @@ def geo_zone_Edit(request):
     return HttpResponse(jsonFetchSelectedZone)
 
 ##************ Zone (End) **************
+
+
+
+##************ District (Start) ***********
+
+@login_required
+def add_geo_district(request):
+    queryCountryList = 'SELECT id, name , code  FROM public.geo_country order by id asc '
+    countryList = multipleValuedQuryExecution(queryCountryList)
+
+    queryZoneList = 'SELECT id, name , code  FROM public.geo_zone order by id asc '
+    zoneList = multipleValuedQuryExecution(queryZoneList)
+
+    queryDistrictInfoList = 'SELECT id , country_name, division_name , name  , code FROM public.vwdistrict order by id asc'
+    districtInfoList = multipleValuedQuryExecution(queryDistrictInfoList)
+
+    jsonDistrictInfoList = json.dumps({'districtInfoList': districtInfoList}, default=decimal_date_default)
+    content = {
+        'countryList': countryList,
+        'zoneList': zoneList ,
+        'jsonDistrictInfoList': jsonDistrictInfoList
+    }
+
+
+    return render(request, 'cais_module/add_geolocation/add_geo_district.html', content)
+
+@login_required
+def geo_district_Create(request):
+    username = request.user.username
+    zone_id = request.POST.get('zone_id', '')
+    district_name = request.POST.get('district_name', '')
+    district_code = request.POST.get('district_code', '')
+    isEdit = request.POST.get('isEdit')
+
+    if isEdit != '':
+        queryEditDistrict = "UPDATE public.geo_district SET geo_zone_id = " + str(zone_id) + ", name='" + str(district_name) + "' , code = '"+str(district_code)+"'  WHERE id= " + str(isEdit)
+        __db_commit_query(queryEditDistrict)  ## Query Execution Function
+    else:
+        queryCreateDistrict = "INSERT INTO public.geo_district(geo_zone_id, name,code) VALUES( " + str(
+            zone_id) + ", '" + str(district_name) + "' , '"+str(district_code)+"') "
+        __db_commit_query(queryCreateDistrict)  ## Query Execution Function
+
+    return HttpResponseRedirect('/maxmodule/cais_module/add_geolocation/add_geo_district/')
+
+
+@login_required
+def geo_district_Edit(request):
+    id = request.POST.get('id')
+    queryFetchSelectedDistrict = "SELECT id, geo_country_id, geo_zone_id ,  name , code  FROM public.vwdistrict where id = " + str(id)
+    getFetchSelectedDistrict = singleValuedQuryExecution(queryFetchSelectedDistrict)
+
+    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedDistrict[1])
+    zone_List = makeTableList(zoneQuery)
+
+    print(zone_List)
+
+    jsonFetchSelectedDistrict = json.dumps({'getFetchSelectedDistrict': getFetchSelectedDistrict, 'zone_List':zone_List},
+                                             default=decimal_date_default)
+    return HttpResponse(jsonFetchSelectedDistrict)
+
+##************ District (End) **************
+
+
+
+##************ Upazila (Start) ***********
+
+@login_required
+def add_geo_upazila(request):
+    queryCountryList = 'SELECT id, name , code  FROM public.geo_country order by id asc '
+    countryList = multipleValuedQuryExecution(queryCountryList)
+
+    queryUpazilaInfoList = 'SELECT id , country_name, division_name , district_name , name  , code FROM public.vwupazila order by id asc'
+    upazilaInfoList = multipleValuedQuryExecution(queryUpazilaInfoList)
+
+    jsonUpazilaInfoList = json.dumps({'upazilaInfoList': upazilaInfoList}, default=decimal_date_default)
+    content = {
+        'countryList': countryList,
+        'jsonUpazilaInfoList': jsonUpazilaInfoList
+    }
+
+
+    return render(request, 'cais_module/add_geolocation/add_geo_upazila.html', content)
+
+@login_required
+def geo_upazila_Create(request):
+    username = request.user.username
+    district_id = request.POST.get('district_id', '')
+    upazila_name = request.POST.get('upazila_name', '')
+    upazila_code = request.POST.get('upazila_code', '')
+    isEdit = request.POST.get('isEdit')
+
+    if isEdit != '':
+        queryEditUpazila = "UPDATE public.geo_upazilla SET geo_district_id = " + str(district_id) + ", name='" + str(upazila_name) + "' , code = '"+str(upazila_code)+"'  WHERE id= " + str(isEdit)
+        __db_commit_query(queryEditUpazila)  ## Query Execution Function
+    else:
+        queryCreateUpazila = "INSERT INTO public.geo_upazilla(geo_district_id, name,code) VALUES( " + str(
+            district_id) + ", '" + str(upazila_name) + "' , '"+str(upazila_code)+"') "
+        __db_commit_query(queryCreateUpazila)  ## Query Execution Function
+
+    return HttpResponseRedirect('/maxmodule/cais_module/add_geolocation/add_geo_upazila/')
+
+
+@login_required
+def geo_upazila_Edit(request):
+    id = request.POST.get('id')
+    queryFetchSelectedDistrict = "SELECT id, geo_country_id, geo_zone_id ,  name , code  FROM public.vwdistrict where id = " + str(id)
+    getFetchSelectedDistrict = singleValuedQuryExecution(queryFetchSelectedDistrict)
+
+    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedDistrict[1])
+    zone_List = makeTableList(zoneQuery)
+    jsonFetchSelectedDistrict = json.dumps({'getFetchSelectedDistrict': getFetchSelectedDistrict, 'zone_List':zone_List},
+                                             default=decimal_date_default)
+    return HttpResponse(jsonFetchSelectedDistrict)
+
+##************ Upazila (End) **************
+
+
+
+##************ Union (Start) ***********
+
+@login_required
+def add_geo_union(request):
+    queryCountryList = 'SELECT id, name , code  FROM public.geo_country order by id asc '
+    countryList = multipleValuedQuryExecution(queryCountryList)
+
+    queryUnionInfoList = 'SELECT id , country_name, division_name , district_name , upazilla_name ,  name  , code FROM public.vwunion order by id asc'
+    unionInfoList = multipleValuedQuryExecution(queryUnionInfoList)
+
+    jsonUnionInfoList = json.dumps({'unionInfoList': unionInfoList}, default=decimal_date_default)
+    content = {
+        'countryList': countryList,
+        'jsonUnionInfoList': jsonUnionInfoList
+    }
+
+
+    return render(request, 'cais_module/add_geolocation/add_geo_union.html', content)
+
+@login_required
+def geo_union_Create(request):
+    username = request.user.username
+    upazila_id = request.POST.get('upazila_id', '')
+    union_name = request.POST.get('union_name', '')
+    union_code = request.POST.get('union_code', '')
+    isEdit = request.POST.get('isEdit')
+
+    if isEdit != '':
+        queryEditUnion = "UPDATE public.geo_union SET geo_upazilla_id = " + str(upazila_id) + ", name='" + str(union_name) + "' , code = '"+str(union_code)+"'  WHERE id= " + str(isEdit)
+        __db_commit_query(queryEditUnion)  ## Query Execution Function
+    else:
+        queryCreateUnion = "INSERT INTO public.geo_union(geo_upazilla_id, name,code) VALUES( " + str(
+            upazila_id) + ", '" + str(union_name) + "' , '"+str(union_code)+"') "
+        __db_commit_query(queryCreateUnion)  ## Query Execution Function
+
+    return HttpResponseRedirect('/maxmodule/cais_module/add_geolocation/add_geo_union/')
+
+
+@login_required
+def geo_union_Edit(request):
+    id = request.POST.get('id')
+    queryFetchSelectedDistrict = "SELECT id, geo_country_id, geo_zone_id ,  name , code  FROM public.vwdistrict where id = " + str(id)
+    getFetchSelectedDistrict = singleValuedQuryExecution(queryFetchSelectedDistrict)
+
+    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedDistrict[1])
+    zone_List = makeTableList(zoneQuery)
+    jsonFetchSelectedDistrict = json.dumps({'getFetchSelectedDistrict': getFetchSelectedDistrict, 'zone_List':zone_List},
+                                             default=decimal_date_default)
+    return HttpResponse(jsonFetchSelectedDistrict)
+
+##************ Union (End) **************
+
 
 
 """

@@ -106,11 +106,33 @@ urlpatterns = patterns('',
                            name="alert_sms_process_Edit"),
 
 
+
                        url(r'^cais_module/add_geolocation/add_geo_zone/$', views_cais.add_geo_zone , name = "add_geo_zone") ,
                        url(r'^cais_module/add_geolocation/geo_zone_Create/$', views_cais.geo_zone_Create,
                            name="geo_zone_Create"),
                        url(r'^cais_module/add_geolocation/geo_zone_Edit/$', views_cais.geo_zone_Edit,
                            name="geo_zone_Edit"),
+
+                       url(r'^cais_module/add_geolocation/add_geo_district/$', views_cais.add_geo_district,
+                           name="add_geo_district"),
+                       url(r'^cais_module/add_geolocation/geo_district_Create/$', views_cais.geo_district_Create,
+                           name="geo_district_Create"),
+                       url(r'^cais_module/add_geolocation/geo_district_Edit/$', views_cais.geo_district_Edit,
+                           name="geo_district_Edit"),
+
+                       url(r'^cais_module/add_geolocation/add_geo_upazila/$', views_cais.add_geo_upazila,
+                           name="add_geo_upazila"),
+                       url(r'^cais_module/add_geolocation/geo_upazila_Create/$', views_cais.geo_upazila_Create,
+                           name="geo_upazila_Create"),
+                       url(r'^cais_module/add_geolocation/geo_upazila_Edit/$', views_cais.geo_upazila_Edit,
+                           name="geo_upazila_Edit"),
+
+                       url(r'^cais_module/add_geolocation/add_geo_union/$', views_cais.add_geo_union,
+                           name="add_geo_union"),
+                       url(r'^cais_module/add_geolocation/geo_union_Create/$', views_cais.geo_union_Create,
+                           name="geo_union_Create"),
+                       url(r'^cais_module/add_geolocation/geo_union_Edit/$', views_cais.geo_union_Edit,
+                           name="geo_union_Edit"),
 
                        ##**********************  CASI WORK (End) *******************
 
