@@ -79,6 +79,69 @@ def makeTableList(tableListQuery):
 
 
 """
+@@ Add Geo Location (Start)
+"""
+
+
+##************ Zone (Start) ***********
+
+@login_required
+def add_geo_zone(request):
+    queryCountryList = 'SELECT id, name , code  FROM public.geo_country order by id asc '
+    countryList = multipleValuedQuryExecution(queryCountryList)
+
+    queryZoneInfoList = 'SELECT id ,  (select name from public.geo_country where id = geo_country_id ) country_name, name  , code FROM public.geo_zone order by id asc'
+    zoneInfoList = multipleValuedQuryExecution(queryZoneInfoList)
+
+    jsonZoneInfoList = json.dumps({'zoneInfoList': zoneInfoList}, default=decimal_date_default)
+    content = {
+        'countryList': countryList,
+        'jsonZoneInfoList': jsonZoneInfoList
+    }
+
+
+    return render(request, 'cais_module/add_geolocation/add_geo_zone.html', content)
+
+@login_required
+def geo_zone_Create(request):
+    username = request.user.username
+    country_id = request.POST.get('country_id', '')
+    zone_name = request.POST.get('zone_name', '')
+    zone_code = request.POST.get('zone_code', '')
+    isEdit = request.POST.get('isEdit')
+
+    if isEdit != '':
+        queryEditZone = "UPDATE public.geo_zone SET geo_country_id = " + str(country_id) + ", name='" + str(zone_name) + "' , code = '"+str(zone_code)+"'  WHERE id= " + str(isEdit)
+        __db_commit_query(queryEditZone)  ## Query Execution Function
+    else:
+        queryCreateZone = "INSERT INTO public.geo_zone(geo_country_id, name,code) VALUES( " + str(
+            country_id) + ", '" + str(zone_name) + "' , '"+str(zone_code)+"') "
+        __db_commit_query(queryCreateZone)  ## Query Execution Function
+
+    return HttpResponseRedirect('/maxmodule/cais_module/add_geolocation/add_geo_zone/')
+
+
+@login_required
+def geo_zone_Edit(request):
+    id = request.POST.get('id')
+    queryFetchSelectedZone = "SELECT id, geo_country_id, name , code  FROM public.geo_zone where id = " + str(id)
+    getFetchSelectedZone = singleValuedQuryExecution(queryFetchSelectedZone)
+
+    jsonFetchSelectedZone = json.dumps({'getFetchSelectedZone': getFetchSelectedZone},
+                                             default=decimal_date_default)
+    return HttpResponse(jsonFetchSelectedZone)
+
+##************ Zone (End) **************
+
+
+"""
+@@ Add Geo Location (End)
+"""
+
+
+
+
+"""
 @@ **************  Crop (Start)
 """
 

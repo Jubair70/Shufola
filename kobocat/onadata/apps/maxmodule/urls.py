@@ -105,6 +105,13 @@ urlpatterns = patterns('',
                        url(r'^cais_module/alert_sms_process_Edit/$', views_cais.alert_sms_process_Edit,
                            name="alert_sms_process_Edit"),
 
+
+                       url(r'^cais_module/add_geolocation/add_geo_zone/$', views_cais.add_geo_zone , name = "add_geo_zone") ,
+                       url(r'^cais_module/add_geolocation/geo_zone_Create/$', views_cais.geo_zone_Create,
+                           name="geo_zone_Create"),
+                       url(r'^cais_module/add_geolocation/geo_zone_Edit/$', views_cais.geo_zone_Edit,
+                           name="geo_zone_Edit"),
+
                        ##**********************  CASI WORK (End) *******************
 
                        )
