@@ -90,53 +90,48 @@
 
 {% block content %}
 
+
+    <ul class="nav nav-tabs">
+        <li class=""><a style="font-size:17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_zone/">Add
+            Zone </a>
+        </li>
+        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_district/"
+                        data-toggle="tab">Add District </a>
+        </li>
+        <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_upazila/">Add
+            Upazila </a>
+        </li>
+        <li class="active"><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_union/"> Add
+            Union </a>
+        </li>
+    </ul>
+
     <div class="row">
-        <div class="col-md-12" style="margin-bottom: 40px">
-            <h2>Farmer Details</h2>
+        <!--
+        <div class="col-md-12 btn btn-primary" style="margin-bottom: 40px">
+            <h2>Add Zone</h2>
         </div>
 
-        <form action="/maxmodule/cais_module/farmerCreate/" enctype="multipart/form-data" method="post">
+        -->
+
+        <form action="/maxmodule/cais_module/add_geolocation/geo_union_Create/" enctype="multipart/form-data"
+              method="post">
             {% csrf_token %}
             <div class="col-md-12">
-
 
                 <input type="hidden" value="" id="isEdit" name="isEdit">
 
                 <div class="row">
-                    <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Farmer Name </b></label>
-
-                    </div>
-                    <div class="col-xs-3 col-md-3 form-group ">
-
-                        <input type="text" class="form-control " name="farmer_name" id="farmer_name" required>
-
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Mobile No. </b></label>
-
-                    </div>
-                    <div class="col-xs-3 col-md-3 form-group ">
-
-                        <input type="text" class="form-control " name="mobile_num" id="mobile_num" onkeyup="this.value = (this.value.replace(/[^0-9]/g, ''));" required>
-
-                    </div>
-                </div>
-
-                <div class="row">
 
                     <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Country</b></label>
+                        <label class="control-label"><b>Country </b></label>
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
 
                         <select type="select" name="country_id" id="country_id" class="form-control " required>
                             <option value="">Select Any</option>
-                            {% for list in country_List %}
+                            {% for list in countryList %}
                                 <option value="{{ list.0 }}">{{ list.1 }}</option>
                             {% endfor %}
 
@@ -144,7 +139,6 @@
 
                     </div>
                 </div>
-
 
                 <div class="row">
 
@@ -181,7 +175,7 @@
                 <div class="row">
 
                     <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Upazila</b></label>
+                        <label class="control-label"><b>Upazila </b></label>
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
@@ -195,54 +189,31 @@
 
 
                 <div class="row">
-
                     <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Union </b></label>
+                        <label class="control-label"><b>Union Name</b></label>
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
 
-                        <select type="select" name="union_id" id="union_id" class="form-control " required>
-                            <option value="">Select Any</option>
-                        </select>
 
-                    </div>
-                </div>
-
-
-                <div class="row">
-
-                    <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Organization </b></label>
-
-                    </div>
-                    <div class="col-xs-3 col-md-3 form-group ">
-
-                        <select type="select" name="organization_id" id="organization_id" class="form-control "
-                                required>
-                            <option value="">Select Any</option>
-                            {% for list in organization_List %}
-                                <option value="{{ list.0 }}">{{ list.1 }}</option>
-                            {% endfor %}
-
-                        </select>
+                        <input type="text" class="form-control " name="union_name" id="union_name" required>
 
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Program </b></label>
+                        <label class="control-label"><b>Union Code</b></label>
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
 
-                        <select type="select" name="program_id" id="program_id" class="form-control " required>
-                            <option value="">Select Any</option>
-                        </select>
+
+                        <input type="text" class="form-control " name="union_code" id="union_code" required>
 
                     </div>
                 </div>
+
 
                 <div class="row">
                     <div class="col-md-5">
@@ -260,7 +231,7 @@
 
     <div class="row">
         <div class="form-group col-md-12">
-            <span class="control-label btn btn-primary"><b>Farmer Group List</b></span>
+            <span class="control-label btn btn-primary"><b>Union List</b></span>
         </div>
     </div>
 
@@ -274,24 +245,20 @@
         </div>
 
         <div class="col-md-12">
-            <table id="farmerInfoListTable" class="table table-bordered table-hover exportMargin">
+            <table id="unionInfoListTable" class="table table-bordered table-hover exportMargin">
                 <caption class="textAlign">
 
                 </caption>
                 <thead>
                 <tr>
                     <th> SI No.</th>
-                    <th> Farmar Name</th>
-                    <th> Mobile No.</th>
                     <th> Country</th>
                     <th> Zone</th>
                     <th> District</th>
                     <th> Upazila</th>
-                    <th> Union</th>
-                    <th> Organization</th>
-                    <th> Program</th>
+                    <th> Union Name</th>
+                    <th> Union Code</th>
                     <th></th>
-
                 </tr>
 
 
@@ -303,6 +270,7 @@
             </table>
         </div>
     </div>
+
 
 
 {% endblock %}
@@ -336,19 +304,22 @@
 
     <script type="text/javascript" src="/static/js/custom_data_view.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
     <script type="text/javascript">
 
-        var jsonFarmerInfoList =
-        {{ jsonFarmerInfoList | safe }}
-        var farmerInfoList = jsonFarmerInfoList.farmerInfoList
+        var jsonUnionInfoList =
+        {{ jsonUnionInfoList |safe }}
+        var unionInfoList = jsonUnionInfoList.unionInfoList
+        var idEdit = ''
 
-        country = ''
-        zone = ''
-        district = ''
-        upazila = ''
-        union = ''
-        organization = ''
-        program = ''
+        var country = ''
+        var zone = ''
+
+        $(document).ready(function () {
+
+            getUnionList() // Making the crop Variety info List table
+
+        });
 
 
         $(document).on("change", "#country_id", function () {
@@ -361,14 +332,19 @@
 
                     'country': country,
                 },
+
+
                 success: function (data) {
                     list = JSON.parse(data)
+
 
                     $('#zone_id').find('option').remove()
                     $('#zone_id').append('<option value="">Select Any </option>')
                     for (var i = 0; i < list.zone_List.length; i++) {
                         $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
                     }
+
+
                 }
 
             });
@@ -401,8 +377,6 @@
 
             //reDataTable()
         });
-
-
         $(document).on("change", "#district_id", function () {
             district = $(this).val()
 
@@ -428,81 +402,22 @@
             //reDataTable()
         });
 
-        $(document).on("change", "#upazila_id", function () {
-            upazila = $(this).val()
-            $.ajax({
-                type: 'POST',
-                url: '/maxmodule/cais_module/getUnions/',
-                data: {
 
-                    'upazila': upazila,
-                },
-                success: function (data) {
-                    list = JSON.parse(data)
-
-                    $('#union_id').find('option').remove()
-                    $('#union_id').append('<option value="">Select Any </option>')
-
-                    for (var i = 0; i < list.union_List.length; i++) {
-                        $('#union_id').append('<option value = ' + list.union_List[i][0] + '>' + list.union_List[i][1] + '</option>')
-                    }
-                }
-
-            });
-            //  reDataTable()
-        });
-
-        // Get Program List
-
-        $(document).on("change", "#organization_id", function () {
-            organization = $(this).val()
-            $.ajax({
-                type: 'POST',
-                url: '/maxmodule/cais_module/getProgramList/',
-                data: {
-
-                    'organization': organization,
-                },
-                success: function (data) {
-                    list = JSON.parse(data)
-
-                    $('#program_id').find('option').remove()
-                    $('#program_id').append('<option value="">Select Any </option>')
-
-                    for (var i = 0; i < list.program_List.length; i++) {
-                        $('#program_id').append('<option value = ' + list.program_List[i][0] + '>' + list.program_List[i][1] + '</option>')
-                    }
-                }
-
-            });
-
-            //  reDataTable()
-        });
-
-
-        $(document).ready(function () {
-
-            getFarmerInfoList() // Making the crop stage info List table
-
-        });
-
-
-        function getFarmerInfoList() {
+        function getUnionList() {
 
             var count = 1
             var tbody = ''
 
-            for (var i = 0; i < farmerInfoList.length; i++) {
+            for (var i = 0; i < unionInfoList.length; i++) {
 
-                if (farmerInfoList[i][10] == 1)
-                    tbody += '<tr><td>' + count + '</td><td><a href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
-                else
-                    tbody += '<tr><td>' + count + '</td><td><a style="color:red;" href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+
+                tbody += '<tr><td>' + count + '</td><td>' + unionInfoList[i][1] + '</td><td>' + unionInfoList[i][2] + '</td><td>' + unionInfoList[i][3] + '</td><td>' + unionInfoList[i][4] + '</td><td>' + unionInfoList[i][5] + '</td><td>' + unionInfoList[i][6] + '</td><td><button disabled onclick="getEditId(' + unionInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+
                 count++;
             }
 
-            $('#farmerInfoListTable').find('tbody').html(tbody)
-            dTablewithData = $('#farmerInfoListTable').DataTable({
+            $('#unionInfoListTable').find('tbody').html(tbody)
+            dTablewithData = $('#unionInfoListTable').DataTable({
                 "retrieve": true,
                 "bFilter": true,
                 "paging": true,
@@ -523,29 +438,21 @@
         function getEditId(id) {
 
             $('#isEdit').attr("value", id);
+            idEdit = id
+
 
             $.ajax({
                 type: 'POST',
-                url: '/maxmodule/cais_module/farmer_Edit/',
+                url: '/maxmodule/cais_module/add_geolocation/geo_union_Edit/',
                 data: {
 
                     'id': id,
                 },
-
                 success: function (data) {
 
                     list = JSON.parse(data)
 
-                    $('#farmer_name').attr("value", list.getFetchSelectedFarmer[1]);
-                    $('#mobile_num').attr("value", list.getFetchSelectedFarmer[9]);
-
-                    $("#country_id").val(list.getFetchSelectedFarmer[2]).prop('selected', true)
-                    country = $("#country_id").val()
-
-
-                    // *********** Zone ****** start
-
-                    zone = list.getFetchSelectedFarmer[3]
+                    $("#country_id").val("" + list.getFetchSelectedDistrict[1] + "").change();
 
                     $('#zone_id').find('option').remove()
                     $('#zone_id').append('<option value="">Select Any </option>')
@@ -554,90 +461,13 @@
                         $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
                     }
 
-                    $("#zone_id").val(zone).prop('selected', true)
+                    $("#zone_id").val("" + getFetchSelectedDistrict[2] + "").prop('selected', true)
+                    $('#district_name').attr("value", list.getFetchSelectedDistrict[3]);
+                    $('#district_code').attr("value", list.getFetchSelectedDistrict[4]);
 
-                    zone = $("#zone_id").val()
-
-                    // *********** Zone ****** end
-
-
-
-
-                    // *********** Dis ****** start
-
-                    district = list.getFetchSelectedFarmer[4]
-
-                    $('district_id').find('option').remove()
-                    $('#district_id').append('<option value="">Select Any </option>')
-                    for (var i = 0; i < list.district_List.length; i++) {
-
-                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
-                    }
-
-                    $("#district_id").val(district).prop('selected', true)
-
-                    district = $("#district_id").val()
-
-                    // *********** Dis ****** end
-
-
-
-
-
-                    // *********** Upa ****** start
-
-                    upazila = list.getFetchSelectedFarmer[5]
-
-                    $('#upazila_id').find('option').remove()
-                    $('#upazila_id').append('<option value="">Select Any </option>')
-                    for (var i = 0; i < list.upazila_List.length; i++) {
-
-                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
-                    }
-
-                    $("#upazila_id").val(upazila).prop('selected', true)
-
-                    upazila = $("#upazila_id").val()
-
-                    // *********** Upa ****** end
-
-                    // *********** Uni ****** start
-
-                    union = list.getFetchSelectedFarmer[6]
-
-                    $('#union_id').find('option').remove()
-                    $('#union_id').append('<option value="">Select Any </option>')
-
-                    for (var i = 0; i < list.union_List.length; i++) {
-                        $('#union_id').append('<option value = ' + list.union_List[i][0] + '>' + list.union_List[i][1] + '</option>')
-                    }
-
-                    $("#union_id").val(union).prop('selected', true)
-
-                    // *********** Uni  ****** end
-
-
-                    $("#organization_id").val('' + list.getFetchSelectedFarmer[7] + '').prop('selected', true)
-                    organization = $("#organization_id").val()
-
-                    // ************ Program ********* Start ****
-
-                    program = list.getFetchSelectedFarmer[8]
-
-                    $('#program_id').find('option').remove()
-                    $('#program_id').append('<option value="">Select Any </option>')
-
-                    for (var i = 0; i < list.program_List.length; i++) {
-                        $('#program_id').append('<option value = ' + list.program_List[i][0] + '>' + list.program_List[i][1] + '</option>')
-                    }
-
-                    $("#program_id").val(program).prop('selected', true)
-
-                    // ************ Program ********* end ****
-
+                    $("#zone_id").val(list.getFetchSelectedDistrict[2]).prop('selected', true)
 
                 }
-
 
             });
 
@@ -645,8 +475,6 @@
         }
 
     </script>
-
-
 
 {% endblock %}
 
