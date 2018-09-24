@@ -532,8 +532,10 @@ def update_stage(request):
 
 @login_required
 def getStage(request):
-    org_id = request.POST.get('obj')
-    query = "select id,stage_name from crop_stage where crop_id =" + str(org_id)
+    season_id = request.POST.get('season_id')
+    crop_id = request.POST.get('crop_id')
+    var_id = request.POST.get('var_id')
+    query = "select id,stage_name from crop_stage where season_id::int ="+str(season_id)+" and crop_variety_id::int = " + str(var_id)+" and crop_id = "+str(crop_id)
     data = json.dumps(__db_fetch_values_dict(query))
     return HttpResponse(data)
 

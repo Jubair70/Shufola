@@ -47,8 +47,7 @@
                                 <label>Category: </label>
                                 <select class="form-control" name="category" id="category" required>
                                     <option value="">Select One</option>
-                                    <option value="1">Management</option>
-                                    <option value="2">Promotional</option>
+                                    <option value="1" selected>Management</option>
                                 </select>
                             </div>
                         </div>
@@ -75,7 +74,7 @@
                             <div class="form-group">
                                 <label>Organization: </label>
                                 <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
-                                    <option value="0">ALL</option>
+                                    <option value="">Select One</option>
                                     {% for org_id,org_name in organization %}
                                         <option value="{{ org_id }}">{{ org_name }}</option>
                                     {% endfor %}
@@ -87,7 +86,7 @@
                             <div class="form-group">
                                 <label>Program: </label>
                                 <select class="form-control" name="program" id="program" required>
-                                    <option value="0">ALL</option>
+                                    <option value="">Select One</option>
                                 </select>
 
                             </div>
@@ -100,8 +99,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Crop: </label>
-                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this);load_stage(this);">
-                                    <option value="0">ALL</option>
+                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this);" required>
+                                    <option value="">Select One</option>
                                     {% for m,n in crop %}
                                         <option value="{{ m }}">{{ n }}</option>
                                     {% endfor %}
@@ -111,8 +110,9 @@
                 <div class="col-md-6">
                             <div class="form-group">
                                 <label>Variety of the Crop: </label>
-                                <select class="form-control" name="crop_variety" id="crop_variety">
-                                    <option value="0">ALL</option>
+                                <select class="form-control" name="crop_variety" id="crop_variety"  required>
+                                    <option value="">Select One</option>
+
                                 </select>
 
                             </div>
@@ -120,26 +120,30 @@
                     </div>
 
                 <div class="row">
-                <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Stage: </label>
-                                <select class="form-control" name="crop_stage" id="crop_stage">
-                                    <option value="0">ALL</option>
-                                </select>
-
-                            </div>
-                        </div>
-                        <div class="col-md-6">
+                     <div class="col-md-6">
                             <div class="form-group">
                                 <label>Season: </label>
-                                <select class="form-control" name="season" id="season">
-                                    <option value="0">ALL</option>
+                                <select class="form-control" name="season" id="season" onclick="load_stage(this);" required>
+                                    <option value="">Select One</option>
                                     {% for x,y in season %}
                                         <option value="{{ x }}">{{ y }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>
+
+
+                <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Stage: </label>
+                                <select class="form-control" name="crop_stage" id="crop_stage" required>
+                                     <option value="">Select One</option>
+
+                                </select>
+
+                            </div>
+                        </div>
+
                 </div>
 
                     <div class="row">
@@ -197,11 +201,12 @@
 
 function load_variety(object) {
             ajaxcall();
-            obj = parseInt(object.value)
-
+            obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#crop_variety').html("<option value=\"0\">ALL</option>");
+                $('#crop_variety').html("<option value=\"\">Select One</option>");
+                $('#crop_stage').html("<option value=\"\">Select One</option>");
             }
+
             else {
 
                 $.ajax({
@@ -213,7 +218,8 @@ function load_variety(object) {
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"0\">ALL</option>";
+
+                        var html_code = "<option value=\"\">Select One</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
                         }
@@ -225,10 +231,11 @@ function load_variety(object) {
         }
         function load_stage(object) {
             ajaxcall();
-            obj = parseInt(object.value)
-
+            season_id = parseInt(object.value);
+            crop_id = $('#crop option:selected').val();
+            var_id = $('#crop_variety option:selected').val();
             if (isNaN(parseFloat(obj))) {
-                $('#crop_stage').html("<option value=\"0\">ALL</option>");
+                $('#crop_stage').html("<option value=\"\">Select One</option>");
             }
             else {
 
@@ -236,12 +243,17 @@ function load_variety(object) {
                     url: '/ifcmodule/getStage/',
                     type: 'POST',
                     dataType: 'json',
-                    data: {'obj': obj},
+                    data: {
+                        'season_id': season_id,
+                        'crop_id':crop_id,
+                        'var_id':var_id,
+                           },
                     {#                    beforeSend: function () {#}
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"0\">ALL</option>";
+
+                        var html_code = "<option value=\"\">Select One</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].stage_name + "</option>";
                         }
@@ -257,7 +269,7 @@ function load_variety(object) {
             obj = parseInt(object.value)
 
             if (isNaN(parseFloat(obj))) {
-                $('#program').html("<option value=\"0\">ALL</option>");
+                $('#program').html("<option value=\"\">Select One</option>");
             }
             else {
 
@@ -270,7 +282,7 @@ function load_variety(object) {
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"0\">ALL</option>";
+                        var html_code = "<option value=\"\">Select One</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
                         }
