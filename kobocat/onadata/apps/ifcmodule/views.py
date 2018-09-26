@@ -386,7 +386,6 @@ def getProgram(request):
 @login_required
 def insert_management_sms_form(request):
     if request.POST:
-        print(request.POST)
         category_id = request.POST.get('category')
         sms_description = request.POST.get('sms_description')
         org_id = request.POST.get('organization')
@@ -394,6 +393,7 @@ def insert_management_sms_form(request):
         crop_id = request.POST.get('crop')
         variety_id = request.POST.get('crop_variety')
         season_id = request.POST.get('season')
+        stage_id = request.POST.get('crop_stage')
         user_id = request.user.id
         voice_sms_file_path = ""
         if "voice_sms" in request.FILES:
@@ -405,14 +405,14 @@ def insert_management_sms_form(request):
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
 
-        insert_query = "INSERT INTO public.draft_sms(category_id, sms_description, voice_sms_file_path, org_id, program_id, crop_id, variety_id, season_id, created_at, created_by, updated_at, updated_by)VALUES(" + str(
+        insert_query = "INSERT INTO public.management_sms_rule(stage_id,category_id, sms_description, voice_sms_file_path, org_id, program_id, crop_id, variety_id, season_id, created_at, created_by, updated_at, updated_by)VALUES("+str(stage_id)+"," + str(
             category_id) + ", '" + str(sms_description) + "', '" + str(voice_sms_file_path) + "', " + str(
             org_id) + ", " + str(program_id) + ", " + str(crop_id) + ", " + str(variety_id) + ", " + str(
             season_id) + ", now(), " + str(user_id) + ", now(), " + str(user_id) + ")"
         __db_commit_query(insert_query)
         messages.success(request, '<i class="fa fa-check-circle"></i>New SMS has been added successfully!',
                          extra_tags='alert-success crop-both-side')
-    return HttpResponseRedirect("/ifcmodule/management_sms_form/")
+    return HttpResponseRedirect("/ifcmodule/management_sms_rule_list/")
 
 
 import shutil
@@ -521,21 +521,145 @@ def update_stage(request):
         df = pandas.DataFrame()
         df = pandas.read_sql(query, connection)
         if df.empty:
-            insert_query = "INSERT INTO farmer_crop_stage(farmer_crop_id, stage) VALUES (" + str(farmer_crop_id[
-                                                                                                     i]) + ", (SELECT (SELECT CASE WHEN crop_variety_id :: INT = 0 AND season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = " + str(
-                farmer_crop_id[
-                    i]) + ") ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = " + str(
-                farmer_crop_id[
-                    i]) + ") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = " + str(
-                farmer_crop_id[i]) + "))"
+            insert_query = "INSERT INTO farmer_crop_stage(farmer_crop_id, stage) VALUES (" + str(farmer_crop_id[i]) + ", (SELECT(SELECT CASE when crop_variety_id :: INT = 0 and season_id :: INT != 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) when crop_variety_id :: INT != 0 and season_id :: INT = 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) WHEN crop_variety_id :: INT = 0 and season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+"))"
             __db_commit_query(insert_query)
         else:
-            update_query = "update farmer_crop_stage set stage =(SELECT (SELECT CASE WHEN crop_variety_id :: INT = 0 AND season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: DATE - t.sowing_date >= start_day AND Now() :: DATE - t.sowing_date <= end_day AND t.id = " + str(
-                farmer_crop_id[
-                    i]) + ") ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: DATE - t.sowing_date >= start_day AND Now() :: DATE - t.sowing_date <= end_day AND t.id =" + str(
-                farmer_crop_id[
-                    i]) + ") END FROM crop_stage WHERE crop_id = t.crop_id limit 1) FROM farmer_crop_info t WHERE t.id = " + str(
-                farmer_crop_id[i]) + ") where id =" + str(farmer_crop_id[i])
+            update_query = "update farmer_crop_stage set stage =(SELECT(SELECT CASE when crop_variety_id :: INT = 0 and season_id :: INT != 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) when crop_variety_id :: INT != 0 and season_id :: INT = 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) WHEN crop_variety_id :: INT = 0 and season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+") where farmer_crop_id =" + str(farmer_crop_id[i])
             __db_commit_query(update_query)
     # return render(request,'ifcmodule/index.html')
     return HttpResponse('')
+
+
+@login_required
+def getStage(request):
+    season_id = request.POST.get('season_id')
+    crop_id = request.POST.get('crop_id')
+    var_id = request.POST.get('var_id')
+    query = "select id,stage_name from crop_stage where season_id::int ="+str(season_id)+" and crop_variety_id::int = " + str(var_id)+" and crop_id = "+str(crop_id)
+    data = json.dumps(__db_fetch_values_dict(query))
+    return HttpResponse(data)
+
+
+@login_required
+def management_sms_rule_list(request):
+    query = "select id,case when category_id = 1 then 'Management' when category_id = 2 then 'Promotional' end as category, sms_description, case when org_id = 0 then 'ALL' else(select organization from usermodule_organizations where id = org_id limit 1) end as organization, case when program_id = 0 then 'ALL' else (select program_name from usermodule_programs where id = program_id limit 1) end as program, case when crop_id = 0 then 'ALL' else (select crop_name from crop where id = crop_id limit 1) end as crop, case when season_id = 0 then 'ALL' else (select season_name from cropping_season where id = season_id limit 1) end as season, case when variety_id = 0 then 'ALL' else (select variety_name from crop_variety where id = variety_id limit 1) end as variety, case when variety_id = 0 then 'ALL' else (select stage_name from crop_stage where id = stage_id limit 1) end as stage from management_sms_rule order by id desc"
+    management_sms_rule_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return render(request, 'ifcmodule/management_sms_rule.html', {
+        'management_sms_rule_list': management_sms_rule_list
+    })
+
+@login_required
+def edit_management_sms_form(request, sms_rule_id):
+    query = "select * from management_sms_rule where id = " + str(sms_rule_id)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    set_category_id = df.category_id.tolist()[0]
+    set_sms_description = df.sms_description.tolist()[0]
+    voice_sms_file_path = df.voice_sms_file_path.tolist()[0]
+    set_organization  = df.org_id.tolist()[0]
+    set_program_id = df.program_id.tolist()[0]
+    set_crop_id = df.crop_id.tolist()[0]
+    set_variety_id = df.variety_id.tolist()[0]
+    set_season_id = df.season_id.tolist()[0]
+    set_stage_id = df.stage_id.tolist()[0]
+
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+
+
+    query = "select id,variety_name from crop_variety where crop_id = "+str(set_crop_id)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    id = df.id.tolist()
+    name = df.variety_name.tolist()
+    variety = zip(id, name)
+
+    query = "select id,stage_name from crop_stage where crop_id = " + str(set_crop_id)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    id = df.id.tolist()
+    name = df.stage_name.tolist()
+    stage = zip(id, name)
+
+    query = "select id,program_name from usermodule_programs where org_id = " + str(set_organization)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    id = df.id.tolist()
+    name = df.program_name.tolist()
+    program = zip(id, name)
+
+    return render(request, 'ifcmodule/edit_management_sms_form.html',
+                  {
+                     'season':season,
+                      'crop':crop,
+                      'organization':organization,
+                      'set_category_id':set_category_id,
+                      'set_sms_description':set_sms_description,
+                      'set_organization':set_organization,
+                      'set_program_id':set_program_id,
+                      'set_crop_id':set_crop_id,
+                      'set_variety_id':set_variety_id,
+                      'set_season_id':set_season_id,
+                      'set_stage_id':set_stage_id,
+                      'variety':variety,
+                      'stage':stage,
+                      'program':program,
+                      'sms_rule_id':sms_rule_id
+                  })
+
+
+
+@login_required
+def update_management_sms_form(request):
+    if request.POST:
+        sms_rule_id = request.POST.get('sms_rule_id')
+        category_id = request.POST.get('category')
+        sms_description = request.POST.get('sms_description')
+        org_id = request.POST.get('organization')
+        program_id = request.POST.get('program')
+        crop_id = request.POST.get('crop')
+        variety_id = request.POST.get('crop_variety')
+        season_id = request.POST.get('season')
+        stage_id = request.POST.get('crop_stage')
+        user_id = request.user.id
+        voice_sms_file_path = ""
+        if "voice_sms" in request.FILES:
+            myfile = request.FILES['voice_sms']
+            url = "onadata/media/uploaded_files/"
+            userName = request.user
+            fs = FileSystemStorage(location=url)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            filename = fs.save(myfile.name, myfile)
+            voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
+        update_query = "UPDATE public.management_sms_rule SET category_id="+str(category_id)+", sms_description='"+str(sms_description)+"', voice_sms_file_path='"+str(voice_sms_file_path)+"', org_id="+str(org_id)+", program_id="+str(program_id)+", crop_id="+str(crop_id)+", variety_id="+str(variety_id)+", season_id="+str(season_id)+",updated_at=now(), updated_by="+str(user_id)+", stage_id="+str(stage_id)+" WHERE id=" + str(sms_rule_id)
+        __db_commit_query(update_query)
+        messages.success(request, '<i class="fa fa-check-circle"></i> SMS Info has been updated successfully!',
+                         extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect("/ifcmodule/management_sms_rule_list/")
+
+
+@login_required
+def delete_management_sms_form(request, sms_rule_id):
+    delete_query = "delete from management_sms_rule where id = " + str(sms_rule_id) + ""
+    __db_commit_query(delete_query)
+    messages.success(request, '<i class="fa fa-check-circle"></i> SMS Info has been deleted successfully!',
+                     extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect("/ifcmodule/management_sms_rule_list/")
