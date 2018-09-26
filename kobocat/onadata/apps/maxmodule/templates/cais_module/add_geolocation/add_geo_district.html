@@ -140,6 +140,7 @@
                     </div>
                 </div>
 
+
                 <div class="row">
 
                     <div class="col-xs-2 col-md-2 ">
@@ -276,8 +277,8 @@
         var jsonDistrictInfoList =
         {{ jsonDistrictInfoList |safe }}
         var districtInfoList = jsonDistrictInfoList.districtInfoList
-        var idEdit = ''
-        var country = ''
+        country = ''
+        zone = ''
 
         $(document).ready(function () {
 
@@ -296,25 +297,21 @@
 
                     'country': country,
                 },
-
-
                 success: function (data) {
                     list = JSON.parse(data)
-
 
                     $('#zone_id').find('option').remove()
                     $('#zone_id').append('<option value="">Select Any </option>')
                     for (var i = 0; i < list.zone_List.length; i++) {
                         $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
                     }
-
-
                 }
 
             });
 
             //reDataTable()
         });
+
 
 
         function getDistrictList() {
@@ -325,7 +322,7 @@
             for (var i = 0; i < districtInfoList.length; i++) {
 
 
-                tbody += '<tr><td>' + count + '</td><td>' + districtInfoList[i][1] + '</td><td>' + districtInfoList[i][2] + '</td><td>' + districtInfoList[i][3] + '</td><td>' + districtInfoList[i][4] + '</td><td><button disabled onclick="getEditId(' + districtInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>' + districtInfoList[i][1] + '</td><td>' + districtInfoList[i][2] + '</td><td>' + districtInfoList[i][3] + '</td><td>' + districtInfoList[i][4] + '</td><td><button  onclick="getEditId(' + districtInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
@@ -352,8 +349,6 @@
         function getEditId(id) {
 
             $('#isEdit').attr("value", id);
-            idEdit = id
-
 
             $.ajax({
                 type: 'POST',
@@ -366,7 +361,11 @@
 
                     list = JSON.parse(data)
 
-                    $("#country_id").val("" + list.getFetchSelectedDistrict[1] + "").change();
+                    $("#country_id").val(list.getFetchSelectedDistrict[1]).prop('selected', true)
+
+                  // *********** Zone ****** start
+
+                    zone = list.getFetchSelectedDistrict[2]
 
                     $('#zone_id').find('option').remove()
                     $('#zone_id').append('<option value="">Select Any </option>')
@@ -375,11 +374,15 @@
                         $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
                     }
 
-                    $("#zone_id").val(""+getFetchSelectedDistrict[2]+"").prop('selected', true)
+                    $("#zone_id").val(zone).prop('selected', true)
+
+                    zone = $("#zone_id").val()
+
+                    // *********** Zone ****** end
+
                     $('#district_name').attr("value", list.getFetchSelectedDistrict[3]);
                     $('#district_code').attr("value", list.getFetchSelectedDistrict[4]);
 
-                    $("#zone_id").val(list.getFetchSelectedDistrict[2]).prop('selected', true)
 
                 }
 

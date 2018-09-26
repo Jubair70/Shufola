@@ -139,13 +139,13 @@ def geo_zone_Edit(request):
 @login_required
 def add_geo_district(request):
     queryCountryList = 'SELECT id, name , code  FROM public.geo_country order by id asc '
-    countryList = multipleValuedQuryExecution(queryCountryList)
+    countryList = makeTableList(queryCountryList)
 
     queryZoneList = 'SELECT id, name , code  FROM public.geo_zone order by id asc '
-    zoneList = multipleValuedQuryExecution(queryZoneList)
+    zoneList = makeTableList(queryZoneList)
 
     queryDistrictInfoList = 'SELECT id , country_name, division_name , name  , code FROM public.vwdistrict order by id asc'
-    districtInfoList = multipleValuedQuryExecution(queryDistrictInfoList)
+    districtInfoList = makeTableList(queryDistrictInfoList)
 
     jsonDistrictInfoList = json.dumps({'districtInfoList': districtInfoList}, default=decimal_date_default)
     content = {
@@ -185,7 +185,6 @@ def geo_district_Edit(request):
     zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedDistrict[1])
     zone_List = makeTableList(zoneQuery)
 
-    print(zone_List)
 
     jsonFetchSelectedDistrict = json.dumps({'getFetchSelectedDistrict': getFetchSelectedDistrict, 'zone_List':zone_List},
                                              default=decimal_date_default)
@@ -223,7 +222,7 @@ def geo_upazila_Create(request):
     isEdit = request.POST.get('isEdit')
 
     if isEdit != '':
-        queryEditUpazila = "UPDATE public.geo_upazilla SET geo_district_id = " + str(district_id) + ", name='" + str(upazila_name) + "' , code = '"+str(upazila_code)+"'  WHERE id= " + str(isEdit)
+        queryEditUpazila = " UPDATE public.geo_upazilla SET geo_district_id = " + str(district_id) + ", name='" + str(upazila_name) + "' , code = '"+str(upazila_code)+"'  WHERE id= " + str(isEdit)
         __db_commit_query(queryEditUpazila)  ## Query Execution Function
     else:
         queryCreateUpazila = "INSERT INTO public.geo_upazilla(geo_district_id, name,code) VALUES( " + str(
@@ -236,14 +235,18 @@ def geo_upazila_Create(request):
 @login_required
 def geo_upazila_Edit(request):
     id = request.POST.get('id')
-    queryFetchSelectedDistrict = "SELECT id, geo_country_id, geo_zone_id ,  name , code  FROM public.vwdistrict where id = " + str(id)
-    getFetchSelectedDistrict = singleValuedQuryExecution(queryFetchSelectedDistrict)
+    queryFetchSelectedUpazila = "SELECT id, geo_country_id, geo_zone_id , geo_district_id ,  name , code  FROM public.vwupazila where id = " + str(id)
+    getFetchSelectedUpazila = singleValuedQuryExecution(queryFetchSelectedUpazila)
 
-    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedDistrict[1])
+    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedUpazila[1])
     zone_List = makeTableList(zoneQuery)
-    jsonFetchSelectedDistrict = json.dumps({'getFetchSelectedDistrict': getFetchSelectedDistrict, 'zone_List':zone_List},
+
+    districtQuery = "select id,name from geo_district where geo_zone_id =" + str(getFetchSelectedUpazila[2])
+    district_List = makeTableList(districtQuery)
+
+    jsonFetchSelectedUpazila = json.dumps({'getFetchSelectedUpazila': getFetchSelectedUpazila, 'zone_List':zone_List , 'district_List': district_List },
                                              default=decimal_date_default)
-    return HttpResponse(jsonFetchSelectedDistrict)
+    return HttpResponse(jsonFetchSelectedUpazila)
 
 ##************ Upazila (End) **************
 
@@ -290,14 +293,24 @@ def geo_union_Create(request):
 @login_required
 def geo_union_Edit(request):
     id = request.POST.get('id')
-    queryFetchSelectedDistrict = "SELECT id, geo_country_id, geo_zone_id ,  name , code  FROM public.vwdistrict where id = " + str(id)
-    getFetchSelectedDistrict = singleValuedQuryExecution(queryFetchSelectedDistrict)
+    queryFetchSelectedUnion = "SELECT id, geo_country_id, geo_zone_id , geo_district_id , geo_upazilla_id ,  name , code  FROM public.vwunion where id = " + str(id)
+    getFetchSelectedUnion = singleValuedQuryExecution(queryFetchSelectedUnion)
 
-    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedDistrict[1])
+    zoneQuery = "select id,name from geo_zone where geo_country_id =" + str(getFetchSelectedUnion[1])
     zone_List = makeTableList(zoneQuery)
-    jsonFetchSelectedDistrict = json.dumps({'getFetchSelectedDistrict': getFetchSelectedDistrict, 'zone_List':zone_List},
+
+    districtQuery = "select id,name from geo_district where geo_zone_id =" + str(getFetchSelectedUnion[2])
+    district_List = makeTableList(districtQuery)
+
+    upazilaQuery = "select id,name from geo_upazilla where geo_district_id =" + str(getFetchSelectedUnion[3])
+    upazila_List = makeTableList(upazilaQuery)
+
+    jsonFetchSelectedUnion = json.dumps({'getFetchSelectedUnion': getFetchSelectedUnion,
+                                            'zone_List':zone_List ,
+                                            'district_List': district_List ,
+                                            'upazila_List':upazila_List},
                                              default=decimal_date_default)
-    return HttpResponse(jsonFetchSelectedDistrict)
+    return HttpResponse(jsonFetchSelectedUnion)
 
 ##************ Union (End) **************
 
@@ -1033,19 +1046,14 @@ def alert_sms_process_alert_list(request):
     selectedStage = request.POST.get('stage')
     selectedCrop = request.POST.get('crop')
 
-    print("selectedCrop")
-    print(selectedCrop)
 
     alertQuery = "SELECT id, alert_name FROM public.crop_stage_alert where crop_stage_id = any(select id FROM public.crop_stage where stage_name::text like '" + str(
         selectedStage) + "' and crop_id::text like '" + str(selectedCrop) + "' )";
-    print("alertQuery")
-    print(alertQuery)
+
 
     alertList = makeTableList(alertQuery)
     jsonAlertList = json.dumps({'alertList': alertList}, default=decimal_date_default)
 
-    print("Alert_List")
-    print(jsonAlertList)
 
     return HttpResponse(jsonAlertList)
 

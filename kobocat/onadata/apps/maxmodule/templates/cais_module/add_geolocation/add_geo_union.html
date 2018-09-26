@@ -96,7 +96,7 @@
             Zone </a>
         </li>
         <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_district/"
-                        data-toggle="tab">Add District </a>
+                       >Add District </a>
         </li>
         <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_upazila/">Add
             Upazila </a>
@@ -314,6 +314,8 @@
 
         var country = ''
         var zone = ''
+        var district = ''
+        var upazila = ''
 
         $(document).ready(function () {
 
@@ -324,6 +326,13 @@
 
         $(document).on("change", "#country_id", function () {
             country = $(this).val()
+
+            $('#district_id').find('option').remove()
+            $('#district_id').append('<option value = "" >Select Any</option>')
+
+            $('#upazila_id').find('option').remove()
+            $('#upazila_id').append('<option value = "" >Select Any</option>')
+
 
             $.ajax({
                 type: 'POST',
@@ -355,6 +364,11 @@
 
         $(document).on("change", "#zone_id", function () {
             zone = $(this).val()
+
+
+            $('#upazila_id').find('option').remove()
+            $('#upazila_id').append('<option value = "" >Select Any</option>')
+
 
             $.ajax({
                 type: 'POST',
@@ -411,7 +425,7 @@
             for (var i = 0; i < unionInfoList.length; i++) {
 
 
-                tbody += '<tr><td>' + count + '</td><td>' + unionInfoList[i][1] + '</td><td>' + unionInfoList[i][2] + '</td><td>' + unionInfoList[i][3] + '</td><td>' + unionInfoList[i][4] + '</td><td>' + unionInfoList[i][5] + '</td><td>' + unionInfoList[i][6] + '</td><td><button disabled onclick="getEditId(' + unionInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>' + unionInfoList[i][1] + '</td><td>' + unionInfoList[i][2] + '</td><td>' + unionInfoList[i][3] + '</td><td>' + unionInfoList[i][4] + '</td><td>' + unionInfoList[i][5] + '</td><td>' + unionInfoList[i][6] + '</td><td><button  onclick="getEditId(' + unionInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
@@ -452,7 +466,13 @@
 
                     list = JSON.parse(data)
 
-                    $("#country_id").val("" + list.getFetchSelectedDistrict[1] + "").change();
+                     $("#country_id").val(list.getFetchSelectedUnion[1]).prop('selected', true)
+                    country = $("#country_id").val()
+
+
+                    // *********** Zone ****** start
+
+                    zone = list.getFetchSelectedUnion[2]
 
                     $('#zone_id').find('option').remove()
                     $('#zone_id').append('<option value="">Select Any </option>')
@@ -461,12 +481,56 @@
                         $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
                     }
 
-                    $("#zone_id").val("" + getFetchSelectedDistrict[2] + "").prop('selected', true)
-                    $('#district_name').attr("value", list.getFetchSelectedDistrict[3]);
-                    $('#district_code').attr("value", list.getFetchSelectedDistrict[4]);
+                    $("#zone_id").val(zone).prop('selected', true)
 
-                    $("#zone_id").val(list.getFetchSelectedDistrict[2]).prop('selected', true)
+                    zone = $("#zone_id").val()
 
+                    // *********** Zone ****** end
+
+
+
+
+                    // *********** Dis ****** start
+
+                    district = list.getFetchSelectedUnion[3]
+
+                    $('district_id').find('option').remove()
+                    $('#district_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.district_List.length; i++) {
+
+                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                    }
+
+                    $("#district_id").val(district).prop('selected', true)
+
+                    district = $("#district_id").val()
+
+                    // *********** Dis ****** end
+
+
+
+
+
+                    // *********** Upa ****** start
+
+                    upazila = list.getFetchSelectedUnion[4]
+
+                    $('#upazila_id').find('option').remove()
+                    $('#upazila_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.upazila_List.length; i++) {
+
+                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                    }
+
+                    $("#upazila_id").val(upazila).prop('selected', true)
+
+
+                    $('#union_name').attr("value", list.getFetchSelectedUnion[5]);
+                    $('#union_code').attr("value", list.getFetchSelectedUnion[6]);
+
+
+
+                    // *********** Upa ****** end
                 }
 
             });

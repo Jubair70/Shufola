@@ -96,7 +96,7 @@
             Zone </a>
         </li>
         <li class=""><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_district/"
-                              data-toggle="tab">Add District </a>
+                             >Add District </a>
         </li>
         <li class="active"><a style="font-size: 17px;" href="/maxmodule/cais_module/add_geolocation/add_geo_upazila/">Add
             Upazila </a>
@@ -293,10 +293,9 @@
         var jsonUpazilaInfoList =
         {{ jsonUpazilaInfoList |safe }}
         var upazilaInfoList = jsonUpazilaInfoList.upazilaInfoList
-        var idEdit = ''
-
         var country = ''
         var zone = ''
+        var district  = ''
 
         $(document).ready(function () {
 
@@ -307,6 +306,10 @@
 
         $(document).on("change", "#country_id", function () {
             country = $(this).val()
+
+            $('#district_id').find('option').remove()
+            $('#district_id').append('<option value = "" >Select Any</option>')
+
 
             $.ajax({
                 type: 'POST',
@@ -370,7 +373,7 @@
             for (var i = 0; i < upazilaInfoList.length; i++) {
 
 
-                tbody += '<tr><td>' + count + '</td><td>' + upazilaInfoList[i][1] + '</td><td>' + upazilaInfoList[i][2] + '</td><td>' + upazilaInfoList[i][3] + '</td><td>' + upazilaInfoList[i][4] + '</td><td>' + upazilaInfoList[i][5] + '</td><td><button disabled onclick="getEditId(' + upazilaInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>' + upazilaInfoList[i][1] + '</td><td>' + upazilaInfoList[i][2] + '</td><td>' + upazilaInfoList[i][3] + '</td><td>' + upazilaInfoList[i][4] + '</td><td>' + upazilaInfoList[i][5] + '</td><td><button  onclick="getEditId(' + upazilaInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
@@ -397,7 +400,7 @@
         function getEditId(id) {
 
             $('#isEdit').attr("value", id);
-            idEdit = id
+
 
 
             $.ajax({
@@ -411,7 +414,11 @@
 
                     list = JSON.parse(data)
 
-                    $("#country_id").val("" + list.getFetchSelectedDistrict[1] + "").change();
+                    $("#country_id").val(list.getFetchSelectedUpazila[1]).prop('selected', true)
+
+                    // *********** Zone ****** start
+
+                    zone = list.getFetchSelectedUpazila[2]
 
                     $('#zone_id').find('option').remove()
                     $('#zone_id').append('<option value="">Select Any </option>')
@@ -420,11 +427,34 @@
                         $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
                     }
 
-                    $("#zone_id").val("" + getFetchSelectedDistrict[2] + "").prop('selected', true)
-                    $('#district_name').attr("value", list.getFetchSelectedDistrict[3]);
-                    $('#district_code').attr("value", list.getFetchSelectedDistrict[4]);
+                    $("#zone_id").val(zone).prop('selected', true)
 
-                    $("#zone_id").val(list.getFetchSelectedDistrict[2]).prop('selected', true)
+                    zone = $("#zone_id").val()
+
+                    // *********** Zone ****** end
+
+
+                    // *********** Dis ****** start
+
+                    district = list.getFetchSelectedUpazila[3]
+
+                    $('district_id').find('option').remove()
+                    $('#district_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.district_List.length; i++) {
+
+                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                    }
+
+                    $("#district_id").val(district).prop('selected', true)
+
+                    console.log($("#district_id").val())
+
+                    // *********** Dis ****** end
+
+
+                    $('#upazila_name').attr("value", list.getFetchSelectedUpazila[4]);
+                    $('#upazila_code').attr("value", list.getFetchSelectedUpazila[5]);
+
 
                 }
 
