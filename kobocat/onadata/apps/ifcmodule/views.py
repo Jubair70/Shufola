@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
@@ -388,6 +390,7 @@ def insert_management_sms_form(request):
     if request.POST:
         category_id = request.POST.get('category')
         sms_description = request.POST.get('sms_description')
+        sms_description = sms_description.encode('utf-8').strip()
         org_id = request.POST.get('organization')
         program_id = request.POST.get('program')
         crop_id = request.POST.get('crop')
@@ -500,7 +503,7 @@ def weather_forecast(request):
                             insert_query = "INSERT INTO public.weather_forecast (place_name, date_time, temperature, humidity, wind_speed, wind_direction, rainfall,data_type) VALUES('" + str(
                                 place_name) + "', '" + str(res_date) + "', '" + str(temperature) + "', '" + str(
                                 humidity) + "', '" + str(wind_speed) + "', '" + str(wind_direction) + "', '" + str(
-                                rainfall) + "','forecast')"
+                                rainfall) + "','2')"
                             __db_commit_query(insert_query)
     print(datetime.now() - start)
     # return render(request,'ifcmodule/index.html')
@@ -521,10 +524,10 @@ def update_stage(request):
         df = pandas.DataFrame()
         df = pandas.read_sql(query, connection)
         if df.empty:
-            insert_query = "INSERT INTO farmer_crop_stage(farmer_crop_id, stage) VALUES (" + str(farmer_crop_id[i]) + ", (SELECT(SELECT CASE when crop_variety_id :: INT = 0 and season_id :: INT != 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) when crop_variety_id :: INT != 0 and season_id :: INT = 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) WHEN crop_variety_id :: INT = 0 and season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+"))"
+            insert_query = "INSERT INTO farmer_crop_stage(farmer_crop_id, stage) VALUES (" + str(farmer_crop_id[i]) + ", (SELECT(SELECT CASE when crop_variety_id :: INT = 0 and season_id :: INT != 0 then (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) when crop_variety_id :: INT != 0 and season_id :: INT = 0 then (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) WHEN crop_variety_id :: INT = 0 and season_id :: INT = 0 THEN (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) ELSE (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+"))"
             __db_commit_query(insert_query)
         else:
-            update_query = "update farmer_crop_stage set stage =(SELECT(SELECT CASE when crop_variety_id :: INT = 0 and season_id :: INT != 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) when crop_variety_id :: INT != 0 and season_id :: INT = 0 then (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) WHEN crop_variety_id :: INT = 0 and season_id :: INT = 0 THEN (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) ELSE (SELECT stage_name FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+") where farmer_crop_id =" + str(farmer_crop_id[i])
+            update_query = "update farmer_crop_stage set stage =(SELECT(SELECT CASE when crop_variety_id :: INT = 0 and season_id :: INT != 0 then (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) when crop_variety_id :: INT != 0 and season_id :: INT = 0 then (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) WHEN crop_variety_id :: INT = 0 and season_id :: INT = 0 THEN (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+" limit 1) ELSE (SELECT id FROM crop_stage WHERE crop_id :: INT = t.crop_id :: INT AND crop_variety_id :: INT = t.crop_variety_id :: INT AND season_id :: INT = t.season_id :: INT AND Now() :: date - t.sowing_date >= start_day AND Now() :: date - t.sowing_date <= end_day AND t.id = "+str(farmer_crop_id[i])+") end FROM crop_stage WHERE crop_id = t.crop_id LIMIT 1) FROM farmer_crop_info t WHERE t.id = "+str(farmer_crop_id[i])+") where farmer_crop_id =" + str(farmer_crop_id[i])
             __db_commit_query(update_query)
     # return render(request,'ifcmodule/index.html')
     return HttpResponse('')
@@ -663,3 +666,234 @@ def delete_management_sms_form(request, sms_rule_id):
     messages.success(request, '<i class="fa fa-check-circle"></i> SMS Info has been deleted successfully!',
                      extra_tags='alert-success crop-both-side')
     return HttpResponseRedirect("/ifcmodule/management_sms_rule_list/")
+
+
+@login_required
+def weather_sms_rule_list(request):
+    query = "SELECT id, CASE WHEN category_id = 3 THEN 'Weather' end AS category, sms_description,(SELECT organization FROM usermodule_organizations WHERE id = org_id LIMIT 1) organization, (SELECT program_name FROM usermodule_programs WHERE id = program_id LIMIT 1) as program, (SELECT crop_name FROM crop WHERE id = crop_id LIMIT 1) crop, (SELECT season_name FROM cropping_season WHERE id = season_id LIMIT 1) season, (SELECT variety_name FROM crop_variety WHERE id = variety_id LIMIT 1) variety, (SELECT stage_name FROM crop_stage WHERE id = stage_id LIMIT 1) stage FROM weather_sms_rule ORDER BY id DESC"
+    weather_sms_rule_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return render(request, 'ifcmodule/weather_sms_rule.html', {
+        'weather_sms_rule_list': weather_sms_rule_list
+    })
+
+@login_required
+def weather_sms_form(request):
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+
+    query = "select id,parameter_name from weather_parameters"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    id = df.id.tolist()
+    parameter_name = df.parameter_name.tolist()
+    parameter = zip(id, parameter_name)
+    return render(request, 'ifcmodule/weather_sms_form.html',
+                  {'organization': organization, 'season': season, 'crop': crop,'parameter':parameter})
+
+@login_required
+def insert_weather_sms_form(request):
+    if request.POST:
+        category_id = request.POST.get('category')
+        sms_description = request.POST.get('sms_description')
+        sms_description = sms_description.encode('utf-8').strip()
+        org_id = request.POST.get('organization')
+        program_id = request.POST.get('program')
+        crop_id = request.POST.get('crop')
+        variety_id = request.POST.get('crop_variety')
+        season_id = request.POST.get('season')
+        stage_id = request.POST.get('crop_stage')
+        user_id = request.user.id
+        voice_sms_file_path = ""
+        count = int(request.POST.get('count'))
+        idx = 1
+        if "voice_sms" in request.FILES:
+            myfile = request.FILES['voice_sms']
+            url = "onadata/media/uploaded_files/"
+            userName = request.user
+            fs = FileSystemStorage(location=url)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            filename = fs.save(myfile.name, myfile)
+            voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
+
+        insert_query = "INSERT INTO public.weather_sms_rule(stage_id,category_id, sms_description, voice_sms_file_path, org_id, program_id, crop_id, variety_id, season_id, created_at, created_by, updated_at, updated_by)VALUES("+str(stage_id)+"," + str(
+            category_id) + ", '" + str(sms_description) + "', '" + str(voice_sms_file_path) + "', " + str(
+            org_id) + ", " + str(program_id) + ", " + str(crop_id) + ", " + str(variety_id) + ", " + str(
+            season_id) + ", now(), " + str(user_id) + ", now(), " + str(user_id) + ") returning id"
+        # print(insert_query)
+        weather_sms_rule_id = __db_fetch_single_value(insert_query)
+
+        rules_relation = ""
+
+        while  count >= idx:
+            # print(idx,count)
+            parameter_id = request.POST.get('parameter_id_'+str(idx))
+            parameter_type_id = request.POST.get('parameter_type_'+str(idx))
+            sub_parameter_id = request.POST.get('sub_parameter_id_'+str(idx))
+            consecutive_days = request.POST.get('consecutive_days_'+str(idx))
+            operators = request.POST.get('operators_'+str(idx))
+            calculation_type = request.POST.get('calculation_type_'+str(idx))
+            unit = request.POST.get('unit_'+str(idx))
+            unit = unit.encode('utf-8').strip()
+            # print(parameter_id,parameter_type_id,sub_parameter_id,consecutive_days,operators,calculation_type,unit)
+            insert_query_rules  = "INSERT INTO public.weather_sms_rule_details (parameter_id, parameter_type_id, sub_parameter_id, consecutive_days, operators, calculation_type, unit)VALUES("+str(parameter_id)+", "+str(parameter_type_id)+", "+str(sub_parameter_id)+", "+str(consecutive_days)+", '"+str(operators)+"', '"+str(calculation_type)+"', '"+str(unit)+"') returning id"
+            # print(insert_query_rules)
+            details_id = __db_fetch_single_value(insert_query_rules)
+            if idx != 1:
+                operation = request.POST.get('operation_'+str(idx))
+                rules_relation += str(operation) + str(details_id)
+            else:
+                rules_relation += str(details_id)
+            idx += 1
+
+        # insert into weather_sms_rule_relation table
+
+        insert_query_relation = "INSERT INTO public.weather_sms_rule_relation (weather_sms_rule_id, rules_relation) VALUES("+str(weather_sms_rule_id)+", '"+str(rules_relation)+"')"
+        __db_commit_query(insert_query_relation)
+
+        messages.success(request, '<i class="fa fa-check-circle"></i> New SMS Rule has been added successfully!',
+                         extra_tags='alert-success crop-both-side')
+
+    return HttpResponseRedirect("/ifcmodule/weather_sms_rule_list/")
+
+@login_required
+def getSubParameter(request):
+    sub_parameter_id = request.POST.get('obj')
+    query = "select id,sub_parameter_name from weather_sub_parameters where parameter_id ="+str(sub_parameter_id)
+    data = json.dumps(__db_fetch_values_dict(query))
+    return HttpResponse(data)
+
+
+@login_required
+def delete_weather_sms_form(request, sms_rule_id):
+    delete_rules_details = "delete from weather_sms_rule_details where id in (select unnest(regexp_split_to_array(rules_relation, '[&||]'))::int from weather_sms_rule_relation where weather_sms_rule_id = "+str(sms_rule_id)+")"
+    __db_commit_query(delete_rules_details)
+    delete_query = "delete from weather_sms_rule where id = " + str(sms_rule_id) + ""
+    __db_commit_query(delete_query)
+    messages.success(request, '<i class="fa fa-check-circle"></i> SMS Rule has been deleted successfully!',
+                     extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect("/ifcmodule/weather_sms_rule_list/")
+
+
+@login_required
+def edit_weather_sms_form(request,sms_rule_id):
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+
+    query = "select id,parameter_name from weather_parameters"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    id = df.id.tolist()
+    parameter_name = df.parameter_name.tolist()
+    parameter = zip(id, parameter_name)
+
+    info_query = "with first_q as( SELECT weather_sms_rule.id,category_id, sms_description,org_id, program_id,crop_id,season_id,variety_id,stage_id,rules_relation FROM weather_sms_rule,weather_sms_rule_relation where weather_sms_rule.id = weather_sms_rule_relation.weather_sms_rule_id and weather_sms_rule.id = "+str(sms_rule_id)+"), q2 as ( select unnest(regexp_split_to_array(rules_relation, '[&||]')) details_id,* from first_q )select q2.*,weather_sms_rule_details.*,substring(rules_relation,position(weather_sms_rule_details.id::text in rules_relation)::int-1,1) operations from weather_sms_rule_details,q2 where weather_sms_rule_details.id = q2.details_id::int"
+    data = json.dumps(__db_fetch_values_dict(info_query))
+
+    return render(request, 'ifcmodule/edit_weather_sms_form.html',
+                  {'sms_rule_id':sms_rule_id,'data':data,'organization': organization, 'season': season, 'crop': crop,'parameter':parameter})
+
+
+@login_required
+def update_weather_sms_form(request):
+    if request.POST:
+        sms_rule_id = request.POST.get('sms_rule_id')
+        category_id = request.POST.get('category')
+        sms_description = request.POST.get('sms_description')
+        sms_description = sms_description.encode('utf-8').strip()
+        org_id = request.POST.get('organization')
+        program_id = request.POST.get('program')
+        crop_id = request.POST.get('crop')
+        variety_id = request.POST.get('crop_variety')
+        season_id = request.POST.get('season')
+        stage_id = request.POST.get('crop_stage')
+        user_id = request.user.id
+        voice_sms_file_path = ""
+        count = int(request.POST.get('count'))
+        idx = 1
+        if "voice_sms" in request.FILES:
+            myfile = request.FILES['voice_sms']
+            url = "onadata/media/uploaded_files/"
+            userName = request.user
+            fs = FileSystemStorage(location=url)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            filename = fs.save(myfile.name, myfile)
+            voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
+
+        update_query = "UPDATE public.weather_sms_rule SET category_id="+str(category_id)+", sms_description='"+str(sms_description)+"', voice_sms_file_path='"+str(voice_sms_file_path)+"', org_id="+str(org_id)+", program_id="+str(program_id)+", crop_id="+str(crop_id)+" , variety_id="+str(variety_id)+", season_id="+str(season_id)+", updated_at=now() , updated_by="+str(user_id)+", stage_id="+str(stage_id)+" WHERE id="+str(sms_rule_id)+""
+        # print(update_query)
+        __db_commit_query(update_query)
+
+
+        rules_relation = ""
+
+        while  count >= idx:
+            print(idx,count)
+            parameter_id = request.POST.get('parameter_id_'+str(idx))
+            parameter_type_id = request.POST.get('parameter_type_'+str(idx))
+            sub_parameter_id = request.POST.get('sub_parameter_id_'+str(idx))
+            consecutive_days = request.POST.get('consecutive_days_'+str(idx))
+            operators = request.POST.get('operators_'+str(idx))
+            calculation_type = request.POST.get('calculation_type_'+str(idx))
+            unit = request.POST.get('unit_'+str(idx))
+            unit = unit.encode('utf-8').strip()
+            details_id = request.POST.get('details_id_'+str(idx))
+            # print(details_id,parameter_id,parameter_type_id,sub_parameter_id,consecutive_days,operators,calculation_type,unit)
+            if not len(str(details_id)):
+                insert_query_rules  = "INSERT INTO public.weather_sms_rule_details (parameter_id, parameter_type_id, sub_parameter_id, consecutive_days, operators, calculation_type, unit)VALUES("+str(parameter_id)+", "+str(parameter_type_id)+", "+str(sub_parameter_id)+", "+str(consecutive_days)+", '"+str(operators)+"', '"+str(calculation_type)+"', '"+str(unit)+"') returning id"
+                # print(insert_query_rules)
+                details_id = __db_fetch_single_value(insert_query_rules)
+            else:
+                update_query_rules = "UPDATE public.weather_sms_rule_details SET parameter_id="+str(parameter_id)+", parameter_type_id="+str(parameter_type_id)+", sub_parameter_id="+str(sub_parameter_id)+", consecutive_days="+str(consecutive_days)+", operators='"+str(operators)+"', calculation_type='"+str(calculation_type)+"' , unit='"+str(unit)+"' WHERE id="+str(details_id)+""
+                __db_commit_query(update_query_rules)
+            if idx != 1:
+                operation = request.POST.get('operation_'+str(idx))
+                rules_relation += str(operation) + str(details_id)
+            else:
+                rules_relation += str(details_id)
+            idx += 1
+
+        # update weather_sms_rule_relation table
+
+        update_query_relation = "UPDATE public.weather_sms_rule_relation SET  rules_relation='"+str(rules_relation)+"' WHERE weather_sms_rule_id="+str(sms_rule_id)+""
+        __db_commit_query(update_query_relation)
+
+        messages.success(request, '<i class="fa fa-check-circle"></i> SMS  Rule has been updated successfully!',
+                         extra_tags='alert-success crop-both-side')
+
+    return HttpResponseRedirect("/ifcmodule/weather_sms_rule_list/")
