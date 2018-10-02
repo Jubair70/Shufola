@@ -37,4 +37,5 @@ urlpatterns = patterns('',
                        url(r'^delete_weather_sms_form/(?P<sms_rule_id>\d+)/$', views.delete_weather_sms_form,name='delete_weather_sms_form'),
                        url(r'^edit_weather_sms_form/(?P<sms_rule_id>\d+)/$', views.edit_weather_sms_form,name='edit_weather_sms_form'),
                        url(r'^update_weather_sms_form/$', views.update_weather_sms_form, name='update_weather_sms_form'),
+                       url(r'^weather_observed/$', views.weather_observed, name='weather_observed'),
                        )

@@ -751,9 +751,10 @@ def insert_weather_sms_form(request):
             operators = request.POST.get('operators_'+str(idx))
             calculation_type = request.POST.get('calculation_type_'+str(idx))
             unit = request.POST.get('unit_'+str(idx))
+            parameter_value = request.POST.get('parameter_value_'+str(idx))
             unit = unit.encode('utf-8').strip()
-            # print(parameter_id,parameter_type_id,sub_parameter_id,consecutive_days,operators,calculation_type,unit)
-            insert_query_rules  = "INSERT INTO public.weather_sms_rule_details (parameter_id, parameter_type_id, sub_parameter_id, consecutive_days, operators, calculation_type, unit)VALUES("+str(parameter_id)+", "+str(parameter_type_id)+", "+str(sub_parameter_id)+", "+str(consecutive_days)+", '"+str(operators)+"', '"+str(calculation_type)+"', '"+str(unit)+"') returning id"
+            # print(parameter_id,parameter_type_id,sub_parameter_id,consecutive_days,operators,calculation_type,unit,parameter_value)
+            insert_query_rules  = "INSERT INTO public.weather_sms_rule_details (parameter_id, parameter_type_id, sub_parameter_id, consecutive_days, operators, calculation_type, unit,parameter_value)VALUES("+str(parameter_id)+", "+str(parameter_type_id)+", "+str(sub_parameter_id)+", "+str(consecutive_days)+", '"+str(operators)+"', '"+str(calculation_type)+"', '"+str(unit)+"','"+str(parameter_value)+"') returning id"
             # print(insert_query_rules)
             details_id = __db_fetch_single_value(insert_query_rules)
             if idx != 1:
@@ -873,13 +874,14 @@ def update_weather_sms_form(request):
             unit = request.POST.get('unit_'+str(idx))
             unit = unit.encode('utf-8').strip()
             details_id = request.POST.get('details_id_'+str(idx))
+            parameter_value = request.POST.get('parameter_value_' + str(idx))
             # print(details_id,parameter_id,parameter_type_id,sub_parameter_id,consecutive_days,operators,calculation_type,unit)
             if not len(str(details_id)):
-                insert_query_rules  = "INSERT INTO public.weather_sms_rule_details (parameter_id, parameter_type_id, sub_parameter_id, consecutive_days, operators, calculation_type, unit)VALUES("+str(parameter_id)+", "+str(parameter_type_id)+", "+str(sub_parameter_id)+", "+str(consecutive_days)+", '"+str(operators)+"', '"+str(calculation_type)+"', '"+str(unit)+"') returning id"
+                insert_query_rules  = "INSERT INTO public.weather_sms_rule_details (parameter_id, parameter_type_id, sub_parameter_id, consecutive_days, operators, calculation_type, unit,parameter_value)VALUES("+str(parameter_id)+", "+str(parameter_type_id)+", "+str(sub_parameter_id)+", "+str(consecutive_days)+", '"+str(operators)+"', '"+str(calculation_type)+"', '"+str(unit)+"','"+str(parameter_value)+"') returning id"
                 # print(insert_query_rules)
                 details_id = __db_fetch_single_value(insert_query_rules)
             else:
-                update_query_rules = "UPDATE public.weather_sms_rule_details SET parameter_id="+str(parameter_id)+", parameter_type_id="+str(parameter_type_id)+", sub_parameter_id="+str(sub_parameter_id)+", consecutive_days="+str(consecutive_days)+", operators='"+str(operators)+"', calculation_type='"+str(calculation_type)+"' , unit='"+str(unit)+"' WHERE id="+str(details_id)+""
+                update_query_rules = "UPDATE public.weather_sms_rule_details SET parameter_value='"+str(parameter_value)+"',parameter_id="+str(parameter_id)+", parameter_type_id="+str(parameter_type_id)+", sub_parameter_id="+str(sub_parameter_id)+", consecutive_days="+str(consecutive_days)+", operators='"+str(operators)+"', calculation_type='"+str(calculation_type)+"' , unit='"+str(unit)+"' WHERE id="+str(details_id)+""
                 __db_commit_query(update_query_rules)
             if idx != 1:
                 operation = request.POST.get('operation_'+str(idx))
@@ -897,3 +899,51 @@ def update_weather_sms_form(request):
                          extra_tags='alert-success crop-both-side')
 
     return HttpResponseRedirect("/ifcmodule/weather_sms_rule_list/")
+
+def set_nan_to_blank(var):
+    if str(var) == "nan":
+        var = ""
+    return var
+
+def weather_observed(request):
+    start = datetime.now()
+    full_file_path = "onadata/media/uploaded_files/aws.csv"
+    df = pandas.DataFrame()
+    df = pandas.read_csv(full_file_path)
+    cols = df.columns
+    for each in df.index:
+        station_id = set_nan_to_blank(df.loc[each][str(cols[0])])
+        date_time = set_nan_to_blank(df.loc[each][str(cols[1])])
+        ws_avg_ms = set_nan_to_blank(df.loc[each][str(cols[2])])
+        ws_avg_kt = set_nan_to_blank(df.loc[each][str(cols[3])])
+        ws_avg_km = set_nan_to_blank(df.loc[each][str(cols[4])])
+        ws_max_ms = set_nan_to_blank(df.loc[each][str(cols[5])])
+        ws_max_kt = set_nan_to_blank(df.loc[each][str(cols[6])])
+        ws_max_km = set_nan_to_blank(df.loc[each][str(cols[7])])
+        wd_avg_deg = set_nan_to_blank(df.loc[each][str(cols[8])])
+        wd_lo_deg = set_nan_to_blank(df.loc[each][str(cols[9])])
+        wd_hi_deg = set_nan_to_blank(df.loc[each][str(cols[10])])
+        qfe_mb = set_nan_to_blank(df.loc[each][str(cols[11])])
+        dff_mb = set_nan_to_blank(df.loc[each][str(cols[12])])
+        temp_c = set_nan_to_blank(df.loc[each][str(cols[13])])
+        rh = set_nan_to_blank(df.loc[each][str(cols[14])])
+        dp_c = set_nan_to_blank(df.loc[each][str(cols[15])])
+        rain_mm = set_nan_to_blank(df.loc[each][str(cols[16])])
+        sol_jm2 = set_nan_to_blank(df.loc[each][str(cols[17])])
+        sol_mjm2 = set_nan_to_blank(df.loc[each][str(cols[18])])
+        soil = set_nan_to_blank(df.loc[each][str(cols[19])])
+        # check if data exists
+        query = "select id from weather_observed where date_time = '" + str(date_time) + "'"
+        df1 = pandas.DataFrame()
+        df1 = pandas.read_sql(query, connection)
+        if not df1.empty:
+            # update query
+            id = df1.id.tolist()[0]
+            update_query = "UPDATE public.weather_observed SET station_id='"+str(station_id)+"', date_time='"+str(date_time)+"', ws_avg_ms='"+str(ws_avg_ms)+"', ws_avg_kt='"+str(ws_avg_kt)+"', ws_avg_km='"+str(ws_avg_km)+"', ws_max_ms='"+str(ws_max_ms)+"', ws_max_kt='"+str(ws_max_kt)+"', ws_max_km='"+str(ws_max_km)+"', wd_avg_deg='"+str(wd_avg_deg)+"', wd_lo_deg='"+str(wd_lo_deg)+"', wd_hi_deg='"+str(wd_hi_deg)+"', qfe_mb='"+str(qfe_mb)+"', dff_mb='"+str(dff_mb)+"', temp_c='"+str(temp_c)+"', rh='"+str(rh)+"', dp_c='"+str(dp_c)+"', rain_mm='"+str(rain_mm)+"', sol_jm2='"+str(sol_jm2)+"', sol_mjm2='"+str(sol_mjm2)+"', soil='"+str(soil)+"' where id = " + str(id)
+            __db_commit_query(update_query)
+        else:
+            # insert query
+            insert_query = "INSERT INTO public.weather_observed (station_id, date_time, ws_avg_ms, ws_avg_kt, ws_avg_km, ws_max_ms, ws_max_kt, ws_max_km, wd_avg_deg, wd_lo_deg, wd_hi_deg, qfe_mb, dff_mb, temp_c, rh, dp_c, rain_mm, sol_jm2, sol_mjm2, soil) VALUES('"+str(station_id)+"', '"+str(date_time)+"', '"+str(ws_avg_ms)+"', '"+str(ws_avg_kt)+"', '"+str(ws_avg_km)+"', '"+str(ws_max_ms)+"', '"+str(ws_max_kt)+"', '"+str(ws_max_km)+"', '"+str(wd_avg_deg)+"', '"+str(wd_lo_deg)+"', '"+str(wd_hi_deg)+"', '"+str(qfe_mb)+"', '"+str(dff_mb)+"', '"+str(temp_c)+"', '"+str(rh)+"', '"+str(dp_c)+"', '"+str(rain_mm)+"', '"+str(sol_jm2)+"', '"+str(sol_mjm2)+"', '"+str(soil)+"')"
+            __db_commit_query(insert_query)
+    print(datetime.now()-start)
+    return render(request, 'ifcmodule/index.html')

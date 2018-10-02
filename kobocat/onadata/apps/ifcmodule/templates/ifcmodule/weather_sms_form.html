@@ -229,6 +229,12 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
+                                    <label for="">Value:</label>
+                                    <input type="number" min="1" class="form-control" name="parameter_value_1" id="parameter_value_1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
                                     <label for="">Unit:</label>
                                     <input type="text" class="form-control" name="unit_1"
                                            id="unit_1" readonly>
@@ -357,6 +363,11 @@
         "                        </div>\n" +
         "                        <div class=\"row\">\n" +
         "                            <div class=\"col-md-4\">\n" +
+            "                                <div class=\"form-group\">\n" +
+            "                                    <label for=\"\">Value:</label>\n" +
+            "                                    <input type=\"number\" min=\"1\" class=\"form-control\" name=\"parameter_value_"+count+"\" id=\"parameter_value_"+count+"\" required>\n" +
+            "                                </div>\n" +
+            "                            </div><div class=\"col-md-4\">\n" +
         "                                <div class=\"form-group\">\n" +
         "                                    <label for=\"\">Unit:</label>\n" +
         "                                    <input type=\"text\" class=\"form-control\" name=\"unit_"+count+"\"\n" +
@@ -584,6 +595,8 @@ function load_variety(object) {
         $('#submit').on('click',function () {
             var sms_description = $('#sms_description').val();
             var voice_sms = $('#voice_sms').val();
+            console.log($('#parameter_value_1').val());
+{#            return false;#}
             $('#count').val(count);
             if(!sms_description.length && !voice_sms.length)
             {
