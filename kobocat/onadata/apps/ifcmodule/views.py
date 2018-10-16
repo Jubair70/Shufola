@@ -907,43 +907,124 @@ def set_nan_to_blank(var):
 
 def weather_observed(request):
     start = datetime.now()
-    full_file_path = "onadata/media/uploaded_files/aws.csv"
-    df = pandas.DataFrame()
-    df = pandas.read_csv(full_file_path)
-    cols = df.columns
-    for each in df.index:
-        station_id = set_nan_to_blank(df.loc[each][str(cols[0])])
-        date_time = set_nan_to_blank(df.loc[each][str(cols[1])])
-        ws_avg_ms = set_nan_to_blank(df.loc[each][str(cols[2])])
-        ws_avg_kt = set_nan_to_blank(df.loc[each][str(cols[3])])
-        ws_avg_km = set_nan_to_blank(df.loc[each][str(cols[4])])
-        ws_max_ms = set_nan_to_blank(df.loc[each][str(cols[5])])
-        ws_max_kt = set_nan_to_blank(df.loc[each][str(cols[6])])
-        ws_max_km = set_nan_to_blank(df.loc[each][str(cols[7])])
-        wd_avg_deg = set_nan_to_blank(df.loc[each][str(cols[8])])
-        wd_lo_deg = set_nan_to_blank(df.loc[each][str(cols[9])])
-        wd_hi_deg = set_nan_to_blank(df.loc[each][str(cols[10])])
-        qfe_mb = set_nan_to_blank(df.loc[each][str(cols[11])])
-        dff_mb = set_nan_to_blank(df.loc[each][str(cols[12])])
-        temp_c = set_nan_to_blank(df.loc[each][str(cols[13])])
-        rh = set_nan_to_blank(df.loc[each][str(cols[14])])
-        dp_c = set_nan_to_blank(df.loc[each][str(cols[15])])
-        rain_mm = set_nan_to_blank(df.loc[each][str(cols[16])])
-        sol_jm2 = set_nan_to_blank(df.loc[each][str(cols[17])])
-        sol_mjm2 = set_nan_to_blank(df.loc[each][str(cols[18])])
-        soil = set_nan_to_blank(df.loc[each][str(cols[19])])
-        # check if data exists
-        query = "select id from weather_observed where date_time = '" + str(date_time) + "'"
-        df1 = pandas.DataFrame()
-        df1 = pandas.read_sql(query, connection)
-        if not df1.empty:
-            # update query
-            id = df1.id.tolist()[0]
-            update_query = "UPDATE public.weather_observed SET station_id='"+str(station_id)+"', date_time='"+str(date_time)+"', ws_avg_ms='"+str(ws_avg_ms)+"', ws_avg_kt='"+str(ws_avg_kt)+"', ws_avg_km='"+str(ws_avg_km)+"', ws_max_ms='"+str(ws_max_ms)+"', ws_max_kt='"+str(ws_max_kt)+"', ws_max_km='"+str(ws_max_km)+"', wd_avg_deg='"+str(wd_avg_deg)+"', wd_lo_deg='"+str(wd_lo_deg)+"', wd_hi_deg='"+str(wd_hi_deg)+"', qfe_mb='"+str(qfe_mb)+"', dff_mb='"+str(dff_mb)+"', temp_c='"+str(temp_c)+"', rh='"+str(rh)+"', dp_c='"+str(dp_c)+"', rain_mm='"+str(rain_mm)+"', sol_jm2='"+str(sol_jm2)+"', sol_mjm2='"+str(sol_mjm2)+"', soil='"+str(soil)+"' where id = " + str(id)
-            __db_commit_query(update_query)
-        else:
-            # insert query
-            insert_query = "INSERT INTO public.weather_observed (station_id, date_time, ws_avg_ms, ws_avg_kt, ws_avg_km, ws_max_ms, ws_max_kt, ws_max_km, wd_avg_deg, wd_lo_deg, wd_hi_deg, qfe_mb, dff_mb, temp_c, rh, dp_c, rain_mm, sol_jm2, sol_mjm2, soil) VALUES('"+str(station_id)+"', '"+str(date_time)+"', '"+str(ws_avg_ms)+"', '"+str(ws_avg_kt)+"', '"+str(ws_avg_km)+"', '"+str(ws_max_ms)+"', '"+str(ws_max_kt)+"', '"+str(ws_max_km)+"', '"+str(wd_avg_deg)+"', '"+str(wd_lo_deg)+"', '"+str(wd_hi_deg)+"', '"+str(qfe_mb)+"', '"+str(dff_mb)+"', '"+str(temp_c)+"', '"+str(rh)+"', '"+str(dp_c)+"', '"+str(rain_mm)+"', '"+str(sol_jm2)+"', '"+str(sol_mjm2)+"', '"+str(soil)+"')"
-            __db_commit_query(insert_query)
+    directory = str(datetime.now().date()).replace('-','')+'_99'
+    if not os.path.exists("/home/ftpuserifc/weather_files/"):
+        os.makedirs("/home/ftpuserifc/weather_files/")
+    if not os.path.exists("/home/ftpuserifc/weather_files/"+str(directory)) and os.path.exists('/home/ftpuserifc/'+str(directory)):
+        shutil.copytree('/home/ftpuserifc/'+str(directory),'/home/ftpuserifc/weather_files/'+str(directory))
+        full_file_path = "/home/ftpuserifc/weather_files/"+str(directory)+"/weather_observed.csv"
+        df = pandas.DataFrame()
+        df = pandas.read_csv(full_file_path)
+        cols = df.columns
+        for each in df.index:
+            station_id = set_nan_to_blank(df.loc[each][str(cols[0])])
+            date_time = set_nan_to_blank(df.loc[each][str(cols[1])])
+            wind_speed = set_nan_to_blank(df.loc[each][str(cols[2])])
+            temperature = set_nan_to_blank(df.loc[each][str(cols[13])])
+            humidity = set_nan_to_blank(df.loc[each][str(cols[14])])
+            dew_point_temperature = set_nan_to_blank(df.loc[each][str(cols[15])])
+            rainfall = set_nan_to_blank(df.loc[each][str(cols[16])])
+            solar_radiation = set_nan_to_blank(df.loc[each][str(cols[17])])
+            # check if data exists
+            query = "select id from weather_observed where date_time = '" + str(date_time) + "'"
+            df1 = pandas.DataFrame()
+            df1 = pandas.read_sql(query, connection)
+            if not df1.empty:
+                # update query
+                id = df1.id.tolist()[0]
+                update_query = "UPDATE public.weather_observed SET station_id='"+str(station_id)+"', date_time='"+str(date_time)+"', wind_speed ='"+str(wind_speed)+"', temperature ='"+str(temperature)+"', dew_point_temperature ='"+str(dew_point_temperature)+"', humidity ='"+str(humidity)+"', solar_radiation ='"+str(solar_radiation)+"', rainfall ='"+str(rainfall)+"' where id = " + str(id)
+                __db_commit_query(update_query)
+            else:
+                # insert query
+                insert_query = "INSERT INTO public.weather_observed (station_id, date_time, wind_speed, temperature, dew_point_temperature, humidity, solar_radiation, rainfall) VALUES('"+str(station_id)+"', '"+str(date_time)+"', '"+str(wind_speed)+"', '"+str(temperature)+"','"+str(dew_point_temperature)+"', '"+str(humidity)+"', '"+str(solar_radiation)+"', '"+str(rainfall)+"')"
+                __db_commit_query(insert_query)
+    print(datetime.now())
     print(datetime.now()-start)
+    print('\n\n\n\n\n')
     return render(request, 'ifcmodule/index.html')
+
+
+def get_farmers_sms(request):
+    start = datetime.now()
+    query = "WITH first_q AS(SELECT weather_sms_rule.id, category_id, sms_description, org_id, program_id, crop_id, season_id, variety_id, stage_id, rules_relation FROM weather_sms_rule, weather_sms_rule_relation WHERE  weather_sms_rule.id = weather_sms_rule_relation.weather_sms_rule_id), q2 AS (SELECT Unnest(Regexp_split_to_array(rules_relation, '[&||]')) details_id, * FROM first_q), q3 AS (SELECT q2.id weather_sms_rule_id, q2.*, weather_sms_rule_details.*, Substring(rules_relation, Position( weather_sms_rule_details.id :: text IN rules_relation) :: INT - 1, 1) operations FROM weather_sms_rule_details, q2 WHERE weather_sms_rule_details.id = q2.details_id :: INT) SELECT *,(select sub_parameter_name from weather_sub_parameters where id = sub_parameter_id::int) FROM q3 order by weather_sms_rule_id,details_id"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    if not df.empty:
+        weather_sms_rule_id = df.weather_sms_rule_id.unique().tolist()
+        # print(weather_sms_rule_id)
+        for each in weather_sms_rule_id:
+            # print(df.loc[df['weather_sms_rule_id'] == each]['weather_sms_rule_id'])
+
+            temp_weather_sms_rule_id = df.loc[df.index[df['weather_sms_rule_id'] == each]]['weather_sms_rule_id'].tolist()
+            # print(temp_weather_sms_rule_id)
+            wea_sms_id = temp_weather_sms_rule_id[0]
+            parameter_id = df.loc[df.index[df['weather_sms_rule_id'] == each]]['parameter_id'].tolist()
+            parameter_type_id = df.loc[df.index[df['weather_sms_rule_id'] == each]]['parameter_type_id'].tolist()
+            sub_parameter_name =  df.loc[df.index[df['weather_sms_rule_id'] == each]]['sub_parameter_name'].tolist()
+            consecutive_days = df.loc[df.index[df['weather_sms_rule_id'] == each]]['consecutive_days'].tolist()
+            operators = df.loc[df.index[df['weather_sms_rule_id'] == each]]['operators'].tolist()
+            calculation_type = df.loc[df.index[df['weather_sms_rule_id'] == each]]['calculation_type'].tolist()
+            parameter_value = df.loc[df.index[df['weather_sms_rule_id'] == each]]['parameter_value'].tolist()
+            operations = df.loc[df.index[df['weather_sms_rule_id'] == each]]['operations'].tolist()
+            # print(temp_weather_sms_rule_id,parameter_id,parameter_type_id,consecutive_days,operators,calculation_type,operations)
+            result_str_condition = ""
+            for i in range(0,len(temp_weather_sms_rule_id)):
+                column_name = get_column_name(parameter_id[i],sub_parameter_name[i])
+                agg_fun_sub_parameter = get_agg_function_sub_parameter(sub_parameter_name[i])
+                if parameter_type_id[i] == 2:
+                    str_condition = "with t as( select place_id, date_time::date," + str(agg_fun_sub_parameter) + "(" + str(
+                        column_name) + "::numeric) daily_calc from weather_forecast where date_time::date between now()::date + interval '1 day' and now()::date + interval '" + str(
+                        consecutive_days[i]) + " day' group by place_id,date_time::date)select distinct place_id from t group by place_id having " + str(
+                        calculation_type[i]) + "(daily_calc) " + str(operators[i]) + " " + str(parameter_value[i]) + " "
+                elif parameter_type_id[i] == 1:
+                    str_condition = "with t as( select station_id, date_time::date," + str(agg_fun_sub_parameter) + "(" + str(
+                        column_name) + "::numeric) daily_calc from weather_observed where date_time::date between now()::date - interval '1 day' and now()::date - interval '" + str(
+                        consecutive_days[i]) + " day' group by station_id,date_time::date)select  (select distinct place_id from union_place_station_mapping where station_id = t.station_id::int)place_id from t group by station_id having " + str(
+                        calculation_type[i]) + "(daily_calc) " + str(operators[i]) + " " + str(parameter_value[i]) + " "
+
+                if i != 0:
+                    if operations[i] == '&':
+                        result_str_condition += ' INTERSECT '
+                    else:
+                        result_str_condition += ' UNION '
+                    result_str_condition += '(' + str_condition + ')'
+                else:
+                    result_str_condition += str_condition
+
+            # print(result_str_condition)
+
+            query_t = "insert into weather_sms_rule_queue(weather_sms_rule_id,mobile_number,sms_description) with dfg1 as( select * from farmer_crop_info,farmer_crop_stage where farmer_crop_info.id = farmer_crop_stage.farmer_crop_id),dfg as ( select * from dfg1,farmer where dfg1.farmer_id = farmer.id ) select weather_sms_rule.id weather_sms_rule_id,(select mobile_number from farmer where id = farmer_id limit 1)mobile_number,sms_description from weather_sms_rule,dfg where weather_sms_rule.id = "+str(wea_sms_id)+" and weather_sms_rule.crop_id = dfg.crop_id and weather_sms_rule.season_id = dfg.season_id and weather_sms_rule.variety_id = dfg.crop_variety_id and weather_sms_rule.stage_id = dfg.stage::int and weather_sms_rule.org_id = dfg.organization_id and weather_sms_rule.program_id = dfg.program_id and farmer_id=any ( select distinct farmer_id from farmer_crop_info where union_id = any (select distinct union_id from union_place_station_mapping where place_id =any ("+str(result_str_condition)+"))) order by farmer_id"
+            __db_commit_query(query_t)
+            # query_u = "update weather_sms_rule set sms_status = 1 where id = "+str(wea_sms_id)
+            # __db_commit_query(query_u)
+            # print(query_t)
+    print(datetime.now())
+    print(datetime.now() - start)
+    print('\n\n\n\n\n')
+    return render(request, 'ifcmodule/index.html')
+
+def get_column_name(id,sub_param):
+    if id == 1:
+        if "Dew" in sub_param:
+            return "dew_point_temperature"
+        return "temperature"
+    elif id == 2:
+        return "rainfall"
+    elif id == 3:
+        return "humidity"
+    elif id == 4:
+        return "solar_radiation"
+    elif id == 5:
+        return "wind_speed"
+
+
+def get_agg_function_sub_parameter(sub_param):
+    sub_param = sub_param.lower()
+    if "average" in sub_param or "dew" in sub_param:
+        return "avg"
+    elif "maximum" in sub_param:
+        return "max"
+    elif "minimum" in sub_param:
+        return "min"
+    elif "cumulative" in sub_param:
+        return "sum"
