@@ -612,6 +612,9 @@
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#division').html(html_code);
+                         $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazila').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
 
 
                     }
@@ -647,6 +650,8 @@
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#district').html(html_code);
+                        $('#upazila').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
 
 
                     }
@@ -679,6 +684,7 @@
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#upazilla').html(html_code);
+                        $('#union').html("<option value=\"%\">Select One</option>");
 
 
                     }
