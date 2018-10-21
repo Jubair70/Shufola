@@ -1,10 +1,12 @@
 {% extends 'base_test.html' %}
 {% load i18n %}
 {% block additional-headers %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
-    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
-<link href="/static/css/calendar.min.css" rel="stylesheet" type="text/css"/>
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+{#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">#}
+{#    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">#}
+{#<link href="/static/css/calendar.min.css" rel="stylesheet" type="text/css"/>#}
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
        <style>
     a { cursor: pointer; }
 
@@ -27,23 +29,42 @@
         </div>
         <div class="portlet-body">
             <div class="row">
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>From Date: </label>
-                        <div class="ui calendar" id="from_date">
-                            <input type="text" class="form-control"  name="from_date" readonly>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
 
-                    <div class="form-group">
-                        <label>To Date: </label>
-                        <div class="ui calendar" id="to_date">
-                            <input type="text" class="form-control" name="to_date"   readonly>
+            <div class="col-md-3">
+                    <label>From Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="from_date" name="from_date" class="form-control"  readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
                         </div>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <label>To Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="to_date" name="to_date" class="form-control" readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+{#                <div class="col-md-3">#}
+{#                    <div class="form-group">#}
+{#                        <label>From Date: </label>#}
+{#                        <div class="ui calendar" id="from_date">#}
+{#                            <input type="text" class="form-control"  name="from_date" readonly>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-md-3">#}
+{##}
+{#                    <div class="form-group">#}
+{#                        <label>To Date: </label>#}
+{#                        <div class="ui calendar" id="to_date">#}
+{#                            <input type="text" class="form-control" name="to_date"   readonly>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
                 <div class="col-md-3">
 
                     <div class="form-group">
@@ -111,8 +132,9 @@
                 </div>
         </div>
         <br>
+        <img style="display:none; margin-left: 404px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">
         <div  style="height: 300px;overflow-y:auto;">
-            <div id="container"></div>
+{#            <div id="container"></div>#}
             <table id="all_info_table" class="table table-bordered table-responsive table-hover table-condensed flip-content nowrap">
                 <col width="200">
                 <thead class="flip-content">
@@ -188,6 +210,7 @@
 
 {% endblock %}
 {% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
@@ -196,11 +219,12 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
-     <script type="text/javascript">
-            $.fn.bsModal = $.fn.modal.noConflict();
-        </script>
-    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
-     <script type="text/javascript" src="/static/js/calendar.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+{#     <script type="text/javascript">#}
+{#            $.fn.modal = $.fn.modal.noConflict();#}
+{#        </script>#}
+{#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
+{#     <script type="text/javascript" src="/static/js/calendar.min.js"></script>#}
     <script>
 
 {#        $(document).ready(function () {#}
@@ -209,6 +233,15 @@
 {#                deferRender: true#}
 {#            });#}
 {#        });#}
+
+$('#from_date').datepicker({
+        format:'yyyy-mm-dd'
+    });
+    $('#to_date').datepicker({
+        format:'yyyy-mm-dd'
+    });
+    $('#from_date').datepicker('setDate',getDesiredDate(2));
+    $('#to_date').datepicker('setDate',getDesiredDate(1));
 
         var reject_element = "";
         var remove_cnt = 0;
@@ -223,23 +256,23 @@
             row_id =   weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+weather_sms_que_list[idx].schedule_time+"_"+idx;
             ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx
             tbody += '<tr id="'+ids+'"><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';
-                  $('#reject_' +ids).click(function (e) {
-            $('#confirm-reject').bsModal('toggle');
-            console.log(this)
-            reject_element = this;
-
-        });
+{#                  $('#reject_' +ids).click(function (e) {#}
+{#            $('#confirm-reject').modal('toggle');#}
+{#            console.log(this)#}
+{#            reject_element = this;#}
+{##}
+{#        });#}
         }
         $("#all_info_table").find('tbody').html(tbody);
 
 
-        for (var idx in weather_sms_que_list) {
-            ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx
-            $('#reject_' + ids).click(function (e) {
-            $('#confirm-reject').bsModal('toggle');
-            reject_element = this;
-        });
-        }
+{#        for (var idx in weather_sms_que_list) {#}
+{#            ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx#}
+{#            $('#reject_' + ids).click(function (e) {#}
+{#            $('#confirm-reject').modal('toggle');#}
+{#            reject_element = this;#}
+{#        });#}
+{#        }#}
 
 
         if(remove_cnt == weather_sms_que_list.length)
@@ -253,8 +286,10 @@
             console.log("sfsfv");
 {#            table.destroy();#}
 
-            var from_date = $('#from_date').calendar('get date');
-            var to_date = $('#to_date').calendar('get date');
+{#            var from_date = $('#from_date').calendar('get date');#}
+{#            var to_date = $('#to_date').calendar('get date');#}
+                var from_date = $('#from_date').val();
+            var to_date =$('#to_date').val();
             var crop = $('#crop option:selected').val();
             var country = $('#country option:selected').val();
             var division = $('#division option:selected').val();
@@ -262,12 +297,12 @@
             var upazilla = $('#upazilla option:selected').val();
             var union = $('#union option:selected').val();
 
-            if(from_date != null)
-                from_date = getFormattedDate(from_date)
-            else from_date="";
-            if(to_date != null)
-                to_date = getFormattedDate(to_date)
-            else to_date = "";
+{#            if(from_date != null)#}
+{#                from_date = getFormattedDate(from_date)#}
+{#            else from_date="";#}
+{#            if(to_date != null)#}
+{#                to_date = getFormattedDate(to_date)#}
+{#            else to_date = "";#}
 
             $.ajax({
                     url: '/ifcmodule/getWeatherQueueData/',
@@ -284,12 +319,11 @@
                     },
                     beforeSend: function () {
                         $('#container').show();
-                        $("#container").html('<div class="ui active inverted dimmer">\n' +
-                            '    <div class="ui text loader">Loading</div>\n' +
-                            '  </div>');
+{#                        $("#container").html('<div class="ui active inverted dimmer">\n' +#}
+{#                            '    <div class="ui text loader">Loading</div>\n' +#}
+{#                            '  </div>');#}
                     },
                 success: function (result) {
-                    console.log(result);
                     $('#container').hide();
 
                     var tbody = '';
@@ -309,12 +343,12 @@
 {#        for (var idx in weather_sms_que_list) {#}
 {#            ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx#}
 {#            $('#reject_' + ids).click(function (e) {#}
-{#            $('#confirm-reject').bsModal('toggle');#}
+{#            $('#confirm-reject').modal('toggle');#}
 {#            reject_element = this;#}
 {#        });#}
 {#        }#}
 
-
+{#        console.log(remove_cnt);#}
         if(remove_cnt == weather_sms_que_list.length)
         {
             $('#data_empty').show();
@@ -357,64 +391,86 @@
             }
 
 
-        $('#from_date').calendar({
-            type: 'date', endCalendar: $('#to_date'),
-            popupOptions: {
-                position: 'bottom right'
-            },
-            formatter: {
-                date: function (date, settings) {
-                    if (!date) return '';
+{#        $('#from_date').calendar({#}
+{#            type: 'date', endCalendar: $('#to_date'),#}
+{#            popupOptions: {#}
+{#                position: 'bottom right'#}
+{#            },#}
+{#            formatter: {#}
+{#                date: function (date, settings) {#}
+{#                    if (!date) return '';#}
+{##}
+{#                    var day = date.getDate();#}
+{#                    var month = date.getMonth() + 1;#}
+{#                    var year = date.getFullYear();#}
+{##}
+{#                    if (day < 10) {#}
+{#                        day = '0' + day#}
+{#                    }#}
+{#                    if (month < 10) {#}
+{#                        month = '0' + month#}
+{#                    }#}
+{#                    return year + '-' + month + '-' + day;#}
+{#                }#}
+{#            }#}
+{#        });#}
+{##}
+{#        $('#to_date').calendar({#}
+{#            type: 'date',#}
+{#            popupOptions: {#}
+{#                position: 'bottom right'#}
+{#            },startCalendar: $('#from_date')#}
+{#            ,#}
+{##}
+{#            formatter: {#}
+{#                date: function (date, settings) {#}
+{#                    if (!date) return '';#}
+{##}
+{#                    var day = date.getDate();#}
+{#                    var month = date.getMonth() + 1;#}
+{#                    var year = date.getFullYear();#}
+{##}
+{#                    if (day < 10) {#}
+{#                        day = '0' + day#}
+{#                    }#}
+{#                    if (month < 10) {#}
+{#                        month = '0' + month#}
+{#                    }#}
+{#                    return year + '-' + month + '-' + day;#}
+{#                }#}
+{#            }#}
+{#        });#}
+{##}
+{#        $('#from_date').calendar('set date',getDesiredDate(2));#}
+{#        $('#to_date').calendar('set date',getDesiredDate(1));#}
 
-                    var day = date.getDate();
-                    var month = date.getMonth() + 1;
-                    var year = date.getFullYear();
-
-                    if (day < 10) {
-                        day = '0' + day
-                    }
-                    if (month < 10) {
-                        month = '0' + month
-                    }
-                    return year + '-' + month + '-' + day;
-                }
-            }
-        });
-
-        $('#to_date').calendar({
-            type: 'date',
-            popupOptions: {
-                position: 'bottom right'
-            },startCalendar: $('#from_date')
-            ,
-
-            formatter: {
-                date: function (date, settings) {
-                    if (!date) return '';
-
-                    var day = date.getDate();
-                    var month = date.getMonth() + 1;
-                    var year = date.getFullYear();
-
-                    if (day < 10) {
-                        day = '0' + day
-                    }
-                    if (month < 10) {
-                        month = '0' + month
-                    }
-                    return year + '-' + month + '-' + day;
-                }
-            }
-        });
-
-        $('#from_date').calendar('set date',getDesiredDate(2));
-        $('#to_date').calendar('set date',getDesiredDate(1));
 
 
+{#        function getDesiredDate(n) {#}
+{#                var today = new Date();#}
+{#                var n_month_before_today = new Date(today);#}
+{#                n_month_before_today.setMonth((today.getMonth() + 1) - n);#}
+{#                var dd = n_month_before_today.getDate();#}
+{#                var mm = n_month_before_today.getMonth() + 1;#}
+{##}
+{#                if (dd < 10) {#}
+{#                    dd = '0' + dd#}
+{#                }#}
+{#                if (mm < 10) {#}
+{#                    mm = '0' + mm#}
+{#                }#}
+{#                var yyyy = n_month_before_today.getFullYear();#}
+                {#                formatted_date = yyyy + '-' + mm + '-' + dd;#}
+{#                formatted_date =   yyyy+ '-' +mm+ '-' +dd   ;#}
+{#                return formatted_date;#}
+{##}
+{#        }#}
 
-        function getDesiredDate(n) {
+function getDesiredDate(n) {
+
                 var today = new Date();
                 var n_month_before_today = new Date(today);
+
                 n_month_before_today.setMonth((today.getMonth() + 1) - n);
                 var dd = n_month_before_today.getDate();
                 var mm = n_month_before_today.getMonth() + 1;
@@ -426,14 +482,15 @@
                     mm = '0' + mm
                 }
                 var yyyy = n_month_before_today.getFullYear();
-                {#                formatted_date = yyyy + '-' + mm + '-' + dd;#}
-                formatted_date =   yyyy+ '-' +mm+ '-' +dd   ;
-                return formatted_date;
 
-        }
+                formatted_date =   yyyy+ '/' +mm+ '/' +dd;
+                console.log(new Date(yyyy,mm,dd));
+                return new Date(yyyy,mm,dd);
+
+            }
 
         function reject(row_id) {
-                        $('#confirm-reject').bsModal('toggle');
+                        $('#confirm-reject').modal('toggle');
                         reject_element = row_id;
         }
 
