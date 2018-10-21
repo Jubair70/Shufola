@@ -1,0 +1,28 @@
+<table id ="sms_table" class="table table-bordered table-hover table-fixed table-striped">
+        <thead>
+            <th> Farmer name</th>
+            <th> Mobile No</th>
+            <th> Variety</th>
+            <th> Crop</th>
+            <th >SMS</th>
+            <th> Status</th>
+            <th>Action</th>
+        </thead>
+        <tbody>
+        {% for data in dataset %}
+        <tr>
+            <td>{{data.farmer_name}}</td>
+            <td>{{data.mobile_number}}</td>
+            <td>{{data.variety_name}}</td>
+            <td>{{data.crop_name}}</td>
+            <td>{{data.sms_text }}</td>
+            <td> {{ data.status }}</td>
+            <td>
+                {% if data.status == 'New' %}
+                <a  id = "{{ data.id }}"  class="btn btn-primary send_sms" data-original-title="" title="">Send SMS </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>

@@ -993,11 +993,11 @@ def get_farmers_sms(request):
 
             # print(result_str_condition)
 
-            query_t = "insert into weather_sms_rule_queue(weather_sms_rule_id,mobile_number,sms_description) with dfg1 as( select * from farmer_crop_info,farmer_crop_stage where farmer_crop_info.id = farmer_crop_stage.farmer_crop_id),dfg as ( select * from dfg1,farmer where dfg1.farmer_id = farmer.id ) select weather_sms_rule.id weather_sms_rule_id,(select mobile_number from farmer where id = farmer_id limit 1)mobile_number,sms_description from weather_sms_rule,dfg where weather_sms_rule.id = "+str(wea_sms_id)+" and weather_sms_rule.crop_id = dfg.crop_id and weather_sms_rule.season_id = dfg.season_id and weather_sms_rule.variety_id = dfg.crop_variety_id and weather_sms_rule.stage_id = dfg.stage::int and weather_sms_rule.org_id = dfg.organization_id and weather_sms_rule.program_id = dfg.program_id and farmer_id=any ( select distinct farmer_id from farmer_crop_info where union_id = any (select distinct union_id from union_place_station_mapping where place_id =any ("+str(result_str_condition)+"))) order by farmer_id"
+            query_t = "insert into weather_sms_rule_queue(weather_sms_rule_id,mobile_number,sms_description,crop_id,season_id,variety_id,stage_id,org_id,program_id,union_id) with dfg1 as( select * from farmer_crop_info,farmer_crop_stage where farmer_crop_info.id = farmer_crop_stage.farmer_crop_id),dfg as ( select * from dfg1,farmer where dfg1.farmer_id = farmer.id ) select weather_sms_rule.id weather_sms_rule_id,(select mobile_number from farmer where id = farmer_id limit 1)mobile_number,sms_description, weather_sms_rule.crop_id,weather_sms_rule.season_id,weather_sms_rule.variety_id,weather_sms_rule.stage_id,weather_sms_rule.org_id,weather_sms_rule.program_id,( SELECT union_id FROM farmer WHERE id = farmer_id limit 1) union_id from weather_sms_rule,dfg where weather_sms_rule.id = "+str(wea_sms_id)+" and weather_sms_rule.crop_id = dfg.crop_id and weather_sms_rule.season_id = dfg.season_id and weather_sms_rule.variety_id = dfg.crop_variety_id and weather_sms_rule.stage_id = dfg.stage::int and weather_sms_rule.org_id = dfg.organization_id and weather_sms_rule.program_id = dfg.program_id and farmer_id=any ( select distinct farmer_id from farmer_crop_info where union_id = any (select distinct union_id from union_place_station_mapping where place_id =any ("+str(result_str_condition)+"))) order by farmer_id"
             __db_commit_query(query_t)
             # query_u = "update weather_sms_rule set sms_status = 1 where id = "+str(wea_sms_id)
             # __db_commit_query(query_u)
-            # print(query_t)
+            print(query_t)
     print(datetime.now())
     print(datetime.now() - start)
     print('\n\n\n\n\n')
@@ -1028,3 +1028,205 @@ def get_agg_function_sub_parameter(sub_param):
         return "min"
     elif "cumulative" in sub_param:
         return "sum"
+
+
+@login_required
+def sms_list(request):
+    q = 'select distinct crop_id,crop_name from vwcrop_variety'
+    crop_list = __db_fetch_values_dict(q)
+    return render(request, "ifcmodule/sms_list.html",{'crop_list' : crop_list})
+
+
+def get_sms_table(request):
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    crop = request.POST.get('crop')
+    if (from_date == '' or to_date == ''):
+        date_query = " and date(schedule_time) >=  current_date"
+    else:
+        date_query = " and  date(schedule_time) between '" + from_date + "' and '" + to_date + "'"
+    q = "select id::text,farmer_name,mobile_number,sms_text,status,(select crop_name from vwcrop_variety where crop_id =management_sms_que.crop_id limit 1) crop_name,(select crop_name from vwcrop_variety where variety_id =management_sms_que.variety_id limit 1 ) variety_name from management_sms_que where crop_id::text like '"+str(crop)+"' "+date_query+" order by id asc"
+    dataset = __db_fetch_values_dict(q)
+    #main_df = (pandas.read_sql(q, connection)).values.tolist()
+    #print main_df
+    return render(request, 'ifcmodule/sms_table.html',
+                  {'dataset': dataset}, status=200)
+
+
+def send_sms(request,id):
+    q = "update management_sms_que set status = 'Sent',updated_at = NOW(),updated_by = "+str(request.user.id)+" where id = "+str(id)
+    __db_commit_query(q)
+    return HttpResponse(json.dumps('ok'), content_type="application/json", status=200)
+
+
+
+
+
+def weather_sms_que_list(request):
+    query = "SELECT DISTINCT weather_sms_rule_id AS sms_id, sms_description, union_id,(select name from vwunion where id = union_id::int limit 1)union_name, crop_id,(select crop_name from crop where id = crop_id::int limit 1)crop_name, season_id,(select season_name from cropping_season where id = season_id::int limit 1)season_name, variety_id,(select variety_name from crop_variety where id = variety_id::int limit 1)variety_name, stage_id, (select stage_name from crop_stage where id = stage_id::int limit 1)stage_name, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS')  schedule_time FROM weather_sms_rule_queue WHERE status = 'New'"
+    weather_sms_que_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop_list = zip(crop_id,crop_name)
+
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
+
+    return render(request, 'ifcmodule/weather_sms_que_list.html', {
+        'weather_sms_que_list': weather_sms_que_list,'crop_list':crop_list,'country':country
+    })
+
+
+def management_sms_que_list(request):
+    query = "SELECT DISTINCT sms_id, sms_text,(select union_id from farmer where id = farmer_id::int limit 1) union_id,(select (select name from vwunion where id = union_id::int limit 1) from farmer where id = farmer_id::int limit 1)union_name, crop_id,(select crop_name from crop where id = crop_id::int limit 1)crop_name, season_id,(select season_name from cropping_season where id = season_id::int limit 1)season_name, variety_id,(select variety_name from crop_variety where id = variety_id::int limit 1)variety_name, stage_id, (select stage_name from crop_stage where id = stage_id::int limit 1)stage_name, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time FROM management_sms_que WHERE status = 'New'"
+    management_sms_que_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop_list = zip(crop_id,crop_name)
+
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
+
+    return render(request, 'ifcmodule/management_sms_que_list.html', {
+        'management_sms_que_list': management_sms_que_list,'crop_list':crop_list,'country':country
+    })
+
+
+def approve_farmer_sms(request):
+    weather_sms_rule_id = request.POST.get('weather_sms_rule_id')
+    union_id  = request.POST.get('union_id')
+    crop_id = request.POST.get('crop_id')
+    season_id = request.POST.get('season_id')
+    variety_id = request.POST.get('variety_id')
+    stage_id = request.POST.get('stage_id')
+    schedule_time = request.POST.get('schedule_time')
+    username = request.user.username
+    print(request.user.username,schedule_time)
+    query = "INSERT INTO public.sms_que (mobile_number, sms_text, schedule_time,alertlog_id, sms_source, status, created_by, created_at, country_id) SELECT mobile_number,sms_description,schedule_time,id,'weather_sms_rule_queue' as sms_source ,status ,'"+str(username)+"' as created_by,now() as created_at,(select country_id from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) FROM weather_sms_rule_queue WHERE status = 'New' and union_id = '"+str(union_id)+"' and weather_sms_rule_id = '"+str(weather_sms_rule_id)+"' and crop_id = '"+str(crop_id)+"' and season_id = '"+str(season_id)+"' and variety_id = '"+str(variety_id)+"' and stage_id = '"+str(stage_id)+"' and to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '"+str(schedule_time)+"'"
+    print(query)
+    __db_commit_query(query)
+    query_t = "UPDATE public.weather_sms_rule_queue SET status='Sent'::text WHERE union_id = '"+str(union_id)+"' and weather_sms_rule_id = '"+str(weather_sms_rule_id)+"' and crop_id = '"+str(crop_id)+"' and season_id = '"+str(season_id)+"' and variety_id = '"+str(variety_id)+"' and stage_id = '"+str(stage_id)+"' and to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '"+str(schedule_time)+"'"
+    __db_commit_query(query_t)
+    return HttpResponse("")
+
+def approve_farmer_sms_management(request):
+    sms_id = request.POST.get('sms_id')
+    union_id  = request.POST.get('union_id')
+    crop_id = request.POST.get('crop_id')
+    season_id = request.POST.get('season_id')
+    variety_id = request.POST.get('variety_id')
+    stage_id = request.POST.get('stage_id')
+    schedule_time = request.POST.get('schedule_time')
+    username = request.user.username
+    print(request.user.username,schedule_time)
+    query = "INSERT INTO public.sms_que (mobile_number, sms_text, schedule_time,alertlog_id, sms_source, status, created_by, created_at, country_id)  with t as( select *,(select union_id from farmer where id = farmer_id::int limit 1) union_id from management_sms_que) SELECT mobile_number, sms_text, schedule_time, id, 'management_sms_que' AS sms_source, status, '"+str(username)+"' AS created_by, Now() AS created_at, (SELECT country_id FROM farmer WHERE mobile_number = t.mobile_number LIMIT 1) FROM t WHERE status = 'New' AND union_id = '"+str(union_id)+"' AND sms_id = '"+str(sms_id)+"' AND crop_id = '"+str(crop_id)+"' AND season_id = '"+str(season_id)+"' AND variety_id = '"+str(variety_id)+"' AND stage_id = '"+str(stage_id)+"' AND to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '"+str(schedule_time)+"'"
+    print(query)
+    __db_commit_query(query)
+    query_t = "UPDATE public.management_sms_que SET status = 'Sent' :: text WHERE farmer_id = any(select id from farmer where union_id = '"+str(union_id)+"') AND sms_id = '"+str(sms_id)+"' AND crop_id = '"+str(crop_id)+"' AND season_id = '"+str(season_id)+"' AND variety_id = '"+str(variety_id)+"' AND stage_id = '"+str(stage_id)+"' AND to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '"+str(schedule_time)+"'"
+    print(query_t)
+    __db_commit_query(query_t)
+    return HttpResponse("")
+
+def reject_farmer_sms(request):
+    weather_sms_rule_id = request.POST.get('weather_sms_rule_id')
+    union_id = request.POST.get('union_id')
+    crop_id = request.POST.get('crop_id')
+    season_id = request.POST.get('season_id')
+    variety_id = request.POST.get('variety_id')
+    stage_id = request.POST.get('stage_id')
+    schedule_time = request.POST.get('schedule_time')
+    username = request.user.username
+    print(request.user.username, schedule_time)
+    query_t = "UPDATE public.weather_sms_rule_queue SET status='Reject'::text WHERE union_id = '" + str(
+        union_id) + "' and weather_sms_rule_id = '" + str(weather_sms_rule_id) + "' and crop_id = '" + str(
+        crop_id) + "' and season_id = '" + str(season_id) + "' and variety_id = '" + str(
+        variety_id) + "' and stage_id = '" + str(
+        stage_id) + "' and to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '" + str(schedule_time) + "'"
+    print(query_t)
+    __db_commit_query(query_t)
+    return HttpResponse("")
+
+
+def reject_farmer_sms_management(request):
+    sms_id = request.POST.get('sms_id')
+    union_id = request.POST.get('union_id')
+    crop_id = request.POST.get('crop_id')
+    season_id = request.POST.get('season_id')
+    variety_id = request.POST.get('variety_id')
+    stage_id = request.POST.get('stage_id')
+    schedule_time = request.POST.get('schedule_time')
+    username = request.user.username
+    print(request.user.username, schedule_time)
+    query_t = "UPDATE public.management_sms_que SET status='Reject'::text WHERE farmer_id = any(select id from farmer where union_id = '"+str(union_id)+"') and sms_id = '" + str(sms_id) + "' and crop_id = '" + str(crop_id) + "' and season_id = '" + str(season_id) + "' and variety_id = '" + str(variety_id) + "' and stage_id = '" + str(stage_id) + "' and to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '" + str(schedule_time) + "'"
+    print(query_t)
+    __db_commit_query(query_t)
+    return HttpResponse("")
+
+def getDivisions(request):
+    obj = request.POST.get('obj')
+    query = "select distinct geo_zone_id id,division_name field_name from vwunion where geo_country_id = '"+str(obj)+"'"
+    data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
+    return HttpResponse(data)
+
+
+def getDistricts(request):
+    obj = request.POST.get('obj')
+    query = "select distinct geo_district_id id,district_name field_name from vwunion where geo_zone_id = '"+str(obj)+"'"
+    data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
+    return HttpResponse(data)
+
+def getUpazillas(request):
+    obj = request.POST.get('obj')
+    query = "select distinct geo_upazilla_id id,upazilla_name field_name from vwunion where geo_district_id = '"+str(obj)+"'"
+    data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
+    return HttpResponse(data)
+
+def getUnions(request):
+    obj = request.POST.get('obj')
+    query = "select distinct id,name field_name from vwunion where geo_upazilla_id = '"+str(obj)+"'"
+    data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
+    return HttpResponse(data)
+
+def getWeatherQueueData(request):
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    crop = request.POST.get('crop')
+    country = request.POST.get('country')
+    division = request.POST.get('division')
+    district = request.POST.get('district')
+    upazilla = request.POST.get('upazilla')
+    union = request.POST.get('union')
+    query = "SELECT distinct weather_sms_rule_id AS sms_id, sms_description, union_id,(select name from vwunion where id = union_id::int limit 1)union_name, crop_id,(select crop_name from crop where id = crop_id::int limit 1)crop_name, season_id,(select season_name from cropping_season where id = season_id::int limit 1)season_name, variety_id,(select variety_name from crop_variety where id = variety_id::int limit 1)variety_name, stage_id, (select stage_name from crop_stage where id = stage_id::int limit 1)stage_name,to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time FROM weather_sms_rule_queue,vwunion WHERE union_id::int = vwunion.id and status = 'New' and schedule_time between '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and geo_country_id::text like '"+str(country)+"' and geo_zone_id::text like '"+str(division)+"' and geo_upazilla_id::text like '"+str(upazilla)+"' and geo_district_id::text like '"+str(district )+"' and union_id::text like '"+str(union)+"' and crop_id::text like '"+str(crop)+"'"
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    print(data,query)
+    return HttpResponse(data)
+
+def getManagementQueueData(request):
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    crop = request.POST.get('crop')
+    country = request.POST.get('country')
+    division = request.POST.get('division')
+    district = request.POST.get('district')
+    upazilla = request.POST.get('upazilla')
+    union = request.POST.get('union')
+    query = "with t as( select (select union_id from farmer where id = farmer_id),* from management_sms_que) SELECT DISTINCT sms_id, sms_text, union_id, ( SELECT NAME FROM vwunion WHERE id = union_id::int limit 1)union_name, crop_id, ( SELECT crop_name FROM crop WHERE id = crop_id::int limit 1)crop_name, season_id, ( SELECT season_name FROM cropping_season WHERE id = season_id::int limit 1)season_name, variety_id, ( SELECT variety_name FROM crop_variety WHERE id = variety_id::int limit 1)variety_name, stage_id, ( SELECT stage_name FROM crop_stage WHERE id = stage_id::int limit 1) stage_name, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time FROM t, vwunion WHERE union_id::int = vwunion.id and status = 'New' and schedule_time between '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and geo_country_id::text like '"+str(country)+"' and geo_zone_id::text like '"+str(division)+"' and geo_upazilla_id::text like '"+str(upazilla)+"' and geo_district_id::text like '"+str(district )+"' and union_id::text like '"+str(union)+"' and crop_id::text like '"+str(crop)+"'"
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    print(data,query)
+    return HttpResponse(data)
