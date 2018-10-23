@@ -378,6 +378,95 @@ def management_sms_form(request):
 
 
 @login_required
+def promotional_sms_form(request):
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
+
+    return render(request, 'ifcmodule/promotional_sms_form.html',
+                  {'organization': organization,'season': season, 'crop': crop,'country':country})
+
+
+@login_required
+def promotional_sms_list(request):
+    query = "select 'Promotional/Broadcast' category_name,coalesce((select organization from usermodule_organizations where id::text = organization_id limit 1),'All') organization_name, coalesce((select program_name from usermodule_programs where id::text = program_id limit 1),'All') program_name, coalesce((select crop_name from crop where id::text = crop_id limit 1),'All') crop_name, coalesce((select variety_name from crop_variety where id::text = variety_id limit 1),'All') variety_name, coalesce((select season_name from cropping_season where id::text = season_id limit 1),'All') season_name, coalesce((select name from geo_country where id::text = country_id limit 1),'All') country_name, coalesce((select name from geo_zone where id::text = division_id limit 1),'All') division_name, coalesce((select name from geo_district where id::text = district_id limit 1),'All') district_name, coalesce((select name from geo_upazilla where id::text = upazilla_id limit 1),'All') upazilla_name, coalesce((select name from geo_union where id::text = union_id limit 1),'All') union_name,sms_description,mobile_number,farmer_name from promotional_sms"
+    promotional_sms_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return render(request, 'ifcmodule/promotional_sms_list.html', {
+        'promotional_sms_list': promotional_sms_list
+    })
+
+
+@login_required
+def insert_promotional_sms_form(request):
+    if request.POST:
+        category_id = request.POST.get('category')
+        sms_description = request.POST.get('sms_description')
+        sms_description = sms_description.encode('utf-8').strip()
+        org_id = request.POST.get('organization')
+        program_id = request.POST.get('program')
+        crop_id = request.POST.get('crop')
+        variety_id = request.POST.get('crop_variety')
+        season_id = request.POST.get('season')
+        country_id = request.POST.get('country')
+        division_id = request.POST.get('division')
+        district_id = request.POST.get('district')
+        upazilla_id = request.POST.get('upazilla')
+        union_id = request.POST.get('union')
+        username = request.user.username
+        voice_sms_file_path = ""
+        if "voice_sms" in request.FILES:
+            myfile = request.FILES['voice_sms']
+            url = "onadata/media/uploaded_files/"
+            userName = request.user
+            fs = FileSystemStorage(location=url)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            filename = fs.save(myfile.name, myfile)
+            voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
+
+        insert_query = "INSERT INTO public.promotional_sms(organization_id, program_id, crop_id, variety_id, season_id, country_id, division_id, district_id, upazilla_id, union_id, farmer_id, farmer_name, mobile_number, sms_description, created_by) select '"+str(org_id)+"', '"+str(program_id)+"', '"+str(crop_id)+"', '"+str(variety_id)+"', '"+str(season_id)+"', '"+str(country_id)+"', '"+str(division_id)+"', '"+str(district_id)+"', '"+str(upazilla_id)+"', '"+str(union_id)+"', id farmer_id,farmer_name,mobile_number::text,'"+str(sms_description)+"','"+str(username)+"' from farmer where country_id::text LIKE '"+str(country_id)+"' AND zone_id::text like '"+str(division_id)+"' AND district_id::text like '"+str(district_id)+"' AND upazila_id::text like '"+str(upazilla_id)+"' AND union_id::text like '"+str(union_id)+"' AND organization_id::text like '"+str(org_id)+"' AND program_id::text like '"+str(program_id)+"' and id = any( select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop_id)+"' AND season_id::text like '"+str(season_id)+"' AND crop_variety_id::text like '"+str(variety_id)+"') returning id"
+        df = pandas.read_sql(insert_query,connection)
+        id = str(df.id.tolist()).replace('[','').replace(']','').replace(' ', '')
+        # print(df.id)
+        if country_id == '%':
+            insert_query1 = "INSERT INTO public.sms_que(mobile_number, sms_text, schedule_time,alertlog_id, sms_source, status, created_by, created_at, country_id) select mobile_number,sms_description,schedule_time,id,'promotional_sms','New','ifc',now(),'1' from promotional_sms where id::text = any(string_to_array('" + str(
+                id) + "',','))"
+            __db_commit_query(insert_query1)
+            insert_query1 = "INSERT INTO public.sms_que(mobile_number, sms_text, schedule_time,alertlog_id, sms_source, status, created_by, created_at, country_id) select mobile_number,sms_description,schedule_time,id,'promotional_sms','New','ifc',now(),'2' from promotional_sms where id::text = any(string_to_array('" + str(
+                id) + "',','))"
+            __db_commit_query(insert_query1)
+        else:
+            insert_query1 = "INSERT INTO public.sms_que(mobile_number, sms_text, schedule_time,alertlog_id, sms_source, status, created_by, created_at, country_id) select mobile_number,sms_description,schedule_time,id,'promotional_sms','New','ifc',now(),country_id from promotional_sms where id::text = any(string_to_array('"+str(id)+"',','))"
+            __db_commit_query(insert_query1)
+
+        messages.success(request, '<i class="fa fa-check-circle"></i>New SMS has been added successfully!',
+                         extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect("/ifcmodule/promotional_sms_list/")
+
+@login_required
 def getProgram(request):
     org_id = request.POST.get('obj')
     query = "select id,program_name from usermodule_programs where org_id = " + str(org_id)

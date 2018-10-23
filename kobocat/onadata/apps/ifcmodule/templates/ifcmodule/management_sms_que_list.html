@@ -633,7 +633,7 @@
             if (isNaN(parseFloat(obj))) {
                 $('#division').html("<option value=\"%\">Select One</option>");
                 $('#district').html("<option value=\"%\">Select One</option>");
-                $('#upazila').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
                 $('#union').html("<option value=\"%\">Select One</option>");
             }
             else {
@@ -654,7 +654,7 @@
                         }
                         $('#division').html(html_code);
                          $('#district').html("<option value=\"%\">Select One</option>");
-                $('#upazila').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
                 $('#union').html("<option value=\"%\">Select One</option>");
 
 
@@ -671,7 +671,7 @@
             if (isNaN(parseFloat(obj))) {
 
                 $('#district').html("<option value=\"%\">Select One</option>");
-                $('#upazila').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
                 $('#union').html("<option value=\"%\">Select One</option>");
             }
             else {
@@ -691,7 +691,7 @@
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#district').html(html_code);
-                        $('#upazila').html("<option value=\"%\">Select One</option>");
+                        $('#upazilla').html("<option value=\"%\">Select One</option>");
                 $('#union').html("<option value=\"%\">Select One</option>");
 
 
@@ -705,7 +705,7 @@
             ajaxcall();
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#upazila').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
                 $('#union').html("<option value=\"%\">Select One</option>");
             }
             else {
