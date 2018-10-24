@@ -1125,7 +1125,7 @@ def sms_list(request):
     crop_list = __db_fetch_values_dict(q)
     return render(request, "ifcmodule/sms_list.html",{'crop_list' : crop_list})
 
-
+@login_required
 def get_sms_table(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
@@ -1141,7 +1141,7 @@ def get_sms_table(request):
     return render(request, 'ifcmodule/sms_table.html',
                   {'dataset': dataset}, status=200)
 
-
+@login_required
 def send_sms(request,id):
     q = "update management_sms_que set status = 'Sent',updated_at = NOW(),updated_by = "+str(request.user.id)+" where id = "+str(id)
     __db_commit_query(q)
@@ -1150,7 +1150,7 @@ def send_sms(request,id):
 
 
 
-
+@login_required
 def weather_sms_que_list(request):
     query = "SELECT DISTINCT weather_sms_rule_id AS sms_id, sms_description, union_id,(select name from vwunion where id = union_id::int limit 1)union_name, crop_id,(select crop_name from crop where id = crop_id::int limit 1)crop_name, season_id,(select season_name from cropping_season where id = season_id::int limit 1)season_name, variety_id,(select variety_name from crop_variety where id = variety_id::int limit 1)variety_name, stage_id, (select stage_name from crop_stage where id = stage_id::int limit 1)stage_name, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS')  schedule_time FROM weather_sms_rule_queue WHERE status = 'New'"
     weather_sms_que_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
@@ -1173,7 +1173,7 @@ def weather_sms_que_list(request):
         'weather_sms_que_list': weather_sms_que_list,'crop_list':crop_list,'country':country
     })
 
-
+@login_required
 def management_sms_que_list(request):
     query = "SELECT DISTINCT sms_id, sms_text,(select union_id from farmer where id = farmer_id::int limit 1) union_id,(select (select name from vwunion where id = union_id::int limit 1) from farmer where id = farmer_id::int limit 1)union_name, crop_id,(select crop_name from crop where id = crop_id::int limit 1)crop_name, season_id,(select season_name from cropping_season where id = season_id::int limit 1)season_name, variety_id,(select variety_name from crop_variety where id = variety_id::int limit 1)variety_name, stage_id, (select stage_name from crop_stage where id = stage_id::int limit 1)stage_name, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time FROM management_sms_que WHERE status = 'New'"
     management_sms_que_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
@@ -1196,7 +1196,7 @@ def management_sms_que_list(request):
         'management_sms_que_list': management_sms_que_list,'crop_list':crop_list,'country':country
     })
 
-
+@login_required
 def approve_farmer_sms(request):
     weather_sms_rule_id = request.POST.get('weather_sms_rule_id')
     union_id  = request.POST.get('union_id')
@@ -1214,6 +1214,7 @@ def approve_farmer_sms(request):
     __db_commit_query(query_t)
     return HttpResponse("")
 
+@login_required
 def approve_farmer_sms_management(request):
     sms_id = request.POST.get('sms_id')
     union_id  = request.POST.get('union_id')
@@ -1232,6 +1233,7 @@ def approve_farmer_sms_management(request):
     __db_commit_query(query_t)
     return HttpResponse("")
 
+@login_required
 def reject_farmer_sms(request):
     weather_sms_rule_id = request.POST.get('weather_sms_rule_id')
     union_id = request.POST.get('union_id')
@@ -1252,6 +1254,7 @@ def reject_farmer_sms(request):
     return HttpResponse("")
 
 
+@login_required
 def reject_farmer_sms_management(request):
     sms_id = request.POST.get('sms_id')
     union_id = request.POST.get('union_id')
@@ -1267,31 +1270,35 @@ def reject_farmer_sms_management(request):
     __db_commit_query(query_t)
     return HttpResponse("")
 
+@login_required
 def getDivisions(request):
     obj = request.POST.get('obj')
     query = "select distinct geo_zone_id id,division_name field_name from vwunion where geo_country_id = '"+str(obj)+"'"
     data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
     return HttpResponse(data)
 
-
+@login_required
 def getDistricts(request):
     obj = request.POST.get('obj')
     query = "select distinct geo_district_id id,district_name field_name from vwunion where geo_zone_id = '"+str(obj)+"'"
     data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
     return HttpResponse(data)
 
+@login_required
 def getUpazillas(request):
     obj = request.POST.get('obj')
     query = "select distinct geo_upazilla_id id,upazilla_name field_name from vwunion where geo_district_id = '"+str(obj)+"'"
     data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
     return HttpResponse(data)
 
+@login_required
 def getUnions(request):
     obj = request.POST.get('obj')
     query = "select distinct id,name field_name from vwunion where geo_upazilla_id = '"+str(obj)+"'"
     data = json.dumps(__db_fetch_values_dict(query),default=decimal_date_default)
     return HttpResponse(data)
 
+@login_required
 def getWeatherQueueData(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
@@ -1306,6 +1313,7 @@ def getWeatherQueueData(request):
     print(data,query)
     return HttpResponse(data)
 
+@login_required
 def getManagementQueueData(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
@@ -1318,4 +1326,66 @@ def getManagementQueueData(request):
     query = "with t as( select (select union_id from farmer where id = farmer_id),* from management_sms_que) SELECT DISTINCT sms_id, sms_text, union_id, ( SELECT NAME FROM vwunion WHERE id = union_id::int limit 1)union_name, crop_id, ( SELECT crop_name FROM crop WHERE id = crop_id::int limit 1)crop_name, season_id, ( SELECT season_name FROM cropping_season WHERE id = season_id::int limit 1)season_name, variety_id, ( SELECT variety_name FROM crop_variety WHERE id = variety_id::int limit 1)variety_name, stage_id, ( SELECT stage_name FROM crop_stage WHERE id = stage_id::int limit 1) stage_name, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time FROM t, vwunion WHERE union_id::int = vwunion.id and status = 'New' and schedule_time between '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and geo_country_id::text like '"+str(country)+"' and geo_zone_id::text like '"+str(division)+"' and geo_upazilla_id::text like '"+str(upazilla)+"' and geo_district_id::text like '"+str(district )+"' and union_id::text like '"+str(union)+"' and crop_id::text like '"+str(crop)+"'"
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     print(data,query)
+    return HttpResponse(data)
+
+@login_required
+def data_graph_view(request):
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
+
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+
+    return render(request,'ifcmodule/data_graph_view.html',{'country':country,'crop':crop,'organization':organization})
+
+@login_required
+def getGraphData(request):
+    program = request.POST.get('program')
+    organization = request.POST.get('organization')
+    crop = json.loads(request.POST.get('crop'))
+    country = request.POST.get('country')
+    if crop is None:
+        query_farmer = "select (select name from geo_zone where id = zone_id)division_name,count(*) farmer_count from farmer where organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' group by zone_id "
+        query_land = "select(select name from geo_zone where id = zone_id)division_name,sum(land_size::numeric) land_size from farmer_crop_info where unit_id = 2  and farmer_id = any(select id from farmer where organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"') group by zone_id"
+    else:
+        crop = str(crop).replace('[','').replace(']','').replace('\'', '').replace('u','').replace(' ','')
+        query_farmer = "select(select name from geo_zone where id = zone_id)division_name,count(*) farmer_count from farmer where organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and id = any(select farmer_id from farmer_crop_info where crop_id::text = any(string_to_array('"+str(crop)+"',','))) group by zone_id"
+        query_land = "select(select name from geo_zone where id = zone_id)division_name,sum(land_size::numeric) land_size from farmer_crop_info where unit_id = 2 and crop_id::text = any(string_to_array('"+str(crop)+"',',')) and farmer_id = any(select id from farmer where organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"') group by zone_id"
+
+    print(query_farmer,query_land)
+
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query_farmer,connection)
+    farmer_categories = df.division_name.tolist()
+    farmer_count  = df.farmer_count.tolist()
+    total_farmer = sum(farmer_count)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query_land, connection)
+    land_categories = df.division_name.tolist()
+    land_count = df.land_size.tolist()
+    total_land = sum(land_count)
+
+    data = json.dumps({'farmer_categories':farmer_categories,
+            'farmer_count':farmer_count,
+            'land_categories':land_categories,
+            'land_count':land_count,
+            'total_farmer':total_farmer,
+            'total_land':total_land
+            })
+    print(data)
     return HttpResponse(data)
