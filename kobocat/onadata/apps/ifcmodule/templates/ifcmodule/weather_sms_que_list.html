@@ -246,23 +246,23 @@ $('#from_date').datepicker({
         var reject_element = "";
         var remove_cnt = 0;
 
-        var tbody = '';
+        var tbody = '<tr><td colspan="8" class="td-center">Use Filters to generate data</td></tr>';
 
-        var weather_sms_que_list = {{ weather_sms_que_list|safe }};
-
-        tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';
-        for (var idx in weather_sms_que_list)
-        {
-            row_id =   weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+weather_sms_que_list[idx].schedule_time+"_"+idx;
-            ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx
-            tbody += '<tr id="'+ids+'"><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';
+{#        var weather_sms_que_list = {{ weather_sms_que_list|safe }};#}
+{##}
+{#        tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';#}
+{#        for (var idx in weather_sms_que_list)#}
+{#        {#}
+{#            row_id =   weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+weather_sms_que_list[idx].schedule_time+"_"+idx;#}
+{#            ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx#}
+{#            tbody += '<tr id="'+ids+'"><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';#}
 {#                  $('#reject_' +ids).click(function (e) {#}
 {#            $('#confirm-reject').modal('toggle');#}
 {#            console.log(this)#}
 {#            reject_element = this;#}
 {##}
 {#        });#}
-        }
+{#        }#}
         $("#all_info_table").find('tbody').html(tbody);
 
 
@@ -275,10 +275,10 @@ $('#from_date').datepicker({
 {#        }#}
 
 
-        if(remove_cnt == weather_sms_que_list.length)
-        {
-            $('#data_empty').show();
-        }
+{#        if(remove_cnt == weather_sms_que_list.length)#}
+{#        {#}
+{#            $('#data_empty').show();#}
+{#        }#}
 
 
 

@@ -134,6 +134,7 @@ urlpatterns = patterns('',
                        url(r'^cais_module/add_geolocation/geo_union_Edit/$', views_cais.geo_union_Edit,
                            name="geo_union_Edit"),
 
+                       url(r'^cais_module/get_farmer_list/$', views_cais.get_farmer_list, name="get_farmer_list"),
                        ##**********************  CASI WORK (End) *******************
 
                        )

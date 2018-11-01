@@ -696,19 +696,47 @@ def crop_group_Edit(request):
 @@ ************** Farmer (Start)
 """
 
+def get_farmer_list(request):
+    total_count_query = "select count(*) total_farmer from farmer"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(total_count_query,connection)
+    total_count = df.total_farmer.tolist()[0]
+
+    draw = request.POST['draw']
+    start = int(request.POST['start'])
+    length = int(request.POST['length'])
+    search_val = str(request.POST['search[value]'])
+    if not len(search_val):
+        search_val = '%'
+    else:  search_val = '%'+str(search_val)+'%'
+
+    print(request.POST['search[value]'],search_val)
+
+    data_query = "SELECT row_number() over(),case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| id ||'\">'|| farmer_name ||'</a>' end , mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name, '<button onclick=\"getEditId(' || id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer where LOWER(farmer_name) like '"+str(search_val)+"' ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+    data = multipleValuedQuryExecution(data_query)
+
+    filtered_count = len(data)
+
+    return HttpResponse(json.dumps({"draw": draw,
+        "recordsTotal": total_count,
+        "recordsFiltered": total_count,
+        "data": data,
+            }, default=decimal_date_default))
+
 
 @login_required
 def farmer(request):
-    queryCreateFarmer = 'SELECT id, farmer_name, mobile_number, ' \
-                        '(SELECT "name" FROM public.geo_country where id = country_id ) country_name, ' \
-                        '(SELECT "name" FROM public.geo_zone where id = zone_id )zone_name, ' \
-                        '(SELECT "name" FROM public.geo_district where id = district_id )district_name,' \
-                        ' (SELECT "name" FROM public.geo_upazilla where id = upazila_id )upazila_name, ' \
-                        '(SELECT "name" FROM public.geo_union where id = union_id )union_name, (SELECT organization FROM public.usermodule_organizations where id = organization_id )organization_name , ' \
-                        ' (SELECT program_name FROM public.usermodule_programs where id = program_id) program_name,status  FROM public.farmer order by id desc '
+    # queryCreateFarmer = 'SELECT id, farmer_name, mobile_number, ' \
+    #                     '(SELECT name FROM public.geo_country where id = country_id ) country_name, ' \
+    #                     '(SELECT name FROM public.geo_zone where id = zone_id )zone_name, ' \
+    #                     '(SELECT name FROM public.geo_district where id = district_id )district_name,' \
+    #                     ' (SELECT name FROM public.geo_upazilla where id = upazila_id )upazila_name, ' \
+    #                     '(SELECT name FROM public.geo_union where id = union_id )union_name, (SELECT organization FROM public.usermodule_organizations where id = organization_id )organization_name , ' \
+    #                     ' (SELECT program_name FROM public.usermodule_programs where id = program_id) program_name,status  FROM public.farmer order by id desc '
 
-    farmerInfoList = multipleValuedQuryExecution(queryCreateFarmer)
+    # farmerInfoList = multipleValuedQuryExecution(queryCreateFarmer)
 
+    # print(json.dumps({'farmerInfoList': farmerInfoList}, default=decimal_date_default))
     ##  Get Geo Country List
     countryQuery = "select id,name from public.geo_country"
     country_List = makeTableList(countryQuery)
@@ -721,10 +749,10 @@ def farmer(request):
     organizationQuery = "select id,organization from public.usermodule_organizations"
     organization_List = makeTableList(organizationQuery)
 
-    jsonFarmerInfoList = json.dumps({'farmerInfoList': farmerInfoList}, default=decimal_date_default)
+    # jsonFarmerInfoList = json.dumps({'farmerInfoList': farmerInfoList}, default=decimal_date_default)
 
     content = {
-        'jsonFarmerInfoList': jsonFarmerInfoList,
+        # 'jsonFarmerInfoList': jsonFarmerInfoList,
         'country_List': country_List,
         'organization_List': organization_List
     }

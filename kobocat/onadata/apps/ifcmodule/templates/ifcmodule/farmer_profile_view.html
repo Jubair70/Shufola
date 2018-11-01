@@ -40,7 +40,7 @@ height: 100%;
                                     </tr>
                                     <tr>
                                         <th>District</th>
-                                        <td>{{ division_name }}</td>
+                                        <td>{{ district_name }}</td>
                                     </tr>
                                     <tr>
                                         <th>Upazilla</th>
@@ -93,6 +93,7 @@ height: 100%;
                             <th class="td-center">District</th>
                             <th class="td-center">Upazila</th>
                             <th class="td-center">Union</th>
+                            <th class="td-center">Action</th>
                             </thead>
                             <tbody>
                             </tbody>
@@ -157,7 +158,7 @@ height: 100%;
         var tbody = '';
         var crop_list = {{ crop_list|safe }};
         for (var idx in crop_list) {
-            tbody += '<tr><td>' + crop_list[idx].season_name + '</td><td>' + crop_list[idx].crop_name + '</td><td>'+crop_list[idx].variety_name+'</td><td>'+crop_list[idx].sowing_date+'</td><td>'+crop_list[idx].land_size+'</td><td>'+crop_list[idx].district_name+'</td><td>'+crop_list[idx].upazila_name+'</td><td>'+crop_list[idx].union_name+'</td></tr>';
+            tbody += '<tr><td>' + crop_list[idx].season_name + '</td><td>' + crop_list[idx].crop_name + '</td><td>'+crop_list[idx].variety_name+'</td><td>'+crop_list[idx].sowing_date+'</td><td>'+crop_list[idx].land_size+'</td><td>'+crop_list[idx].district_name+'</td><td>'+crop_list[idx].upazila_name+'</td><td>'+crop_list[idx].union_name+'</td><td class="td-center"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Edit" href="/ifcmodule/edit_crop_form/{{ farmer_id }}/' + crop_list[idx].id + '"><i class="fa fa-2x fa-pencil-square-o"></i></a></td></tr>';
         }
 
         $("#crop_list_table").find('tbody').html(tbody);

@@ -213,6 +213,8 @@
         </div>
     </div>
 
+
+
 {% endblock %}
 {% block additional-javascript %}
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
@@ -259,18 +261,18 @@
         var reject_element = "";
         var remove_cnt = 0;
 
-        var tbody = '';
+        var tbody = '<tr><td colspan="8" class="td-center">Use Filters to generate data</td></tr>';
 
-        var management_sms_que_list = {{ management_sms_que_list|safe }};
-
-        tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';
-        for (var idx in management_sms_que_list)
-        {
-            row_id =   management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+management_sms_que_list[idx].schedule_time+"_"+idx;
-            ids = management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+idx
-            tbody += '<tr id="'+ids+'"><td>' + management_sms_que_list[idx].sms_text + '</td><td>' + management_sms_que_list[idx].union_name + '</td><td>' + management_sms_que_list[idx].crop_name + '</td><td>' + management_sms_que_list[idx].season_name + '</td><td>' + management_sms_que_list[idx].variety_name + '</td><td>' + management_sms_que_list[idx].stage_name + '</td><td>' + management_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+management_sms_que_list[idx].sms_id+'_'+management_sms_que_list[idx].union_id+'_'+management_sms_que_list[idx].crop_id+'_'+management_sms_que_list[idx].season_id+'_'+management_sms_que_list[idx].variety_id+'_'+management_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" data-toggle="modal" data-target="#myModal" onclick="reject(\''+row_id+'\')"  id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';
-
-        }
+{#        var management_sms_que_list = {{ management_sms_que_list|safe }};#}
+{##}
+{#        tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';#}
+{#        for (var idx in management_sms_que_list)#}
+{#        {#}
+{#            row_id =   management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+management_sms_que_list[idx].schedule_time+"_"+idx;#}
+{#            ids = management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+idx#}
+{#            tbody += '<tr id="'+ids+'"><td>' + management_sms_que_list[idx].sms_text + '</td><td>' + management_sms_que_list[idx].union_name + '</td><td>' + management_sms_que_list[idx].crop_name + '</td><td>' + management_sms_que_list[idx].season_name + '</td><td>' + management_sms_que_list[idx].variety_name + '</td><td>' + management_sms_que_list[idx].stage_name + '</td><td>' + management_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+management_sms_que_list[idx].sms_id+'_'+management_sms_que_list[idx].union_id+'_'+management_sms_que_list[idx].crop_id+'_'+management_sms_que_list[idx].season_id+'_'+management_sms_que_list[idx].variety_id+'_'+management_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" data-toggle="modal" data-target="#myModal" onclick="reject(\''+row_id+'\')"  id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';#}
+{##}
+{#        }#}
         $("#all_info_table").find('tbody').html(tbody);
 
 
@@ -283,10 +285,10 @@
 {#        }#}
 
 
-        if(remove_cnt == management_sms_que_list.length)
-        {
-            $('#data_empty').show();
-        }
+{#        if(remove_cnt == management_sms_que_list.length)#}
+{#        {#}
+{#            $('#data_empty').show();#}
+{#        }#}
 
 
 

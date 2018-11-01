@@ -120,7 +120,7 @@
 
                     </div>
                     <div class="col-xs-3 col-md-3 form-group ">
-
+{#^(01)(?:\d{9})$#}
                         <input type="text" class="form-control " name="mobile_num" id="mobile_num" onkeyup="this.value = (this.value.replace(/[^0-9]/g, ''));" required>
 
                     </div>
@@ -246,7 +246,7 @@
 
                 <div class="row">
                     <div class="col-md-5">
-                        <input style="float: right" class="btn btn-primary" type="submit" value="Submit">
+                        <input style="float: right" class="btn btn-primary" id="submit" type="submit" value="Submit">
                     </div>
 
                 </div>
@@ -338,9 +338,33 @@
     <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
     <script type="text/javascript">
 
-        var jsonFarmerInfoList =
-        {{ jsonFarmerInfoList | safe }}
-        var farmerInfoList = jsonFarmerInfoList.farmerInfoList
+
+        $('#submit').on('click',function () {
+           country_id = $('#country_id option:selected').val();
+           mobile_num = $('#mobile_num').val();
+           if(country_id==1)
+           {
+               if(mobile_num.substr(0,2)!='01' || mobile_num.length !=11 )
+
+               {
+                   alert('Mobile Number should be 11 digit and starts with 01')
+                   return false;
+               }
+           }
+           else if (country_id == 2)
+           {
+                if(mobile_num.substr(0,1)!='9' || mobile_num.length !=10 )
+                  {
+                   alert('Mobile Number should be 10 digit and starts with 9')
+                   return false;
+               }
+           }
+           return true;
+        });
+
+
+{#        var jsonFarmerInfoList =  {{ jsonFarmerInfoList | safe }}#}
+{#        var farmerInfoList = jsonFarmerInfoList.farmerInfoList#}
 
         country = ''
         zone = ''
@@ -489,19 +513,19 @@
 
         function getFarmerInfoList() {
 
-            var count = 1
-            var tbody = ''
-
-            for (var i = 0; i < farmerInfoList.length; i++) {
-
-                if (farmerInfoList[i][10] == 1)
-                    tbody += '<tr><td>' + count + '</td><td><a href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
-                else
-                    tbody += '<tr><td>' + count + '</td><td><a style="color:red;" href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
-                count++;
-            }
-
-            $('#farmerInfoListTable').find('tbody').html(tbody)
+            var count = 1;
+{#            var tbody = '';#}
+{##}
+{#            for (var i = 0; i < farmerInfoList.length; i++) {#}
+{##}
+{#                if (farmerInfoList[i][10] == 1)#}
+{#                    tbody += '<tr><td>' + count + '</td><td><a href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'#}
+{#                else#}
+{#                    tbody += '<tr><td>' + count + '</td><td><a style="color:red;" href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'#}
+{#                count++;#}
+{#            }#}
+{##}
+{#            $('#farmerInfoListTable').find('tbody').html(tbody);#}
             dTablewithData = $('#farmerInfoListTable').DataTable({
                 "retrieve": true,
                 "bFilter": true,
@@ -514,7 +538,13 @@
                 "scrollX": true,
                 "bLengthChange": true,
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                "pageLength": 50
+                "pageLength": 50,
+                "processing": true,
+               "serverSide": true,
+               "ajax": {
+                   "url": "/maxmodule/cais_module/get_farmer_list/",
+                   "type": "POST"
+               }
 
             });
         }
