@@ -5,7 +5,7 @@
 {#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">#}
 {#    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">#}
 {#<link href="/static/css/calendar.min.css" rel="stylesheet" type="text/css"/>#}
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
        <style>
     a { cursor: pointer; }
@@ -28,6 +28,10 @@
             <div class="caption"><i class="fa fa-adn"></i>Weather SMS Queue</div>
         </div>
         <div class="portlet-body">
+
+
+
+
             <div class="row">
 
             <div class="col-md-3">
@@ -335,7 +339,7 @@ $('#from_date').datepicker({
         {
             row_id =   weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+weather_sms_que_list[idx].schedule_time+"_"+idx;
             ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx
-            tbody += '<tr id="'+ids+'"><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';
+            tbody += '<tr id="'+ids+'"><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a><form method="post"  action="/ifcmodule/weather_farmer_xls_list/"  enctype="multipart/form-data"><input type="hidden" id="export_data" name="export_data" value="'+row_id+'"><button type="submit" class="btn"><i class="fa fa-2x fa-download"></i></button></form></td></tr>';
 
         }
         $("#all_info_table").find('tbody').html(tbody);

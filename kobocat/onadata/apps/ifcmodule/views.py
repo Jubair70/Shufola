@@ -976,6 +976,67 @@ def getSubParameter(request):
     data = json.dumps(__db_fetch_values_dict(query))
     return HttpResponse(data)
 
+@csrf_exempt
+def weather_farmer_xls_list(request):
+    row_id  = request.POST.get('export_data')
+    row_id = row_id.split('_')
+    weather_sms_rule_id = row_id[0]
+    union_id = row_id[1]
+    crop_id = row_id[2]
+    season_id = row_id[3]
+    variety_id = row_id[4]
+    stage_id = row_id[5]
+    schedule_time = row_id[6]
+    query = "with t as( select (select id from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_id,(select farmer_name from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_name,mobile_number FROM weather_sms_rule_queue WHERE status = 'New' and union_id = '"+str(union_id)+"' and weather_sms_rule_id = '"+str(weather_sms_rule_id)+"' and crop_id = '"+str(crop_id)+"' and season_id = '"+str(season_id)+"' and variety_id = '"+str(variety_id)+"' and stage_id = '"+str(stage_id)+"' and to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '"+str(schedule_time)+"'),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = '"+str(crop_id)+"' and season_id = '"+str(season_id)+"' and crop_variety_id = '"+str(variety_id)+"' )select farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    writer.save()
+    f = open('onadata/media/uploaded_files/output.xlsx', 'r')
+    response = HttpResponse(f, mimetype='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=weather_farmer_info.xls'
+    return response
+
+@csrf_exempt
+def management_farmer_xls_list(request):
+    row_id  = request.POST.get('export_data')
+    row_id = row_id.split('_')
+    sms_id = row_id[0]
+    union_id = row_id[1]
+    crop_id = row_id[2]
+    season_id = row_id[3]
+    variety_id = row_id[4]
+    stage_id = row_id[5]
+    schedule_time = row_id[6]
+    query = "with t as( with g as( SELECT *,( SELECT union_id FROM farmer WHERE id = farmer_id::INT limit 1) union_id FROM management_sms_que) select farmer_id,farmer_name,mobile_number FROM g where status = 'New' and union_id = "+str(union_id)+" and sms_id = "+str(sms_id)+" and crop_id = "+str(crop_id)+" and season_id ="+str(season_id)+" and variety_id = "+str(variety_id)+" and stage_id = "+str(stage_id)+" and to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') = '"+str(schedule_time)+"' ),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = "+str(crop_id)+" and season_id = "+str(season_id)+" and crop_variety_id = "+str(variety_id)+" )select farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    writer.save()
+    f = open('onadata/media/uploaded_files/output.xlsx', 'r')
+    response = HttpResponse(f, mimetype='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=management_farmer_info.xls'
+    return response
+
+
+
+@login_required
+def sms_log(request):
+    query = "with t as( select mobile_number,sms_text,schedule_time,sms_source,sent_time from sms_que where status = 'Sent' order by schedule_time::date desc limit 200), t1 as ( select t.mobile_number,farmer_name,sms_text,schedule_time,sms_source,sent_time,district_id,upazila_id,union_id from t,farmer where t.mobile_number = farmer.mobile_number )select mobile_number,sms_text,sms_source,to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, coalesce( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time,(select name from geo_district where id = district_id limit 1)district_name, (select name from geo_upazilla where id = upazila_id limit 1)upazilla_name, (select name from geo_union where id = union_id limit 1)union_name,farmer_name from t1"
+    sms_log = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return render(request, 'ifcmodule/sms_log.html', {
+        'sms_log': sms_log
+    })
+
+@login_required
+def getSMSLogData(request):
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    query = "with t as( select mobile_number,sms_text,schedule_time,sms_source,sent_time from sms_que where status = 'Sent' and schedule_time between '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by schedule_time::date desc), t1 as ( select t.mobile_number,farmer_name,sms_text,sms_source,to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, coalesce( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time,district_id,upazila_id,union_id from t,farmer where t.mobile_number = farmer.mobile_number )select mobile_number,farmer_name,sms_text,schedule_time,sms_source,sent_time,(select name from geo_district where id = district_id limit 1)district_name, (select name from geo_upazilla where id = upazila_id limit 1)upazilla_name, (select name from geo_union where id = union_id limit 1)union_name from t1"
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return HttpResponse(data)
 
 @login_required
 def delete_weather_sms_form(request, sms_rule_id):

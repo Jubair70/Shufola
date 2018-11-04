@@ -61,4 +61,8 @@ urlpatterns = patterns('',
                        url(r'^getGraphData/$', views.getGraphData, name='getGraphData'),
                        url(r'^edit_crop_form/(?P<farmer_id>\d+)/(?P<farmer_crop_id>\d+)/$', views.edit_crop_form,name='edit_crop_form'),
                        url(r'^update_crop_form/$', views.update_crop_form, name='update_crop_form'),
+                       url(r'^weather_farmer_xls_list/$', views.weather_farmer_xls_list, name='weather_farmer_xls_list'),
+                       url(r'^management_farmer_xls_list/$', views.management_farmer_xls_list, name='management_farmer_xls_list'),
+                       url(r'^sms_log/$', views.sms_log, name='sms_log'),
+                       url(r'^getSMSLogData/$', views.getSMSLogData, name='getSMSLogData'),
                        )
