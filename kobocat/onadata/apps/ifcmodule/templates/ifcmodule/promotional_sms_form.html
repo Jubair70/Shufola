@@ -59,14 +59,21 @@
                             </div>
                         </div>
                     </div>
-                <div class="row">
-                        <div class="col-md-6">
+               <div class="row">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>Voice SMS:</label>
                                 <input id="voice_sms" name="voice_sms"  accept="audio/*" type="file">
                             </div>
                         </div>
-                    </div>
+                        <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Content ID:</label>
+                                    <input type="text" class="form-control" name="content_id" id="content_id">
+                                </div>
+                        </div>
+
+                </div>
 
                     <div class="row">
                         <div class="col-md-3">
@@ -468,7 +475,7 @@ function load_variety(object) {
 
 
 
-        $('#submit').on('click',function () {
+        $('#wea').on('click',function () {
             var sms_description = $('#sms_description').val();
             var voice_sms = $('#voice_sms').val();
             if(!sms_description.length && !voice_sms.length)
