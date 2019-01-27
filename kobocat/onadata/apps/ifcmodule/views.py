@@ -87,6 +87,15 @@ def __db_commit_query(query):
     cursor.close()
 
 
+def __db_run_query(query):
+    cursor = connection.cursor()
+    cursor.execute(query)
+    connection.commit()
+    nid = cursor.fetchone()[0]
+    cursor.close()
+    return nid
+
+
 def dictfetchall(cursor):
     desc = cursor.description
     return [
@@ -1572,3 +1581,317 @@ def getGraphData(request):
             })
     print(data)
     return HttpResponse(data)
+
+
+
+def bulk_upload(request):
+    response = {}
+    if request.method == 'POST':
+        try:
+            myfile = request.FILES['fileToUpload']
+        except Exception, e:
+            return render(request, 'lt_bulk_upload.html', {
+                'error_msg': 'You have not provided any file'
+            })
+        f_s = FileSystemStorage()
+        filename = f_s.save(myfile.name, myfile)
+        uploaded_file_url = f_s.url(filename)
+        try:
+            rejected_file_name = process_bulk_data(filename)
+        except Exception, e:
+            return render(request, 'ifcmodule/lt_bulk_upload.html', {
+                'error_msg': 'The file you provided does not match to the template file'
+            })
+        if rejected_file_name:
+            response['rejected_file_name'] = rejected_file_name
+    return render(request, 'ifcmodule/lt_bulk_upload.html', {
+        'response': response
+    })
+
+
+
+def check_input_validaity(inp_loc, level, parent_loc=None):
+    if level == 'District':
+        chk = __db_fetch_single_value("select count(*) from geo_district where name = '" + str(
+            inp_loc) + "' and geo_zone_id = (select id from geo_zone where name = '" + str(parent_loc) + "')")
+        if chk > 0:
+            return True
+    elif level == 'Upazilla':
+        chk = __db_fetch_single_value("select count(*) from geo_upazilla where name = '" + str(
+            inp_loc) + "' and geo_district_id = (select id from geo_district where name = '" + str(parent_loc) + "')")
+        if chk > 0:
+            return True
+    elif level == 'Union':
+        chk = __db_fetch_single_value("select count(*) from geo_union where name = '" + str(
+            inp_loc) + "' and geo_upazilla_id = (select id from geo_upazilla where name = '" + str(parent_loc) + "')")
+        if chk > 0:
+            return True
+    elif level == 'Country':
+        chk = __db_fetch_single_value("select count(*) from geo_country where name = '" + str(inp_loc) + "'")
+        if chk > 0:
+            return True
+    elif level == 'Zone':
+        chk = __db_fetch_single_value("select count(*) from geo_zone where name = '" + str(
+            inp_loc) + "' and geo_country_id = (select id from geo_country where name = '" + str(parent_loc) + "')")
+        if chk > 0:
+            return True
+    elif level == 'Organization':
+        chk = __db_fetch_single_value("select count(*) from usermodule_organizations where organization = '" + str(
+            inp_loc) + "'")
+        if chk > 0:
+            return True
+    elif level == 'Program':
+        chk = __db_fetch_single_value("select count(*) from usermodule_programs where program_name = '" + str(
+            inp_loc) + "' and org_id = (select id from usermodule_organizations where organization = '" + str(
+            parent_loc) + "')")
+        if chk > 0:
+            return True
+    elif level == 'Season':
+        chk = __db_fetch_single_value("select count(*) from cropping_season where season_name = '" + str(
+            inp_loc) + "'")
+        if chk > 0:
+            return True
+    elif level == 'Crop':
+        chk = __db_fetch_single_value("select count(*) from crop where crop_name = '" + str(
+            inp_loc) + "'")
+        if chk > 0:
+            return True
+    elif level == 'Variety':
+        chk = __db_fetch_single_value("select count(*) from crop_variety where variety_name = '" + str(
+            inp_loc) + "' and crop_id = (select id from crop where crop_name = '" + str(parent_loc) + "')")
+        if chk > 0:
+            return True
+    elif level == 'Land Unit':
+        chk = __db_fetch_single_value("select count(*) from land_units where unit_name = '" + str(
+            inp_loc) + "'")
+        if chk > 0:
+            return True
+    elif level == 'Sowing Date':
+        if len(inp_loc) == 10:
+            if "-" in inp_loc:
+                date_parts = inp_loc.split('-')
+                if len(date_parts) == 3:
+                    if len(date_parts[0]) == 4 and len(date_parts[1]) == 2 and len(date_parts[2]) == 2:
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+    return False
+
+
+def check_crop_has_different_valid_geolocation(crop_zone, crop_district, crop_upazilla, crop_union):
+    if crop_district != 'nan' and crop_upazilla != 'nan' and crop_union != 'nan':
+        if check_input_validaity(crop_district, 'District', crop_zone):
+            district_id = __db_fetch_single_value("select id from geo_district where name = '" + str(
+                crop_district) + "' and geo_zone_id = " + str(zone_id))
+            if check_input_validaity(crop_upazilla, 'Upazilla', crop_district):
+                upazilla_id = __db_fetch_single_value("select id from geo_upazilla where name = '" + str(
+                    crop_upazilla) + "' and geo_district_id = " + str(district_id))
+                if check_input_validaity(crop_union, 'Union', crop_upazilla):
+                    union_id = __db_fetch_single_value("select id from geo_union where name = '" + str(
+                        crop_union) + "' and geo_upazilla_id = " + str(upazilla_id))
+                    return (district_id, upazilla_id, union_id)
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+    else:
+        return 'Not Present'
+
+
+
+def check_crop_combination_exists(zone_id, crop_district_id, crop_upazilla_id, crop_union_id, fid, crop_id, season_id,
+                                  variety_id, sowing_date, land_size):
+    return __db_fetch_single_value(
+        "select count(*) as c from farmer_crop_info where farmer_id = " + str(fid) + " and crop_id = " + str(
+            crop_id) + " and season_id = " + str(season_id) + " and crop_variety_id = " + str(
+            variety_id) + " and sowing_date = '" + str(sowing_date) + "' and land_size = '" + str(
+            land_size) + "' and zone_id = " + str(zone_id) + " and district_id = " + str(
+            crop_district_id) + " and upazila_id = " + str(crop_upazilla_id) + " and union_id = " + str(crop_union_id))
+
+
+def check_farmer_already_exists(country_id, zone_id, district_id, upazilla_id, union_id, organization_id, program_id,
+                                farmer_name, mobile_no):
+    return __db_fetch_single_value(
+        "select count(*) as c from farmer where farmer_name = '" + str(farmer_name) + "' and district_id = " + str(
+            district_id) + " and upazila_id = " + str(upazilla_id) + " and union_id = " + str(
+            union_id) + " and mobile_number = '" + str(mobile_no) + "' and zone_id = " + str(
+            zone_id) + " and country_id = " + str(country_id) + " and organization_id = " + str(
+            organization_id) + " and program_id = " + str(program_id))
+
+
+
+def process_bulk_data(file_url):
+    df = pandas.read_excel('onadata/media/' + str(file_url),
+                       sheet_name=0, index_col=None,
+                       header=0, na_values=['NaN'],
+                       usecols="A:S", dtype=str)
+
+    invalid_df = pandas.DataFrame(index=None,
+                              columns=[u'Farmer Name', u'Mobile No', u'Country', u'Zone', u'District',
+                                       u'Upazilla', u'', u'Union', u'Organization', u'Program', u'Season', u'Crop',
+                                       u'Variety', u'Sowing Date', u'Land Size', u'Crop District', u'Crop Upazilla',
+                                       u'Crop Union', u'Problem Field'])
+
+    for index, row in df.iterrows():
+        if check_input_validaity(row['Country'].strip(), 'Country'):
+            country_id = __db_fetch_single_value(
+                "select id from geo_country where name = '" + str(row['Country'].strip()) + "'")
+            if check_input_validaity(row['Zone'].strip(), 'Zone', row['Country'].strip()):
+                zone_id = __db_fetch_single_value("select id from geo_zone where name = '" + str(
+                    row['Zone'].strip()) + "' and geo_country_id = " + str(country_id))
+                if check_input_validaity(row['District'].strip(), 'District', row['Zone'].strip()):
+                    district_id = __db_fetch_single_value("select id from geo_district where name = '" + str(
+                        row['District'].strip()) + "' and geo_zone_id = " + str(zone_id))
+                    if check_input_validaity(row['Upazilla'].strip(), 'Upazilla', row['District'].strip()):
+                        upazilla_id = __db_fetch_single_value("select id from geo_upazilla where name = '" + str(
+                            row['Upazilla'].strip()) + "' and geo_district_id = " + str(district_id))
+                        if check_input_validaity(row['Union'].strip(), 'Union', row['Upazilla'].strip()):
+                            union_id = __db_fetch_single_value("select id from geo_union where name = '" + str(
+                                row['Union'].strip()) + "' and geo_upazilla_id = " + str(upazilla_id))
+                            if check_input_validaity(row['Organization'].strip(), 'Organization'):
+                                organization_id = __db_fetch_single_value(
+                                    "select id from usermodule_organizations where organization = '" + str(
+                                        row['Organization'].strip()) + "'")
+                                if check_input_validaity(row['Program'].strip(), 'Program',
+                                                         row['Organization'].strip()):
+                                    program_id = __db_fetch_single_value(
+                                        "select id from usermodule_programs where program_name = '" + str(
+                                            row['Program'].strip()) + "' and org_id = " + str(organization_id))
+                                    if check_input_validaity(row['Season'].strip(), 'Season'):
+                                        season_id = __db_fetch_single_value(
+                                            "select id from cropping_season where season_name = '" + str(
+                                                row['Season'].strip()) + "'")
+                                        if check_input_validaity(row['Crop'].strip(), 'Crop'):
+                                            crop_id = __db_fetch_single_value(
+                                                "select id from crop where crop_name = '" + str(
+                                                    row['Crop'].strip()) + "'")
+                                            if check_input_validaity(row['Variety'].strip(), 'Variety',
+                                                                     row['Crop'].strip()):
+                                                variety_id = __db_fetch_single_value(
+                                                    "select id from crop_variety where variety_name = '" + str(
+                                                        row['Variety'].strip()) + "' and crop_id=" + str(crop_id))
+                                                if check_input_validaity(row['Sowing Date'].strip(), 'Sowing Date'):
+                                                    sowing_date = row['Sowing Date'].strip()
+                                                    if check_input_validaity(row['Land Unit'].strip(), 'Land Unit'):
+                                                        land_unit = __db_fetch_single_value(
+                                                            "select id from land_units where unit_name = '" + str(
+                                                                row['Land Unit'].strip()) + "'")
+                                                        crop_geo_locations = check_crop_has_different_valid_geolocation(
+                                                            row['Zone'].strip(), row['Crop District'].strip(),
+                                                            row['Crop Upazilla'].strip(), row['Crop Union'].strip())
+                                                        if crop_geo_locations != False:
+                                                            if crop_geo_locations == 'Not Present':
+                                                                crop_district_id = district_id
+                                                                crop_upazila_id = upazilla_id
+                                                                crop_union_id = union_id
+                                                            else:
+                                                                crop_district_id = crop_geo_locations[0]
+                                                                crop_upazila_id = crop_geo_locations[1]
+                                                                crop_union_id = crop_geo_locations[2]
+                                                            ########################################################
+                                                            fc = check_farmer_already_exists(country_id, zone_id,
+                                                                                             district_id,
+                                                                                             upazilla_id, union_id,
+                                                                                             organization_id,
+                                                                                             program_id,
+                                                                                             row['Farmer Name'].strip(),
+                                                                                             row['Mobile No'].strip())
+                                                            if fc == 0:
+                                                                fid = __db_run_query(
+                                                                    "INSERT INTO public.farmer (farmer_name, district_id, upazila_id, union_id, village_name, mobile_number, created_at, created_by, updated_at, updated_by, organization_id, program_id, status, zone_id, country_id) VALUES('" + str(
+                                                                        row['Farmer Name'].strip()) + "', " + str(
+                                                                        district_id) + ", " + str(
+                                                                        upazilla_id) + ", " + str(
+                                                                        union_id) + ", '" + str(
+                                                                        row['Village'].strip()) + "', '" + str(
+                                                                        row[
+                                                                            'Mobile No'].strip()) + "', now(), 'ifc', now(), 'ifc', " + str(
+                                                                        organization_id) + ", " + str(
+                                                                        program_id) + ", 1, " + str(
+                                                                        zone_id) + ", " + str(
+                                                                        country_id) + ") returning id")
+                                                                if fid:
+                                                                    cc = check_crop_combination_exists(zone_id,
+                                                                                                       crop_district_id,
+                                                                                                       crop_upazila_id,
+                                                                                                       crop_union_id,
+                                                                                                       fid,
+                                                                                                       crop_id,
+                                                                                                       season_id,
+                                                                                                       variety_id,
+                                                                                                       sowing_date, row[
+                                                                                                           'Land Size'].strip())
+                                                                    if cc == 0:
+                                                                        cid = __db_run_query(
+                                                                            "INSERT INTO public.farmer_crop_info (farmer_id, crop_id, season_id, crop_variety_id, sowing_date, unit_id, land_size, created_at, created_by, updated_at, updated_by, zone_id, district_id, upazila_id, union_id) VALUES(" + str(
+                                                                                fid) + ", " + str(crop_id) + ", " + str(
+                                                                                season_id) + ", " + str(
+                                                                                variety_id) + ", '" + str(
+                                                                                sowing_date) + "', " + str(
+                                                                                land_unit) + ", '" + str(
+                                                                                row[
+                                                                                    'Land Size']) + "', now(), 84, now(), 84, " + str(
+                                                                                zone_id) + ", " + str(
+                                                                                crop_district_id) + ", " + str(
+                                                                                crop_upazila_id) + ", " + str(
+                                                                                crop_union_id) + ") returning id")
+                                                                    else:
+                                                                        row[
+                                                                            'Problem Field'] = 'Crop Combination Already Exists'
+                                                                        invalid_df = invalid_df.append(row,
+                                                                                                       ignore_index=True)
+                                                            else:
+                                                                row['Problem Field'] = 'Farmer Already Exists'
+                                                                invalid_df = invalid_df.append(row, ignore_index=True)
+                                                    else:
+                                                        row['Problem Field'] = 'Invalid Crop Geolocations'
+                                                        invalid_df = invalid_df.append(row, ignore_index=True)
+                                                else:
+                                                    row['Problem Field'] = 'Invalid Sowing Date'
+                                                    invalid_df = invalid_df.append(row, ignore_index=True)
+                                            else:
+                                                row['Problem Field'] = 'Invalid Variety Name'
+                                                invalid_df = invalid_df.append(row, ignore_index=True)
+                                        else:
+                                            row['Problem Field'] = 'Invalid Crop Name'
+                                            invalid_df = invalid_df.append(row, ignore_index=True)
+                                    else:
+                                        row['Problem Field'] = 'Invalid Season Name'
+                                        invalid_df = invalid_df.append(row, ignore_index=True)
+                                else:
+                                    row['Problem Field'] = 'Invalid Program Name'
+                                    invalid_df = invalid_df.append(row, ignore_index=True)
+                            else:
+                                row['Problem Field'] = 'Invalid Organization Name'
+                                invalid_df = invalid_df.append(row, ignore_index=True)
+                        else:
+                            row['Problem Field'] = 'Invalid Union Name'
+                            invalid_df = invalid_df.append(row, ignore_index=True)
+                    else:
+                        row['Problem Field'] = 'Invalid Upazilla Name'
+                        invalid_df = invalid_df.append(row, ignore_index=True)
+                else:
+                    row['Problem Field'] = 'Invalid District Name'
+                    invalid_df = invalid_df.append(row, ignore_index=True)
+            else:
+                row['Problem Field'] = 'Invalid Zone Name'
+                invalid_df = invalid_df.append(row, ignore_index=True)
+        else:
+            row['Problem Field'] = 'Invalid Country Name'
+            invalid_df = invalid_df.append(row, ignore_index=True)
+
+    if not invalid_df.empty:
+        writer = pandas.ExcelWriter('onadata/media/rejected_data.xlsx')
+        invalid_df.to_excel(writer, 'Sheet1')
+        writer.save()
+        return '/media/rejected_data.xlsx'
+    else:
+        return None
