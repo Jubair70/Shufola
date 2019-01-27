@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from onadata.apps.ifcmodule import views
+from onadata.apps.ifcmodule import views, views_api
 
 urlpatterns = patterns('',
                        url(r'^$', views.index, name='index'),
@@ -65,4 +65,6 @@ urlpatterns = patterns('',
                        url(r'^management_farmer_xls_list/$', views.management_farmer_xls_list, name='management_farmer_xls_list'),
                        url(r'^sms_log/$', views.sms_log, name='sms_log'),
                        url(r'^getSMSLogData/$', views.getSMSLogData, name='getSMSLogData'),
+                       url(r'^get_daily_weather_information/(?P<type>[^/]+)/(?P<location>[^/]+)/(?P<from_date>[^/]+)/(?P<to_date>[^/]+)/$',views_api.get_daily_weather_information),
+                       url(r'^get_hourly_weather_information/(?P<type>[^/]+)/(?P<location>[^/]+)/(?P<from_date>[^/]+)/(?P<to_date>[^/]+)/$',views_api.get_hourly_weather_information)
                        )
