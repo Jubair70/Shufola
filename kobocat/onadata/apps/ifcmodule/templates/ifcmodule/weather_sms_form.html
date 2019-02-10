@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <p>Please write some content in sms description or select an audio file.</p>
+                    <p>Either write some content in sms description or select an audio file. Do not Add both.</p>
                 </div>
 
                 <div class="modal-footer">
@@ -171,6 +171,17 @@
                                     <input type="text" class="form-control" name="sms_type" id="sms_type" required>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Group: </label>
+                                <select class="form-control" name="group" id="group" required>
+                                    <option value="0">Select One</option>
+                                    {% for grp_id,grp_name in grp %}
+                                        <option value="{{ grp_id }}">{{ grp_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
 
                 </div>
 
@@ -613,7 +624,7 @@ function load_variety(object) {
             console.log($('#parameter_value_1').val());
 {#            return false;#}
             $('#count').val(count);
-            if(!sms_description.length && !voice_sms.length)
+            if((!sms_description.length && !voice_sms.length) || (sms_description.length && voice_sms.length))
             {
                 $('#empty_check_dialog').modal('toggle');
                return false;

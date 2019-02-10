@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <p>Please write some content in sms description or select an audio file.</p>
+                    <p>Either write some content in sms description or select an audio file. Do not Add both.</p>
                 </div>
 
                 <div class="modal-footer">
@@ -170,6 +170,17 @@
                                     <input type="text" class="form-control" name="sms_type" id="sms_type" required>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Group: </label>
+                                <select class="form-control" name="group" id="group">
+                                    <option value="0">Select One</option>
+                                    {% for grp_id,grp_name in grp %}
+                                        <option value="{{ grp_id }}">{{ grp_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
 
                 </div>
 
@@ -430,7 +441,7 @@
        $('#details_id_'+s).val(data[idx].details_id);
         $('#parameter_value_'+s).val(data[idx].parameter_value)
    }
-
+   console.log(data);
     if(data.length)
     {
         $('#sms_description').text(data[0].sms_description);
@@ -445,6 +456,7 @@
         $('#season').trigger('click');
         $('#sms_type').val(data[0].sms_type);
         $('#content_id').val(data[0].content_id);
+        $('#group').val(data[0].group_id);
 {#        $('#calculation_type_'+s).val(data[idx].calculation_type);#}
     }
 
@@ -672,7 +684,7 @@ function load_variety(object) {
             var sms_description = $('#sms_description').val();
             var voice_sms = $('#voice_sms').val();
             $('#count').val(count);
-            if(!sms_description.length && !voice_sms.length)
+            if((!sms_description.length && !voice_sms.length) || (sms_description.length && voice_sms.length))
             {
                 $('#empty_check_dialog').modal('toggle');
                return false;

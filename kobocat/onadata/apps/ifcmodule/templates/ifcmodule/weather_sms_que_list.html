@@ -73,7 +73,7 @@
 
                     <div class="form-group">
                         <label >Crop:</label>
-                        <select class="form-control" name="crop" id="crop">
+                        <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" >
                             <option value="%">Select One</option>
                             {% for crop_id,crop_name in crop_list %}
                                 <option value="{{ crop_id }}">{{ crop_name}}</option>
@@ -81,6 +81,37 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Variety of the Crop: </label>
+                                <select class="form-control" name="crop_variety" id="crop_variety"  required>
+                                    <option value="%">Select One</option>
+
+                                </select>
+
+                            </div>
+                        </div>
+                <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Season: </label>
+                                <select class="form-control" name="season" id="season" onclick="load_stage(this);" required>
+                                    <option value="%">Select One</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Stage: </label>
+                                <select class="form-control" name="crop_stage" id="crop_stage" required>
+                                     <option value="%">Select One</option>
+
+                                </select>
+
+                            </div>
+                        </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>Country: </label>
@@ -127,11 +158,15 @@
 
             </div>
         <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
+                <div class="col-md-4" style="margin-right: -176px;">
+                    <div class="form-group" >
                         <button class="btn btn-info pull-left" id="generate_report" name="generate_report"
-                                    data-original-title=""
-                                    title="">Generate Report</button>
+                                    >Generate Report</button>
+                    </div>
+                </div>
+            <div class="col-md-4">
+                    <div class="form-group">
+                        <button class="btn btn-info pull-left" id="approve_btn" name="approve_btn">Approve</button>
                     </div>
                 </div>
         </div>
@@ -141,15 +176,16 @@
 {#            <div id="container"></div>#}
             <table id="all_info_table" class="table table-bordered table-responsive table-hover table-condensed flip-content nowrap">
                 <col width="200">
-                <thead class="flip-content">
+                <thead class="flip-content check">
                 <tr>
-                    <th>SMS Description</th>
+                    <th style="width: 3.66% !important;"><input type="checkbox"   id="all"></th>
+                    <th>SMS Content</th>
                     <th>Union</th>
                     <th>Crop</th>
                     <th>Variety</th>
                     <th>Season</th>
                     <th>Stage</th>
-                    <th>Schedule Time</th>
+                    <th style="width: 9% !important;">Schedule Time</th>
                     <th class="td-center">Action</th>
                 </tr>
                 </thead>
@@ -224,6 +260,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
 {#     <script type="text/javascript">#}
 {#            $.fn.modal = $.fn.modal.noConflict();#}
 {#        </script>#}
@@ -247,10 +284,12 @@ $('#from_date').datepicker({
     $('#from_date').datepicker('setDate',getDesiredDate(2));
     $('#to_date').datepicker('setDate',getDesiredDate(1));
 
+
+
         var reject_element = "";
         var remove_cnt = 0;
 
-        var tbody = '<tr><td colspan="8" class="td-center">Use Filters to generate data</td></tr>';
+        var tbody = '<tr><td colspan="9" class="td-center">Use Filters to generate data</td></tr>';
 
 {#        var weather_sms_que_list = {{ weather_sms_que_list|safe }};#}
 {##}
@@ -295,6 +334,10 @@ $('#from_date').datepicker({
                 var from_date = $('#from_date').val();
             var to_date =$('#to_date').val();
             var crop = $('#crop option:selected').val();
+            var variety = $('#crop_variety option:selected').val();
+            var season = $('#season option:selected').val();
+            var stage = $('#crop_stage option:selected').val();
+
             var country = $('#country option:selected').val();
             var division = $('#division option:selected').val();
             var district = $('#district option:selected').val();
@@ -320,6 +363,9 @@ $('#from_date').datepicker({
                             ,'district':district
                             ,'upazilla':upazilla
                             ,'union':union
+                            ,'variety':variety
+                            ,'season':season
+                            ,'stage':stage
                     },
                     beforeSend: function () {
                         $('#container').show();
@@ -334,15 +380,20 @@ $('#from_date').datepicker({
 
                     weather_sms_que_list = result;
 
-                    tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';
+                    tbody += '<tr id="data_empty" hidden><td colspan="9" class="td-center">No Data Available</td></tr>';
         for (var idx in weather_sms_que_list)
         {
             row_id =   weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+weather_sms_que_list[idx].schedule_time+"_"+idx;
             ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx
-            tbody += '<tr id="'+ids+'"><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a><form method="post"  action="/ifcmodule/weather_farmer_xls_list/"  enctype="multipart/form-data"><input type="hidden" id="export_data" name="export_data" value="'+row_id+'"><button type="submit" class="btn"><i class="fa fa-2x fa-download"></i></button></form></td></tr>';
+            if(weather_sms_que_list[idx].content_type=='text')
+            tbody += '<tr id="'+ids+'"><td><input type=\"checkbox\" id="'+row_id+'"></td><td>' + weather_sms_que_list[idx].sms_description + '</td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a><form method="post"  action="/ifcmodule/weather_farmer_xls_list/"  enctype="multipart/form-data"><input type="hidden" id="export_data" name="export_data" value="'+row_id+'"><button type="submit" class="btn"><i class="fa fa-2x fa-download"></i></button></form></td></tr>';
+            else
+                tbody += '<tr id="'+ids+'"><td><input  type="checkbox" id="'+row_id+'"></td><td><audio preload="metadata" controls><source src="'+weather_sms_que_list[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+weather_sms_que_list[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+weather_sms_que_list[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td>' + weather_sms_que_list[idx].union_name + '</td><td>' + weather_sms_que_list[idx].crop_name + '</td><td>' + weather_sms_que_list[idx].season_name + '</td><td>' + weather_sms_que_list[idx].variety_name + '</td><td>' + weather_sms_que_list[idx].stage_name + '</td><td>' + weather_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+weather_sms_que_list[idx].sms_id+'_'+weather_sms_que_list[idx].union_id+'_'+weather_sms_que_list[idx].crop_id+'_'+weather_sms_que_list[idx].season_id+'_'+weather_sms_que_list[idx].variety_id+'_'+weather_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a><form method="post"  action="/ifcmodule/weather_farmer_xls_list/"  enctype="multipart/form-data"><input type="hidden" id="export_data" name="export_data" value="'+row_id+'"><button type="submit" class="btn"><i class="fa fa-2x fa-download"></i></button></form></td></tr>';
 
         }
         $("#all_info_table").find('tbody').html(tbody);
+
+
 
 {#        for (var idx in weather_sms_que_list) {#}
 {#            ids = weather_sms_que_list[idx].sms_id+"_"+weather_sms_que_list[idx].union_id+"_"+weather_sms_que_list[idx].crop_id+"_"+weather_sms_que_list[idx].season_id+"_"+weather_sms_que_list[idx].variety_id+"_"+weather_sms_que_list[idx].stage_id+"_"+idx#}
@@ -378,6 +429,24 @@ $('#from_date').datepicker({
 
 
         });
+
+$("#all_info_table input:checkbox").change(function () {
+    var ischecked = $(this).is(':checked');
+    if (ischecked) {
+        $('#all_info_table tbody tr').find( "input:checkbox" ).prop( "checked", true );
+{#        $('#all_info_table tbody tr').each(function () {#}
+{#            $.each(this.cells, function () {#}
+{#                console.log("sad");#}
+{#            });#}
+{##}
+{#        });#}
+    }
+    else
+    {
+        $('#all_info_table tbody tr').find( "input:checkbox" ).prop( "checked", false);
+    }
+
+});
 
          function getFormattedDate(date) {
                 var yy = date.getFullYear();
@@ -493,6 +562,17 @@ function getDesiredDate(n) {
 
             }
 
+            $('#approve_btn').on('click',function () {
+                var idSelector = function() { return this.id; };
+                var fruitsGranted = $(":checkbox:checked").map(idSelector).get();
+                console.log(fruitsGranted)
+                for(each in fruitsGranted)
+                {
+                    if(fruitsGranted[each]!='all')
+                        approve(fruitsGranted[each]);
+                }
+            });
+
         function reject(row_id) {
                         $('#confirm-reject').modal('toggle');
                         reject_element = row_id;
@@ -524,8 +604,6 @@ function getDesiredDate(n) {
                     success: function (result) {}
             });
             row_id = row_id[0]+'_'+row_id[1]+'_'+row_id[2]+'_'+row_id[3]+'_'+row_id[4]+'_'+row_id[5]+'_'+row_id[7]
-            console.log(row_id);
-
             $('#'+row_id).hide();
 
 
@@ -616,6 +694,72 @@ row_id = row_id[0]+'_'+row_id[1]+'_'+row_id[2]+'_'+row_id[3]+'_'+row_id[4]+'_'+r
                     }
                 }
             });
+        }
+
+        function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+        function load_stage(object) {
+            ajaxcall();
+            season_id = parseInt(object.value);
+            crop_id = $('#crop option:selected').val();
+            var_id = $('#crop_variety option:selected').val();
+
+            if (season_id=='%') {
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getStage/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'season_id': season_id,
+                        'crop_id':crop_id,
+                        'var_id':var_id,
+                           },
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].stage_name + "</option>";
+                        }
+                        $('#crop_stage').html(html_code);
+                    }
+                });
+            }
+
         }
 
 
