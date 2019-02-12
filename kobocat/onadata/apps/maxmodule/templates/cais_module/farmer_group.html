@@ -92,7 +92,7 @@
 
     <div class="row">
         <div class="col-md-12" style="margin-bottom: 40px">
-            <h2>Farmer Group Details</h2>
+            <h2>Farmer Group</h2>
         </div>
 
         <form action="/maxmodule/cais_module/farmer_groupCreate/" enctype="multipart/form-data" method="post">
@@ -138,45 +138,6 @@
 
                     </div>
                 </div>
-
-                <div class="row">
-
-                    <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Crop Name</b></label>
-
-                    </div>
-                    <div class="col-xs-3 col-md-3 form-group ">
-
-                        <select type="select" name="crop_id" id="crop_id" class="form-control " required>
-                            <option value="">Select Any</option>
-                            {#                            {% for list in cropNameList %}#}
-                            {#                                <option value="{{ list.0 }}">{{ list.1 }}</option>#}
-                            {#                            {% endfor %}#}
-
-                        </select>
-
-                    </div>
-                </div>
-
-                {#                <div class="row">#}
-                {##}
-                {#                    <div class="col-xs-2 col-md-2 ">#}
-                {#                        <label class="control-label"><b>Crop Group ID</b></label>#}
-                {##}
-                {#                    </div>#}
-                {#                    <div class="col-xs-3 col-md-3 form-group ">#}
-                {##}
-                {#                        <select type="select" name="crop_group_id" id="crop_group_id" class="form-control " required>#}
-                {#                            <option value="">Select Any</option>#}
-                {#                            {% for list in getCropGroupList %}#}
-                {#                                <option value="{{ list.0 }}">{{ list.0 }}</option>#}
-                {#                            {% endfor %}#}
-                {##}
-                {#                        </select>#}
-                {##}
-                {#                    </div>#}
-                {#                </div>#}
-
                 <div class="row">
                     <div class="col-md-5">
                         <input style="float: right" class="btn btn-primary" type="submit" value="Submit">
@@ -189,7 +150,33 @@
 
     </div>
 
+
+
     <hr>
+
+    <div class="row">
+    <div class="col-md-12" style="margin-bottom: 40px">
+            <h2>Upload Farmer Group</h2>
+        </div>
+    <div class="form-group col-md-12">
+        <form class="form-horizontal" action="/maxmodule/cais_module/farmer_group_bulk_upload/" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <input type="file" name="fileToUpload" id="fileToUpload" accept=".xls,.xlsx" required>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 15px;">
+            <div class="col-md-6">
+            <button type="submit" class="btn btn-md">Submit</button>
+            </div>
+        </div>
+    </form>
+    </div>
+
+
+    </div>
+    <br>
 
     <div class="row">
         <div class="form-group col-md-12">
@@ -216,7 +203,6 @@
                     <th> SI No.</th>
                     <th> Farmer</th>
                     <th> Group </th>
-                    <th> Crop </th>
                     <th></th>
 
                 </tr>
@@ -289,7 +275,7 @@
 
             for (var i = 0; i < farmerGroupInfoList.length; i++) {
 
-                tbody += '<tr><td>' + count + '</td><td>' + farmerGroupInfoList[i][1] + '</td><td>' + farmerGroupInfoList[i][2] + '</td><td>' + farmerGroupInfoList[i][3] + '</td><td><button onclick="getEditId(' + farmerGroupInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>' + farmerGroupInfoList[i][1] + '</td><td>' + farmerGroupInfoList[i][2] + '</td><td><button onclick="getEditId(' + farmerGroupInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
@@ -318,65 +304,14 @@
         // Get Edit value
            editId = null
 
-        $(document).on("change", "#group_id", function () {
 
-            group_name_id = $(this).val()
-
-            if (editId == null) {
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/maxmodule/cais_module/includedGroupCropList/',
-                    data: {
-
-                        'group_name_id': group_name_id,
-                    },
-                    success: function (data) {
-                        list = JSON.parse(data)
-                        console.log("LIST")
-                        console.log(list)
-                        $('#crop_id').find('option').remove()
-                        $('#crop_id').append('<option value="">Select Any </option>')
-                        for (var i = 0; i < list.getSelectedGroupCropList.length; i++) {
-                            $('#crop_id').append('<option value = ' + list.getSelectedGroupCropList[i][0] + '>' + list.getSelectedGroupCropList[i][2] + '</option>')
-                        }
-                    }
-
-                });
-
-            }
-            else {
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/maxmodule/cais_module/groupCropNameForEdit/',
-                    data: {
-
-                        'crop_group_id':crop_group_id,
-                        'group_name_id': group_name_id,
-                    },
-                    success: function (data) {
-                        list = JSON.parse(data)
-                        console.log("LIST")
-                        console.log(list)
-                        $('#crop_id').find('option').remove()
-                        $('#crop_id').append('<option value="">Select Any </option>')
-                        $('#crop_id').append('<option value = ' + list.getSelectedCrop[0] + '>' + list.getSelectedCrop[2] + '</option>')
-                        $("#crop_id").val("" + list.getSelectedCrop[0] + "").change();
-                    }
-
-                });
-
-            }
-
-
-        });
 
 
         function getEditId(id) {
 
             $('#isEdit').attr("value", id);
-            editId = $('#isEdit').val()
+            editId = $('#isEdit').val();
+            console.log(editId)
 
             $.ajax({
                 type: 'POST',
@@ -387,31 +322,12 @@
                 },
                 success: function (data) {
 
-                    list = JSON.parse(data)
+                    list = JSON.parse(data);
 
                     $("#farmer_id").val("" + list.getFetchSelectedFarmerGroup[1] + "").change();
-                    crop_group_id = list.getFetchSelectedFarmerGroup[2]
-
-                    // Get Group Name **********
-
-                    $.ajax({
-                        type: 'POST',
-                        url: '/maxmodule/cais_module/groupNameForEdit/',
-                        data: {
-
-                            'crop_group_id': crop_group_id,
-                        },
-                        success: function (data) {
-
-                            list = JSON.parse(data)
-                            $("#group_id").val("" + list.getSelectedGroupList[1] + "").change();
-
-                        }
-
-                    });
+                    $("#group_id").val("" + list.getFetchSelectedFarmerGroup[2] + "").change();
 
 
-                    // Get Group Name **********
 
 
                 }

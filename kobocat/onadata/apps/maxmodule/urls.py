@@ -135,6 +135,8 @@ urlpatterns = patterns('',
                            name="geo_union_Edit"),
 
                        url(r'^cais_module/get_farmer_list/$', views_cais.get_farmer_list, name="get_farmer_list"),
+                       url(r'^cais_module/export_farmer/$', views_cais.export_farmer, name="export_farmer"),
+                        url(r'^cais_module/farmer_group_bulk_upload/$', views_cais.farmer_group_bulk_upload, name="farmer_group_bulk_upload"),
                        ##**********************  CASI WORK (End) *******************
 
                        )

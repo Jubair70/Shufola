@@ -44,7 +44,7 @@ def __db_commit_query(query):
 def singleValuedQuryExecution(query):
     cursor = connection.cursor()
     cursor.execute(query)
-    value = list(cursor.fetchone())
+    value = cursor.fetchone()
     cursor.close()
     return value
 
@@ -55,6 +55,19 @@ def multipleValuedQuryExecution(query):
     value = cursor.fetchall()
     cursor.close()
     return value
+
+def __db_fetch_values_dict(query):
+    cursor = connection.cursor()
+    cursor.execute(query)
+    fetchVal = dictfetchall(cursor)
+    cursor.close()
+    return fetchVal
+
+def dictfetchall(cursor):
+    desc = cursor.description
+    return [
+        OrderedDict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()]
 
 
 def decimal_date_default(obj):
@@ -581,7 +594,7 @@ def crop_stage_alert_Edit(request):
 
 @login_required
 def group_details(request):
-    queryGroupNameList = 'SELECT id, group_name FROM public.group_details order by id'
+    queryGroupNameList = 'SELECT id, group_name FROM public.group_details order by id desc'
     groupNameList = multipleValuedQuryExecution(queryGroupNameList)
     jsonGroupNameList = json.dumps({'groupNameList': groupNameList}, default=decimal_date_default)
 
@@ -695,13 +708,12 @@ def crop_group_Edit(request):
 """
 @@ ************** Farmer (Start)
 """
-
+@csrf_exempt
 def get_farmer_list(request):
     total_count_query = "select count(*) total_farmer from farmer"
     df = pandas.DataFrame()
     df = pandas.read_sql(total_count_query,connection)
     total_count = df.total_farmer.tolist()[0]
-
     draw = request.POST['draw']
     start = int(request.POST['start'])
     length = int(request.POST['length'])
@@ -710,9 +722,16 @@ def get_farmer_list(request):
         search_val = '%'
     else:  search_val = '%'+str(search_val)+'%'
 
-    print(request.POST['search[value]'],search_val)
 
-    data_query = "SELECT row_number() over(),case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| id ||'\">'|| farmer_name ||'</a>' end , mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name, '<button onclick=\"getEditId(' || id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer where LOWER(farmer_name) like '"+str(search_val)+"' ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+    country = request.POST.get('country','%')
+    division = request.POST.get('division','%')
+    district = request.POST.get('district','%')
+    upazilla = request.POST.get('upazilla','%')
+    union = request.POST.get('union','%')
+    organization = request.POST.get('organization','%')
+    program = request.POST.get('program','%')
+    print(draw, start, length, search_val,program)
+    data_query = "SELECT id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| id ||'\">'|| farmer_name ||'</a>' end , mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name, '<button onclick=\"getEditId(' || id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer where LOWER(farmer_name) like '"+str(search_val)+"' and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and union_id::text like '"+str(union)+"' ORDER BY id DESC limit "+str(length)+" offset "+str(start)
     data = multipleValuedQuryExecution(data_query)
 
     filtered_count = len(data)
@@ -723,6 +742,25 @@ def get_farmer_list(request):
         "data": data,
             }, default=decimal_date_default))
 
+
+def export_farmer(request):
+    country = request.POST.get('country', '%')
+    division = request.POST.get('division', '%')
+    district = request.POST.get('district', '%')
+    upazilla = request.POST.get('upazilla', '%')
+    union = request.POST.get('union', '%')
+    organization = request.POST.get('organization', '%')
+    program = request.POST.get('program', '%')
+    query = "SELECT id farmer_id, mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name FROM public.farmer where organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and union_id::text like '"+str(union)+"' ORDER BY id desc"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xls")
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    writer.save()
+    f = open('onadata/media/uploaded_files/output.xls', 'r')
+    response = HttpResponse(f, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=Farmer.xls'
+    return response
 
 @login_required
 def farmer(request):
@@ -750,11 +788,23 @@ def farmer(request):
     organization_List = makeTableList(organizationQuery)
 
     # jsonFarmerInfoList = json.dumps({'farmerInfoList': farmerInfoList}, default=decimal_date_default)
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
 
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
     content = {
         # 'jsonFarmerInfoList': jsonFarmerInfoList,
         'country_List': country_List,
-        'organization_List': organization_List
+        'organization_List': organization_List,'country':country,'organization':organization
     }
 
     return render(request, 'cais_module/farmer.html', content)
@@ -850,16 +900,14 @@ def farmer_group(request):
     queryFarmerList = "SELECT id, farmer_name FROM public.farmer;"
     getFarmerList = makeTableList(queryFarmerList)
 
-    queryCropGroupList = "SELECT id FROM public.crop_group"
+    queryCropGroupList = "SELECT id FROM public.group_details"
     getCropGroupList = makeTableList(queryCropGroupList)
 
-    queryIncludedGroupListInCropGroup = "SELECT distinct(group_id) , (select group_name FROM public.group_details where id = group_id ) group_id_name FROM public.crop_group"
+    queryIncludedGroupListInCropGroup = "SELECT id group_id , group_name group_id_name FROM public.group_details"
     getIncludedGroupListInCropGroup = makeTableList(queryIncludedGroupListInCropGroup)
 
-    queryCreateFarmerGroup = " SELECT id, (SELECT farmer_name FROM public.farmer where id =farmer_id)farmer_name," \
-                             "(select group_name FROM public.group_details where id = (SELECT group_id FROM public.crop_group where id = crop_group_id )) group_name, " \
-                             "(select crop_name FROM public.crop where id = (SELECT crop_id FROM public.crop_group where id = crop_group_id )) crop, " \
-                             "crop_group_id FROM public.farmer_group order by id "
+    queryCreateFarmerGroup = "select id,(select farmer_name from farmer where id = farmer_id )farmer_id,(select group_name from group_details where id = group_id)group_name from farmer_group"
+    print(queryCreateFarmerGroup)
     farmerGroupInfoList = multipleValuedQuryExecution(queryCreateFarmerGroup)
 
     jsonFarmerGroupInfoList = json.dumps({'farmerGroupInfoList': farmerGroupInfoList}, default=decimal_date_default)
@@ -912,19 +960,15 @@ def groupCropNameForEdit(request):
 def farmer_groupCreate(request):
     username = request.user.username
     farmer_id = request.POST.get('farmer_id')
-
-    # crop_group_id = request.POST.get('crop_group_id')
-
-    # Value of this field is Crop Group ID
-    crop_group_id = request.POST.get('crop_id')
+    group_id = request.POST.get('group_id')
     isEdit = request.POST.get('isEdit')
     if isEdit != '':
-        queryEditFarmerGroup = "UPDATE public.farmer_group SET farmer_id= " + farmer_id + ", crop_group_id= " + crop_group_id + "  WHERE id= " + str(
+        queryEditFarmerGroup = "UPDATE public.farmer_group SET farmer_id= " + farmer_id + ",group_id= " + group_id + "  WHERE id= " + str(
             isEdit)
         __db_commit_query(queryEditFarmerGroup)
     else:
-        queryCreateFarmerGroup = "INSERT INTO public.farmer_group (id, farmer_id, crop_group_id, created_at, created_by, updated_at, updated_by) VALUES(nextval('farmer_group_id_seq'::regclass), " + str(
-            farmer_id) + ", " + str(crop_group_id) + ", now(), '" + str(username) + "', now(), '" + str(username) + "')"
+        queryCreateFarmerGroup = "INSERT INTO public.farmer_group (farmer_id,group_id, created_at, created_by, updated_at, updated_by) VALUES(" + str(
+            farmer_id) + ", " + str(group_id) + ", now(), '" + str(username) + "', now(), '" + str(username) + "')"
         __db_commit_query(queryCreateFarmerGroup)
 
     return HttpResponseRedirect('/maxmodule/cais_module/farmer_group/')
@@ -934,7 +978,7 @@ def farmer_groupCreate(request):
 def farmer_group_Edit(request):
     id = request.POST.get('id')
 
-    queryFetchSelectedFarmerGroup = "SELECT id, farmer_id, crop_group_id  FROM public.farmer_group  where id = " + str(
+    queryFetchSelectedFarmerGroup = "SELECT id, farmer_id, group_id  FROM public.farmer_group  where id = " + str(
         id)
     getFetchSelectedFarmerGroup = singleValuedQuryExecution(queryFetchSelectedFarmerGroup)
 
@@ -942,6 +986,25 @@ def farmer_group_Edit(request):
                                                    default=decimal_date_default)
 
     return HttpResponse(jsonqueryFetchSelectedFarmerGroup)
+
+def farmer_group_bulk_upload(request):
+    if request.method == 'POST':
+        myfile = request.FILES['fileToUpload']
+        url = "onadata/media/uploaded_files/"
+        fs = FileSystemStorage(location=url)
+        myfile.name = "Farmer"
+        filename = fs.save(myfile.name, myfile)
+        full_file_path = "onadata/media/uploaded_files/" + myfile.name
+        xlsx = pandas.ExcelFile(full_file_path)
+        df = xlsx.parse(0)
+        for each in df.index:
+            try:
+                insert_query = "insert into farmer_group(farmer_id,group_id,created_by)values("+str(df.loc[each]['farmer_id'])+","+str(df.loc[each]['group_id'])+",'"+str(request.user.username)+"')"
+                print(insert_query)
+                __db_commit_query(insert_query)
+            except:
+                continue
+        return HttpResponseRedirect('/maxmodule/cais_module/farmer_group/')
 
 
 """

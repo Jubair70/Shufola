@@ -264,7 +264,96 @@
             <a href="/ifcmodule/bulk_upload/" class="control-label btn btn-primary"><b>Bulk Upload</b></a>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Country: </label>
+                        <select class="form-control" name="country" id="country" onclick="load_division(this)">
+                            <option value="%">Select One</option>
+                            {% for country_id,country_name in country %}
+                                <option value="{{ country_id }}">{{ country_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Division: </label>
+                        <select class="form-control" name="division" id="division" onclick="load_district(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>District: </label>
+                        <select class="form-control" name="district" id="district" onclick="load_upazilla(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Upazilla: </label>
+                        <select class="form-control" name="upazilla" id="upazilla" onclick="load_union(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Union: </label>
+                        <select class="form-control" name="union" id="union">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+    <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Organization: </label>
+                                <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
+                                    <option value="%">Select One</option>
+                                    {% for org_id,org_name in organization %}
+                                        <option value="{{ org_id }}">{{ org_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Program: </label>
+                                <select class="form-control" name="program" id="program" required>
+                                    <option value="%">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+        <div class="col-md-3" style="margin-top: 24px;">
+            <div class="form-group">
+                <button class="btn btn-info pull-left" style="margin-right: 24px;" id="search" name="search">Search</button>
+                <form  method="post" action="/maxmodule/cais_module/export_farmer/"   enctype="multipart/form-data">
+                {% csrf_token %}
+                <input name = "country" type="hidden" >
+                <input name = "division" type="hidden">
+                <input name = "district" type="hidden" >
+                <input name = "upazilla" type="hidden">
+                <input name = "union" type="hidden">
+                <input name = "organization" type="hidden">
+                <input name = "program" type="hidden">
+                <div class="row">
+                    <div class="col-md-1" style="width: 6%;">
+                            <button type="submit" id="export" class="btn btn-info pull-left" >Export
+                            </button>
+                    </div>
+                </div>
+        </form>
+            </div>
+
+        </div>
+
+
+    </div>
 
     <div class="row">
 
@@ -275,6 +364,7 @@
         </div>
 
         <div class="col-md-12">
+            <img style="display:none; margin-left: 404px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">
             <table id="farmerInfoListTable" class="table table-bordered table-hover exportMargin">
                 <caption class="textAlign">
 
@@ -362,6 +452,23 @@
            }
            return true;
         });
+
+        $('#export').on('click',function (e) {
+                var country         =   document.getElementsByName("country");
+                var division           =   document.getElementsByName("division");
+                var district        =   document.getElementsByName("district");
+                var upazilla          =   document.getElementsByName("upazilla");
+                var union                   =   document.getElementsByName("union");
+                var organization                =   document.getElementsByName("organization");
+                var program                =   document.getElementsByName("program");
+                country[1].value    =   country[0].value;
+                division[1].value      =   division[0].value;
+                district[1].value   =   district[0].value;
+                upazilla[1].value     =   upazilla[0].value;
+                union[1].value              =   union[0].value;
+                organization[1].value           =   organization[0].value;
+                program[1].value           =   program[0].value;
+            });
 
 
 {#        var jsonFarmerInfoList =  {{ jsonFarmerInfoList | safe }}#}
@@ -505,11 +612,11 @@
         });
 
 
-        $(document).ready(function () {
+{#        $(document).ready(function () {#}
 
             getFarmerInfoList() // Making the crop stage info List table
 
-        });
+{#        });#}
 
 
         function getFarmerInfoList() {
@@ -541,11 +648,35 @@
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
                 "pageLength": 50,
                 "processing": true,
-               "serverSide": true,
-               "ajax": {
-                   "url": "/maxmodule/cais_module/get_farmer_list/",
-                   "type": "POST"
-               }
+                "serverSide": true,
+                "ajax": {
+                    "url": "/maxmodule/cais_module/get_farmer_list/",
+                    "type": "POST",
+                    "data": function (d) {
+                        d.country = $('#country option:selected').val();
+                        d.division = $('#division option:selected').val();
+                        d.district = $('#district option:selected').val();
+                        d.upazilla = $('#upazilla option:selected').val();
+                        d.union = $('#union option:selected').val();
+                        d.organization = $('#organization option:selected').val();
+                        d.program = $('#program option:selected').val();
+                    }
+                }
+{#                ,dom: 'Bfrtip',#}
+{#                buttons: [#}
+{#                    {#}
+{#                        filename: "Farmer",#}
+{#                        title: "",#}
+{#                        text: "<strong>Export</strong>",#}
+{#                        extend: 'excel',#}
+{#                        column:[0,1,2,3,4,5,6,7,8,9],#}
+{#  exportOptions: {#}
+{#    modifer: {#}
+{#      page: 'All',#}
+{#      search: 'none'    }#}
+{#  }#}
+{#                    }#}
+{#                ]#}
 
             });
         }
@@ -674,6 +805,177 @@
 
 
         }
+
+        function load_division(object) {
+
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#division').html("<option value=\"%\">Select One</option>");
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDivisions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#division').html(html_code);
+                         $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_district(object) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDistricts/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#district').html(html_code);
+                        $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_upazilla(object) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUpazillas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazilla').html(html_code);
+                        $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_union(object) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUnions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#union').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_program(object) {
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#program').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getProgram/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
+                        }
+                        $('#program').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        $('#search').on('click',function () {
+            dTablewithData.ajax.reload();
+        });
+
+
 
     </script>
 

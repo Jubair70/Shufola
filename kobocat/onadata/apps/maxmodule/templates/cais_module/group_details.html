@@ -142,7 +142,7 @@
                 </caption>
                 <thead>
                 <tr>
-                    <th> SI No.</th>
+                    <th> Group ID</th>
                     <th> Group Name</th>
                     <th></th>
                 </tr>
@@ -211,7 +211,7 @@
             for (var i = 0; i < groupNameList.length; i++) {
 
 
-                tbody += '<tr><td>' + count + '</td><td>' + groupNameList[i][1] + '</td><td><button onclick="getEditId(' + groupNameList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + groupNameList[i][0] + '</td><td>' + groupNameList[i][1] + '</td><td><button onclick="getEditId(' + groupNameList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
