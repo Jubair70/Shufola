@@ -38,7 +38,7 @@
                     <th>District</th>
                     <th>Upazilla</th>
                     <th>Union</th>
-                    <th>SMS description</th>
+                    <th>SMS Content</th>
                     <th>Mobile Number</th>
                     <th>Farmer</th>
                 </tr>
@@ -99,7 +99,10 @@
         var promotional_sms_list = {{ promotional_sms_list|safe }};
 
         for (var idx in promotional_sms_list) {
+            if(promotional_sms_list[idx].content_type == 'text')
             tbody += '<tr><td>' + promotional_sms_list[idx].category_name + '</td><td>' + promotional_sms_list[idx].organization_name + '</td><td>'+ promotional_sms_list[idx].program_name +'</td><td>'+ promotional_sms_list[idx].crop_name +'</td><td>'+ promotional_sms_list[idx].variety_name +'</td><td>'+ promotional_sms_list[idx].season_name +'</td><td>'+ promotional_sms_list[idx].country_name +'</td><td>'+ promotional_sms_list[idx].division_name +'</td><td>'+ promotional_sms_list[idx].district_name +'</td><td>'+ promotional_sms_list[idx].upazilla_name +'</td><td>'+ promotional_sms_list[idx].union_name +'</td><td>'+ promotional_sms_list[idx].sms_description +'</td><td>'+ promotional_sms_list[idx].mobile_number +'</td><td>'+ promotional_sms_list[idx].farmer_name +'</td></tr>';
+            else
+                tbody += '<tr><td>' + promotional_sms_list[idx].category_name + '</td><td>' + promotional_sms_list[idx].organization_name + '</td><td>'+ promotional_sms_list[idx].program_name +'</td><td>'+ promotional_sms_list[idx].crop_name +'</td><td>'+ promotional_sms_list[idx].variety_name +'</td><td>'+ promotional_sms_list[idx].season_name +'</td><td>'+ promotional_sms_list[idx].country_name +'</td><td>'+ promotional_sms_list[idx].division_name +'</td><td>'+ promotional_sms_list[idx].district_name +'</td><td>'+ promotional_sms_list[idx].upazilla_name +'</td><td>'+ promotional_sms_list[idx].union_name +'</td><td><audio preload="metadata" controls><source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td>'+ promotional_sms_list[idx].mobile_number +'</td><td>'+ promotional_sms_list[idx].farmer_name +'</td></tr>'
         }
 
         $("#all_info_table").find('tbody').html(tbody);

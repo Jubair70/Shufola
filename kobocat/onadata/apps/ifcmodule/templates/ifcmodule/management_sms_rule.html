@@ -38,7 +38,7 @@
                     <th>Variety</th>
                     <th>Stage</th>
                     <th>SMS Type</th>
-                    <th>SMS description</th>
+                    <th>SMS Content</th>
                     <th class="td-center">Action</th>
                 </tr>
                 </thead>
@@ -98,7 +98,10 @@
         var management_sms_rule_list = {{ management_sms_rule_list|safe }};
 
         for (var idx in management_sms_rule_list) {
+            if( management_sms_rule_list[idx].content_type == 'text' )
             tbody += '<tr><td>' + management_sms_rule_list[idx].category + '</td><td>'+ management_sms_rule_list[idx].organization +'</td><td>'+ management_sms_rule_list[idx].program +'</td><td>'+ management_sms_rule_list[idx].crop +'</td><td>'+ management_sms_rule_list[idx].season +'</td><td>'+ management_sms_rule_list[idx].variety +'</td><td>'+ management_sms_rule_list[idx].stage +'</td><td>' + management_sms_rule_list[idx].sms_type + '</td><td>' + management_sms_rule_list[idx].sms_description + '</td><td class="td-center"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Edit" href="/ifcmodule/edit_management_sms_form/' + management_sms_rule_list[idx].id + '"><i class="fa fa-2x fa-pencil-square-o"></i></a><a class="delete-item tooltips" data-container="body" data-placement="top" data-toggle="modal" data-target="#confirm-delete" data-original-title="Delete" href="#" data-href="/ifcmodule/delete_management_sms_form/' + management_sms_rule_list[idx].id + '"><i class="fa fa-2x fa-trash-o"></i></a></td></tr>';
+            else
+                tbody += '<tr><td>' + management_sms_rule_list[idx].category + '</td><td>'+ management_sms_rule_list[idx].organization +'</td><td>'+ management_sms_rule_list[idx].program +'</td><td>'+ management_sms_rule_list[idx].crop +'</td><td>'+ management_sms_rule_list[idx].season +'</td><td>'+ management_sms_rule_list[idx].variety +'</td><td>'+ management_sms_rule_list[idx].stage +'</td><td>' + management_sms_rule_list[idx].sms_type + '</td><td><audio preload="metadata" controls><source src="'+management_sms_rule_list[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+management_sms_rule_list[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+management_sms_rule_list[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td class="td-center"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Edit" href="/ifcmodule/edit_management_sms_form/' + management_sms_rule_list[idx].id + '"><i class="fa fa-2x fa-pencil-square-o"></i></a><a class="delete-item tooltips" data-container="body" data-placement="top" data-toggle="modal" data-target="#confirm-delete" data-original-title="Delete" href="#" data-href="/ifcmodule/delete_management_sms_form/' + management_sms_rule_list[idx].id + '"><i class="fa fa-2x fa-trash-o"></i></a></td></tr>';
         }
 
         $("#all_info_table").find('tbody').html(tbody);

@@ -524,7 +524,7 @@ def promotional_sms_form(request):
 
 @login_required
 def promotional_sms_list(request):
-    query = "select 'Promotional/Broadcast' category_name,coalesce((select organization from usermodule_organizations where id::text = organization_id limit 1),'All') organization_name, coalesce((select program_name from usermodule_programs where id::text = program_id limit 1),'All') program_name, coalesce((select crop_name from crop where id::text = crop_id limit 1),'All') crop_name, coalesce((select variety_name from crop_variety where id::text = variety_id limit 1),'All') variety_name, coalesce((select season_name from cropping_season where id::text = season_id limit 1),'All') season_name, coalesce((select name from geo_country where id::text = country_id limit 1),'All') country_name, coalesce((select name from geo_zone where id::text = division_id limit 1),'All') division_name, coalesce((select name from geo_district where id::text = district_id limit 1),'All') district_name, coalesce((select name from geo_upazilla where id::text = upazilla_id limit 1),'All') upazilla_name, coalesce((select name from geo_union where id::text = union_id limit 1),'All') union_name,sms_description,mobile_number,farmer_name from promotional_sms"
+    query = "select 'Promotional/Broadcast' category_name,coalesce((select organization from usermodule_organizations where id::text = organization_id limit 1),'All') organization_name, coalesce((select program_name from usermodule_programs where id::text = program_id limit 1),'All') program_name, coalesce((select crop_name from crop where id::text = crop_id limit 1),'All') crop_name, coalesce((select variety_name from crop_variety where id::text = variety_id limit 1),'All') variety_name, coalesce((select season_name from cropping_season where id::text = season_id limit 1),'All') season_name, coalesce((select name from geo_country where id::text = country_id limit 1),'All') country_name, coalesce((select name from geo_zone where id::text = division_id limit 1),'All') division_name, coalesce((select name from geo_district where id::text = district_id limit 1),'All') district_name, coalesce((select name from geo_upazilla where id::text = upazilla_id limit 1),'All') upazilla_name, coalesce((select name from geo_union where id::text = union_id limit 1),'All') union_name,sms_description,mobile_number,farmer_name,substring(voice_sms_file_path from 8)voice_sms_file_path,content_type from promotional_sms"
     promotional_sms_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return render(request, 'ifcmodule/promotional_sms_list.html', {
         'promotional_sms_list': promotional_sms_list
@@ -806,7 +806,7 @@ def getStage(request):
 
 @login_required
 def management_sms_rule_list(request):
-    query = "select id,case when category_id = 1 then 'Management' when category_id = 2 then 'Promotional' end as category, sms_description, case when org_id = 0 then 'ALL' else(select organization from usermodule_organizations where id = org_id limit 1) end as organization, case when program_id = 0 then 'ALL' else (select program_name from usermodule_programs where id = program_id limit 1) end as program, case when crop_id = 0 then 'ALL' else (select crop_name from crop where id = crop_id limit 1) end as crop, case when season_id = 0 then 'ALL' else (select season_name from cropping_season where id = season_id limit 1) end as season, case when variety_id = 0 then 'ALL' else (select variety_name from crop_variety where id = variety_id limit 1) end as variety, case when variety_id = 0 then 'ALL' else (select stage_name from crop_stage where id = stage_id limit 1) end as stage,COALESCE(sms_type,'') sms_type from management_sms_rule order by id desc"
+    query = "select id,case when category_id = 1 then 'Management' when category_id = 2 then 'Promotional' end as category, sms_description, case when org_id = 0 then 'ALL' else(select organization from usermodule_organizations where id = org_id limit 1) end as organization, case when program_id = 0 then 'ALL' else (select program_name from usermodule_programs where id = program_id limit 1) end as program, case when crop_id = 0 then 'ALL' else (select crop_name from crop where id = crop_id limit 1) end as crop, case when season_id = 0 then 'ALL' else (select season_name from cropping_season where id = season_id limit 1) end as season, case when variety_id = 0 then 'ALL' else (select variety_name from crop_variety where id = variety_id limit 1) end as variety, case when variety_id = 0 then 'ALL' else (select stage_name from crop_stage where id = stage_id limit 1) end as stage,COALESCE(sms_type,'') sms_type,substring(voice_sms_file_path from 8)voice_sms_file_path,content_type from management_sms_rule order by id desc"
     management_sms_rule_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return render(request, 'ifcmodule/management_sms_rule.html', {
         'management_sms_rule_list': management_sms_rule_list
@@ -954,7 +954,7 @@ def delete_management_sms_form(request, sms_rule_id):
 
 @login_required
 def weather_sms_rule_list(request):
-    query = "SELECT id, CASE WHEN category_id = 3 THEN 'Weather' end AS category, sms_description,(SELECT organization FROM usermodule_organizations WHERE id = org_id LIMIT 1) organization, (SELECT program_name FROM usermodule_programs WHERE id = program_id LIMIT 1) as program, (SELECT crop_name FROM crop WHERE id = crop_id LIMIT 1) crop, (SELECT season_name FROM cropping_season WHERE id = season_id LIMIT 1) season, (SELECT variety_name FROM crop_variety WHERE id = variety_id LIMIT 1) variety, (SELECT stage_name FROM crop_stage WHERE id = stage_id LIMIT 1) stage,COALESCE(sms_type,'') sms_type FROM weather_sms_rule ORDER BY id DESC"
+    query = "SELECT id, CASE WHEN category_id = 3 THEN 'Weather' end AS category, sms_description,(SELECT organization FROM usermodule_organizations WHERE id = org_id LIMIT 1) organization, (SELECT program_name FROM usermodule_programs WHERE id = program_id LIMIT 1) as program, (SELECT crop_name FROM crop WHERE id = crop_id LIMIT 1) crop, (SELECT season_name FROM cropping_season WHERE id = season_id LIMIT 1) season, (SELECT variety_name FROM crop_variety WHERE id = variety_id LIMIT 1) variety, (SELECT stage_name FROM crop_stage WHERE id = stage_id LIMIT 1) stage,COALESCE(sms_type,'') sms_type,substring(voice_sms_file_path from 8)voice_sms_file_path,content_type FROM weather_sms_rule ORDER BY id DESC"
     weather_sms_rule_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return render(request, 'ifcmodule/weather_sms_rule.html', {
         'weather_sms_rule_list': weather_sms_rule_list
@@ -1092,13 +1092,13 @@ def weather_farmer_xls_list(request):
     variety_id = row_id[4]
     stage_id = row_id[5]
     schedule_time = row_id[6]
-    query = "with t as( select (select id from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_id,(select farmer_name from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_name,mobile_number FROM weather_sms_rule_queue WHERE status = 'New' and union_id = '" + str(
+    query = "with t as( select distinct (select id from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_id,(select farmer_name from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_name,mobile_number FROM weather_sms_rule_queue WHERE status = 'New' and union_id = '" + str(
         union_id) + "' and weather_sms_rule_id = '" + str(weather_sms_rule_id) + "' and crop_id = '" + str(
         crop_id) + "' and season_id = '" + str(season_id) + "' and variety_id = '" + str(
         variety_id) + "' and stage_id = '" + str(stage_id) + "' and schedule_time::date = '" + str(
         schedule_time) + "'::date),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = '" + str(
         crop_id) + "' and season_id = '" + str(season_id) + "' and crop_variety_id = '" + str(
-        variety_id) + "' )select farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id"
+        variety_id) + "' ), t2 as (select t.farmer_id,farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id)select t2.farmer_id,farmer_name,mobile_number,sowing_date,group_id,coalesce((select group_name from group_details where id = group_id limit 1),'') group_name from t2 left join farmer_group on t2.farmer_id = farmer_group.farmer_id"
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
     writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")
@@ -1126,7 +1126,8 @@ def management_farmer_xls_list(request):
         stage_id) + " and schedule_time::date = '" + str(
         schedule_time) + "'::date ),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = " + str(
         crop_id) + " and season_id = " + str(season_id) + " and crop_variety_id = " + str(
-        variety_id) + " )select farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id"
+        variety_id) + " ), t2 as (select t.farmer_id,farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id)select distinct t2.farmer_id,farmer_name,mobile_number,sowing_date,group_id,coalesce((select group_name from group_details where id = group_id limit 1),'') group_name from t2 left join farmer_group on t2.farmer_id = farmer_group.farmer_id"
+    print(query)
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
     writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")
@@ -1629,12 +1630,8 @@ def getWeatherQueueData(request):
     district = request.POST.get('district')
     upazilla = request.POST.get('upazilla')
     union = request.POST.get('union')
-    query = "SELECT distinct weather_sms_rule_id AS sms_id, sms_description, union_id,(select name from vwunion where id = union_id::int limit 1)union_name, crop_id,(select crop_name from crop where id = crop_id::int limit 1)crop_name, season_id,(select season_name from cropping_season where id = season_id::int limit 1)season_name, variety_id,(select variety_name from crop_variety where id = variety_id::int limit 1)variety_name, stage_id, (select stage_name from crop_stage where id = stage_id::int limit 1)stage_name, schedule_time::date,content_type,substring(voice_sms_file_path from 8)voice_sms_file_path FROM weather_sms_rule_queue,vwunion WHERE union_id::int = vwunion.id and status = 'New' and schedule_time between '" + str(
-        from_date) + " 00:00:00'::timestamp and '" + str(
-        to_date) + " 23:59:59'::timestamp and geo_country_id::text like '" + str(
-        country) + "' and geo_zone_id::text like '" + str(division) + "' and geo_upazilla_id::text like '" + str(
-        upazilla) + "' and geo_district_id::text like '" + str(district) + "' and union_id::text like '" + str(
-        union) + "' and crop_id::text like '" + str(crop) + "' and variety_id::text like '" + str(variety) + "' and season_id::text like '" + str(season) + "' and stage_id::text like '" + str(stage) + "'"
+    content_type = request.POST.get('content_type')
+    query = "with t as( SELECT DISTINCT weather_sms_rule_id AS sms_id, sms_description, union_id, crop_id, season_id, variety_id, stage_id, schedule_time::date, content_type, substring(voice_sms_file_path FROM 8) voice_sms_file_path,(select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) FROM weather_sms_rule_queue, vwunion WHERE union_id::int = vwunion.id AND status = 'New' and schedule_time between '" + str( from_date) + " 00:00:00'::timestamp and '" + str( to_date) + " 23:59:59'::timestamp and geo_country_id::text like '" + str( country) + "' and geo_zone_id::text like '" + str(division) + "' and geo_upazilla_id::text like '" + str( upazilla) + "' and geo_district_id::text like '" + str(district) + "' and union_id::text like '" + str( union) + "' and crop_id::text like '" + str(crop) + "' and variety_id::text like '" + str(variety) + "' and season_id::text like '" + str(season) + "' and stage_id::text like '" + str(stage) + "' and content_type::text like '"+str(content_type)+"')select *,( select count(distinct mobile_number) FROM weather_sms_rule_queue WHERE status = 'New' AND union_id = t.union_id AND weather_sms_rule_id = sms_id AND crop_id = t.crop_id AND season_id = t.season_id AND variety_id = t.variety_id AND stage_id = t.stage_id AND schedule_time::date = t.schedule_time::date )farmer_cnt from t"
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
 
@@ -1651,7 +1648,9 @@ def getManagementQueueData(request):
     district = request.POST.get('district')
     upazilla = request.POST.get('upazilla')
     union = request.POST.get('union')
-    query = "with t as( select (select union_id from farmer where id = farmer_id),* from management_sms_que) SELECT DISTINCT sms_id, sms_text, union_id, ( SELECT NAME FROM vwunion WHERE id = union_id::int limit 1)union_name, crop_id, ( SELECT crop_name FROM crop WHERE id = crop_id::int limit 1)crop_name, season_id, ( SELECT season_name FROM cropping_season WHERE id = season_id::int limit 1)season_name, variety_id, ( SELECT variety_name FROM crop_variety WHERE id = variety_id::int limit 1)variety_name, stage_id, ( SELECT stage_name FROM crop_stage WHERE id = stage_id::int limit 1) stage_name,schedule_time::date,content_type,substring(voice_sms_file_path from 8)voice_sms_file_path FROM t, vwunion WHERE union_id::int = vwunion.id and status = 'New' and schedule_time between '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and geo_country_id::text like '"+str(country)+"' and geo_zone_id::text like '"+str(division)+"' and geo_upazilla_id::text like '"+str(upazilla)+"' and geo_district_id::text like '"+str(district )+"' and union_id::text like '"+str(union)+"' and crop_id::text like '"+str(crop)+"'  and variety_id::text like '" + str(variety) + "' and season_id::text like '" + str(season) + "' and stage_id::text like '" + str(stage) + "'"
+    content_type = request.POST.get('content_type')
+    query = "WITH t AS( SELECT ( SELECT union_id FROM farmer WHERE id = farmer_id), * FROM management_sms_que), t1 as ( SELECT DISTINCT sms_id, sms_text, union_id, crop_id, season_id, variety_id, stage_id, schedule_time::date, content_type, substring(voice_sms_file_path FROM 8)voice_sms_file_path,(select sms_type from management_sms_rule where id = sms_id) FROM t, vwunion WHERE union_id::int = vwunion.id AND status = 'New' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp AND '"+str(to_date)+" 23:59:59'::timestamp AND geo_country_id::text LIKE '"+str(country)+"' AND geo_zone_id::text LIKE '"+str(division)+"' AND geo_upazilla_id::text LIKE '"+str(upazilla)+"' AND geo_district_id::text LIKE '"+str(district )+"' AND union_id::text LIKE '"+str(union)+"' AND crop_id::text LIKE '"+str(crop)+"' AND variety_id::text LIKE '" + str(variety) + "' AND season_id::text LIKE '" + str(season) + "' AND stage_id::text LIKE '" + str(stage) + "' and content_type::text like '"+str(content_type)+"' ) SELECT *,( SELECT count(DISTINCT mobile_number) FROM t WHERE t.union_id = t1.union_id AND t.sms_id = t1.sms_id AND t.crop_id = t1.crop_id AND t.season_id = t1.season_id AND t.variety_id = t1.variety_id AND t.stage_id = t1.stage_id AND t.schedule_time::date = t1.schedule_time::date and t.content_type = t1.content_type)farmer_cnt FROM t1"
+    print(query)
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
 

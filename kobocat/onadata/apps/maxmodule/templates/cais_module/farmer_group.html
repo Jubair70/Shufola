@@ -95,6 +95,7 @@
             <h2>Farmer Group</h2>
         </div>
 
+
         <form action="/maxmodule/cais_module/farmer_groupCreate/" enctype="multipart/form-data" method="post">
             {% csrf_token %}
             <div class="col-md-12">
@@ -159,6 +160,9 @@
             <h2>Upload Farmer Group</h2>
         </div>
     <div class="form-group col-md-12">
+        <a download="" href="/media/template-files/farmer_group_bulk_upload_template.xlsx" style="cursor:pointer;">Download Template</a>
+        <br>
+        <br>
         <form class="form-horizontal" action="/maxmodule/cais_module/farmer_group_bulk_upload/" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row">
