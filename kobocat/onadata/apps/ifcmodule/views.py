@@ -1092,7 +1092,7 @@ def weather_farmer_xls_list(request):
     variety_id = row_id[4]
     stage_id = row_id[5]
     schedule_time = row_id[6]
-    query = "with t as( select distinct (select id from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_id,(select farmer_name from farmer where mobile_number = weather_sms_rule_queue.mobile_number limit 1) farmer_name,mobile_number FROM weather_sms_rule_queue WHERE status = 'New' and union_id = '" + str(
+    query = "with t as( select distinct  farmer_id::int,farmer_name,mobile_number FROM weather_sms_rule_queue WHERE status = 'New' and union_id = '" + str(
         union_id) + "' and weather_sms_rule_id = '" + str(weather_sms_rule_id) + "' and crop_id = '" + str(
         crop_id) + "' and season_id = '" + str(season_id) + "' and variety_id = '" + str(
         variety_id) + "' and stage_id = '" + str(stage_id) + "' and schedule_time::date = '" + str(
@@ -1127,7 +1127,6 @@ def management_farmer_xls_list(request):
         schedule_time) + "'::date ),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = " + str(
         crop_id) + " and season_id = " + str(season_id) + " and crop_variety_id = " + str(
         variety_id) + " ), t2 as (select t.farmer_id,farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id)select distinct t2.farmer_id,farmer_name,mobile_number,sowing_date,group_id,coalesce((select group_name from group_details where id = group_id limit 1),'') group_name from t2 left join farmer_group on t2.farmer_id = farmer_group.farmer_id"
-    print(query)
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
     writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")

@@ -44,6 +44,9 @@ def additional_menu_items(request):
 
     menu_items = list(set(menu_items))
     menu_items = sorted(menu_items, key=lambda x: x.sort_order)
+
+    sub_menu_items = list(set(sub_menu_items))
+    sub_menu_items = sorted(sub_menu_items, key=lambda x: x.sort_order)
     return {'main_menu_items': menu_items, 'sub_menu_items':sub_menu_items}
 
 

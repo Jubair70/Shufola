@@ -212,7 +212,7 @@ def organization_index(request):
         if current_user:
             current_user = current_user[0]
         all_organizations = get_recursive_organization_children(current_user.organisation_name,[])
-        all_organizations.remove(current_user.organisation_name)
+        # all_organizations.remove(current_user.organisation_name)
     message = ""
     alert = ""
     org_del_message = request.GET.get('org_del_message')
@@ -659,7 +659,7 @@ def user_login(request):
            # redirect_url = '/'
 
            #Presently USed Redirect URL
-            redirect_url = '/maxmodule/cais_module/alert_sms_process/'
+            redirect_url = '/ifcmodule/management_sms_que_list/'
         # No context variables to pass to the template system, hence the
         # blank dictionary object...
         return render_to_response('usermodule/login.html', {'redirect_url':redirect_url}, context)
