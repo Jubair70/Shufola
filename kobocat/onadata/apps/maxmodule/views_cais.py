@@ -638,6 +638,56 @@ def group_details_Edit(request):
 """
 
 """
+@@ **************  Season (Start)
+"""
+
+
+@login_required
+def season(request):
+    querySeasonNameList = 'SELECT id, season_name FROM public.cropping_season order by id desc'
+    seasonNameList = multipleValuedQuryExecution(querySeasonNameList)
+    jsonSeasonNameList = json.dumps({'seasonNameList': seasonNameList}, default=decimal_date_default)
+
+    content = {
+
+        'jsonSeasonNameList': jsonSeasonNameList
+    }
+
+    return render(request, 'cais_module/crop_season.html', content)
+
+
+@login_required
+def seasonCreate(request):
+    username = request.user.username
+    seasonName = request.POST.get('season_name', '')
+    isEdit = request.POST.get('isEdit')
+    if isEdit != '':
+        queryEditSeasonName = "UPDATE public.cropping_season SET season_name='" + seasonName + "' WHERE id= " + str(isEdit)
+        __db_commit_query(queryEditSeasonName)  ## Query Execution Function
+    else:
+        queryCreateSeasonName = "INSERT INTO public.cropping_season (season_name) VALUES('" + str(
+            seasonName) + "')"
+        __db_commit_query(queryCreateSeasonName)  ## Query Execution Function
+
+    return HttpResponseRedirect('/maxmodule/cais_module/season/')
+
+
+@login_required
+def season_details_Edit(request):
+    id = request.POST.get('id')
+    queryFetchSpecificSeason = " SELECT id, season_name FROM public.cropping_season where id = " + str(id)
+    getFetchSpecificSeason = singleValuedQuryExecution(queryFetchSpecificSeason)
+
+    jsonFetchSpecificSeason = json.dumps({'getFetchSpecificSeason': getFetchSpecificSeason}, default=decimal_date_default)
+
+    return HttpResponse(jsonFetchSpecificSeason)
+
+
+"""
+@@ **************  Season (End)
+"""
+
+"""
 @@ **************  Crop Group (Start)
 """
 

@@ -65,6 +65,11 @@ urlpatterns = patterns('',
                        url(r'^cais_module/group_details_Edit/$', views_cais.group_details_Edit,
                            name="group_details_Edit"),
 
+                       url(r'^cais_module/season/$', views_cais.season, name="season"),
+                       url(r'^cais_module/seasonCreate/$', views_cais.seasonCreate, name="seasonCreate"),
+                       url(r'^cais_module/season_details_Edit/$', views_cais.season_details_Edit,
+                           name="season_details_Edit"),
+
                        url(r'^cais_module/crop_group/$', views_cais.crop_group, name="crop_group"),
                        url(r'^cais_module/cropGroupCreate/$', views_cais.cropGroupCreate, name="cropGroupCreate"),
                        url(r'^cais_module/crop_group_Edit/$', views_cais.crop_group_Edit, name="crop_group_Edit"),

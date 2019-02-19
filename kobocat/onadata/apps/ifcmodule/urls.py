@@ -87,5 +87,6 @@ urlpatterns = patterns('',
                            views_api.get_daily_weather_information),
                        url(
                            r'^get_hourly_weather_information/(?P<type>[^/]+)/(?P<location>[^/]+)/(?P<from_date>[^/]+)/(?P<to_date>[^/]+)/$',
-                           views_api.get_hourly_weather_information)
+                           views_api.get_hourly_weather_information),
+                       url(r'^get_load_offset_max/$', views.get_load_offset_max, name='get_load_offset_max'),
                        )

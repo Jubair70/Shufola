@@ -79,6 +79,7 @@
 
     </style>
     <link href="/static/css/datepicker.css" rel="stylesheet">
+    <link href="/static/css/data_view.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/static/js/DataTables/datatables.css">
     <link rel="stylesheet" href="/static/css/blueimp-gallery.min.css">
 
@@ -91,99 +92,37 @@
 
     <div class="row">
         <div class="col-md-12" style="margin-bottom: 40px">
-            <h2>Farmer Group</h2>
+            <h2>Season</h2>
         </div>
 
-
-        <form action="/maxmodule/cais_module/farmer_groupCreate/" enctype="multipart/form-data" method="post">
+        <form action="/maxmodule/cais_module/seasonCreate/" enctype="multipart/form-data" method="post">
             {% csrf_token %}
-            <div class="col-md-12">
 
-                <input type="hidden" value="" id="isEdit" name="isEdit">
+            <input type="hidden" value="" id="isEdit" name="isEdit">
 
-                <div class="row">
+            <div class="col-xs-2 col-md-2 ">
+                <label class="control-label"><b>Season Name</b></label>
 
-                    <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Farmer</b></label>
+            </div>
+            <div class="col-xs-3 col-md-3 input-group ">
 
-                    </div>
-                    <div class="col-xs-3 col-md-3 form-group ">
 
-                        <select type="select" name="farmer_id" id="farmer_id" class="form-control " required>
-                            <option value="">Select Any</option>
-                            {% for list in getFarmerList %}
-                                <option value="{{ list.0 }}">{{ list.1 }}</option>
-                            {% endfor %}
+                <input type="text" class="form-control " name="season_name" id="season_name" required>
 
-                        </select>
+            </div>
 
-                    </div>
-                </div>
-
-                <div class="row">
-
-                    <div class="col-xs-2 col-md-2 ">
-                        <label class="control-label"><b>Group Name</b></label>
-
-                    </div>
-                    <div class="col-xs-3 col-md-3 form-group ">
-
-                        <select type="select" name="group_id" id="group_id" class="form-control " required>
-                            <option value="">Select Any</option>
-                            {% for list in getIncludedGroupListInCropGroup %}
-                                <option value="{{ list.0 }}">{{ list.1 }}</option>
-                            {% endfor %}
-
-                        </select>
-
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-5">
-                        <input style="float: right" class="btn btn-primary" type="submit" value="Submit">
-                    </div>
-
-                </div>
-
+            <div class="col-md-3">
+                <input class="btn btn-primary" type="submit" value="Submit">
             </div>
         </form>
 
     </div>
 
-
-
     <hr>
 
     <div class="row">
-    <div class="col-md-12" style="margin-bottom: 40px">
-            <h2>Upload Farmer Group</h2>
-        </div>
-    <div class="form-group col-md-12">
-        <a download="" href="/media/template-files/farmer_group_bulk_upload_template.xlsx" style="cursor:pointer;">Download Template</a>
-        <br>
-        <br>
-        <form class="form-horizontal" action="/maxmodule/cais_module/farmer_group_bulk_upload/" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="row">
-            <div class="col-md-6">
-                <input type="file" name="fileToUpload" id="fileToUpload" accept=".xls,.xlsx" required>
-            </div>
-        </div>
-        <div class="row" style="margin-top: 15px;">
-            <div class="col-md-6">
-            <button type="submit" class="btn btn-md">Submit</button>
-            </div>
-        </div>
-    </form>
-    </div>
-
-
-    </div>
-    <br>
-
-    <div class="row">
         <div class="form-group col-md-12">
-            <span class="control-label btn btn-primary"><b>Farmer Group List</b></span>
+            <span class="control-label btn btn-primary"><b>Season List</b></span>
         </div>
     </div>
 
@@ -197,17 +136,15 @@
         </div>
 
         <div class="col-md-12">
-            <table id="farmerGroupInfoListTable" class="table table-bordered table-hover exportMargin">
+            <table id="seasonNameListTable" class="table table-bordered table-hover exportMargin">
                 <caption class="textAlign">
 
                 </caption>
                 <thead>
                 <tr>
-                    <th> SI No.</th>
-                    <th> Farmer</th>
-                    <th> Group </th>
+                    <th> Season ID</th>
+                    <th> Season Name</th>
                     <th></th>
-
                 </tr>
 
 
@@ -255,37 +192,32 @@
 
     <script type="text/javascript">
 
-
-        var jsonFarmerGroupInfoList =
-        {{ jsonFarmerGroupInfoList |safe }}
-
-        var farmerGroupInfoList = jsonFarmerGroupInfoList.farmerGroupInfoList
-
-        console.log(farmerGroupInfoList)
-
+        var jsonSeasonNameList =
+        {{ jsonSeasonNameList | safe }}
+        var seasonNameList = jsonSeasonNameList.seasonNameList
 
         $(document).ready(function () {
 
-            getFarmerGroupListTable() // Making the crop stage info List table
+            getSeasonNameList()  // Getting the Table
 
         });
 
 
-        function getFarmerGroupListTable() {
+        function getSeasonNameList() {
 
             var count = 1
             var tbody = ''
 
-            for (var i = 0; i < farmerGroupInfoList.length; i++) {
+            for (var i = 0; i < seasonNameList.length; i++) {
 
-                tbody += '<tr><td>' + count + '</td><td>' + farmerGroupInfoList[i][1] + '</td><td>' + farmerGroupInfoList[i][2] + '</td><td><button onclick="getEditId(' + farmerGroupInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+
+                tbody += '<tr><td>' + seasonNameList[i][0] + '</td><td>' + seasonNameList[i][1] + '</td><td><button onclick="getEditId(' + seasonNameList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
 
                 count++;
             }
 
-
-            $('#farmerGroupInfoListTable').find('tbody').html(tbody)
-            dTablewithData = $('#farmerGroupInfoListTable').DataTable({
+            $('#seasonNameListTable').find('tbody').html(tbody)
+            dTablewithData = $('#seasonNameListTable').DataTable({
                 "retrieve": true,
                 "bFilter": true,
                 "paging": true,
@@ -300,37 +232,26 @@
                 "pageLength": 50
 
             });
-
         }
-
-
-        // Get Edit value
-           editId = null
-
-
 
 
         function getEditId(id) {
 
+            console.log("Crop ID" + id)
             $('#isEdit').attr("value", id);
-            editId = $('#isEdit').val();
-            console.log(editId)
 
             $.ajax({
                 type: 'POST',
-                url: '/maxmodule/cais_module/farmer_group_Edit/',
+                url: '/maxmodule/cais_module/season_details_Edit/',
                 data: {
 
                     'id': id,
                 },
                 success: function (data) {
 
-                    list = JSON.parse(data);
-
-                    $("#farmer_id").val("" + list.getFetchSelectedFarmerGroup[1] + "").change();
-                    $("#group_id").val("" + list.getFetchSelectedFarmerGroup[2] + "").change();
-
-
+                    list = JSON.parse(data)
+                    console.log(list.getFetchSpecificSeason)
+                    $('#season_name').attr("value", list.getFetchSpecificSeason[1]);
 
 
                 }

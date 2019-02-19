@@ -143,7 +143,7 @@
                 <div class="col-md-6">
                             <div class="form-group">
                                 <label>Stage: </label>
-                                <select class="form-control" name="crop_stage" id="crop_stage" required>
+                                <select class="form-control" name="crop_stage" id="crop_stage" onclick="load_offset_max(this)" required>
                                      <option value="">Select One</option>
 
                                 </select>
@@ -167,6 +167,12 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                        </div>
+                <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">Offset Days</label>
+                                    <input type="number" class="form-control" value="0" min="0" name="offset_days" id="offset_days" required>
+                                </div>
                         </div>
 
                 </div>
@@ -286,6 +292,24 @@ function load_variety(object) {
                     }
                 });
             }
+
+        }
+
+        function load_offset_max(object) {
+            ajaxcall();
+            stage_id = parseInt(object.value);
+
+                $.ajax({
+                    url: '/ifcmodule/get_load_offset_max/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'stage_id': stage_id},
+                    success: function (result) {
+                        $("#offset_days").attr("max",result[0].diff);
+
+                    }
+                });
+
 
         }
 

@@ -656,6 +656,7 @@ def insert_management_sms_form(request):
         sms_type = request.POST.get('sms_type')
         content_id = request.POST.get('content_id', '')
         group_id = request.POST.get('group')
+        offset_days = request.POST.get('offset_days')
         user_id = request.user.id
         voice_sms_file_path = ""
         if "voice_sms" in request.FILES:
@@ -667,12 +668,12 @@ def insert_management_sms_form(request):
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
 
-        insert_query = "INSERT INTO public.management_sms_rule(stage_id,category_id, sms_description, voice_sms_file_path, org_id, program_id, crop_id, variety_id, season_id, created_at, created_by, updated_at, updated_by,sms_type,content_id,group_id)VALUES(" + str(
+        insert_query = "INSERT INTO public.management_sms_rule(stage_id,category_id, sms_description, voice_sms_file_path, org_id, program_id, crop_id, variety_id, season_id, created_at, created_by, updated_at, updated_by,sms_type,content_id,group_id,offset_days)VALUES(" + str(
             stage_id) + "," + str(
             category_id) + ", '" + str(sms_description) + "', '" + str(voice_sms_file_path) + "', " + str(
             org_id) + ", " + str(program_id) + ", " + str(crop_id) + ", " + str(variety_id) + ", " + str(
             season_id) + ", now(), " + str(user_id) + ", now(), " + str(user_id) + ",'" + str(sms_type) + "','" + str(
-            content_id) + "',"+str(group_id)+")"
+            content_id) + "',"+str(group_id)+","+str(offset_days)+")"
         __db_commit_query(insert_query)
         messages.success(request, '<i class="fa fa-check-circle"></i>New SMS has been added successfully!',
                          extra_tags='alert-success crop-both-side')
@@ -803,6 +804,13 @@ def getStage(request):
     data = json.dumps(__db_fetch_values_dict(query))
     return HttpResponse(data)
 
+@login_required
+def get_load_offset_max(request):
+    stage_id = request.POST.get('stage_id')
+    query = "select end_day-start_day diff from crop_stage where id = "+str(stage_id)
+    data = json.dumps(__db_fetch_values_dict(query))
+    return HttpResponse(data)
+
 
 @login_required
 def management_sms_rule_list(request):
@@ -814,7 +822,7 @@ def management_sms_rule_list(request):
 
 @login_required
 def edit_management_sms_form(request, sms_rule_id):
-    query = "select category_id,sms_description,voice_sms_file_path,org_id,crop_id,variety_id,stage_id,season_id,program_id,COALESCE(sms_type,'')sms_type,COALESCE(content_id,'') content_id,group_id from management_sms_rule where id = " + str(
+    query = "select category_id,sms_description,voice_sms_file_path,org_id,crop_id,variety_id,stage_id,season_id,program_id,COALESCE(sms_type,'')sms_type,COALESCE(content_id,'') content_id,group_id,offset_days from management_sms_rule where id = " + str(
         sms_rule_id)
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
@@ -830,6 +838,12 @@ def edit_management_sms_form(request, sms_rule_id):
     set_sms_type = df.sms_type.tolist()[0]
     set_content_id = df.content_id.tolist()[0]
     set_group_id = df.group_id.tolist()[0]
+    set_offset_days = df.offset_days.tolist()[0]
+
+    query = "select end_day-start_day diffs from crop_stage where id = "+str(set_stage_id)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    max_days = df.diffs.tolist()[0]
 
     query = "select id,season_name from cropping_season"
     df = pandas.DataFrame()
@@ -900,7 +914,9 @@ def edit_management_sms_form(request, sms_rule_id):
                       'sms_rule_id': sms_rule_id,
                       'set_content_id': set_content_id,
                       'set_group_id':set_group_id,
-                      'grp':grp
+                      'grp':grp,
+                      'set_offset_days': set_offset_days,
+                      'max_days':max_days
                   })
 
 
@@ -921,6 +937,7 @@ def update_management_sms_form(request):
         sms_type = request.POST.get('sms_type')
         content_id = request.POST.get('content_id', '')
         group_id = request.POST.get('group')
+        offset_days = request.POST.get('offset_days')
         user_id = request.user.id
         voice_sms_file_path = ""
         if "voice_sms" in request.FILES:
@@ -936,7 +953,7 @@ def update_management_sms_form(request):
             sms_description) + "', voice_sms_file_path='" + str(voice_sms_file_path) + "', org_id=" + str(
             org_id) + ", program_id=" + str(program_id) + ", crop_id=" + str(crop_id) + ", variety_id=" + str(
             variety_id) + ", season_id=" + str(season_id) + ",updated_at=now(), updated_by=" + str(
-            user_id) + ", stage_id=" + str(stage_id) + ",group_id = "+str(group_id)+" WHERE id=" + str(sms_rule_id)
+            user_id) + ", stage_id=" + str(stage_id) + ",group_id = "+str(group_id)+",offset_days = "+str(offset_days)+" WHERE id=" + str(sms_rule_id)
         __db_commit_query(update_query)
         messages.success(request, '<i class="fa fa-check-circle"></i> SMS Info has been updated successfully!',
                          extra_tags='alert-success crop-both-side')
@@ -1099,6 +1116,7 @@ def weather_farmer_xls_list(request):
         schedule_time) + "'::date),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = '" + str(
         crop_id) + "' and season_id = '" + str(season_id) + "' and crop_variety_id = '" + str(
         variety_id) + "' ), t2 as (select t.farmer_id,farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id)select t2.farmer_id,farmer_name,mobile_number,sowing_date,group_id,coalesce((select group_name from group_details where id = group_id limit 1),'') group_name from t2 left join farmer_group on t2.farmer_id = farmer_group.farmer_id"
+
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
     writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")
@@ -1127,6 +1145,7 @@ def management_farmer_xls_list(request):
         schedule_time) + "'::date ),t1 as ( select farmer_id,sowing_date from farmer_crop_info where crop_id = " + str(
         crop_id) + " and season_id = " + str(season_id) + " and crop_variety_id = " + str(
         variety_id) + " ), t2 as (select t.farmer_id,farmer_name,mobile_number,sowing_date from t,t1 where t.farmer_id = t1.farmer_id)select distinct t2.farmer_id,farmer_name,mobile_number,sowing_date,group_id,coalesce((select group_name from group_details where id = group_id limit 1),'') group_name from t2 left join farmer_group on t2.farmer_id = farmer_group.farmer_id"
+    print(query)
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
     writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xlsx")
