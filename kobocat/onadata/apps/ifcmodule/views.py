@@ -54,7 +54,7 @@ from collections import OrderedDict
 import decimal
 import os
 import shutil
-
+import os
 
 def __db_fetch_values(query):
     cursor = connection.cursor()
@@ -948,6 +948,14 @@ def update_management_sms_form(request):
             myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
+
+            # deletePreviousAudio
+            query = "select voice_sms_file_path from management_sms_rule where id = "+str(sms_rule_id)
+            df = pandas.read_sql(query,connection)
+            path = df.voice_sms_file_path.tolist()[0]
+            if os.path.exists(path):
+                os.remove(path)
+
         update_query = "UPDATE public.management_sms_rule SET content_id='" + str(content_id) + "' ,sms_type='" + str(
             sms_type) + "', category_id=" + str(category_id) + ", sms_description='" + str(
             sms_description) + "', voice_sms_file_path='" + str(voice_sms_file_path) + "', org_id=" + str(
@@ -962,6 +970,11 @@ def update_management_sms_form(request):
 
 @login_required
 def delete_management_sms_form(request, sms_rule_id):
+    query = "select voice_sms_file_path from management_sms_rule where id = " + str(sms_rule_id)
+    df = pandas.read_sql(query, connection)
+    path = df.voice_sms_file_path.tolist()[0]
+    if os.path.exists(path):
+        os.remove(path)
     delete_query = "delete from management_sms_rule where id = " + str(sms_rule_id) + ""
     __db_commit_query(delete_query)
     messages.success(request, '<i class="fa fa-check-circle"></i> SMS Info has been deleted successfully!',
@@ -1176,6 +1189,11 @@ def getSMSLogData(request):
 
 @login_required
 def delete_weather_sms_form(request, sms_rule_id):
+    query = "select voice_sms_file_path from weather_sms_rule where id = " + str(sms_rule_id)
+    df = pandas.read_sql(query, connection)
+    path = df.voice_sms_file_path.tolist()[0]
+    if os.path.exists(path):
+        os.remove(path)
     delete_rules_details = "delete from weather_sms_rule_details where id in (select unnest(regexp_split_to_array(rules_relation, '[&||]'))::int from weather_sms_rule_relation where weather_sms_rule_id = "+str(sms_rule_id)+")"
     __db_commit_query(delete_rules_details)
     delete_query = "delete from weather_sms_rule where id = " + str(sms_rule_id) + ""
@@ -1259,6 +1277,13 @@ def update_weather_sms_form(request):
             myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
+
+            # deletePreviousAudio
+            query = "select voice_sms_file_path from weather_sms_rule where id = " + str(sms_rule_id)
+            df = pandas.read_sql(query, connection)
+            path = df.voice_sms_file_path.tolist()[0]
+            if os.path.exists(path):
+                os.remove(path)
 
         update_query = "UPDATE public.weather_sms_rule SET sms_type='" + str(sms_type) + "',category_id=" + str(
             category_id) + ", sms_description='" + str(sms_description) + "', voice_sms_file_path='" + str(
@@ -1649,7 +1674,7 @@ def getWeatherQueueData(request):
     upazilla = request.POST.get('upazilla')
     union = request.POST.get('union')
     content_type = request.POST.get('content_type')
-    query = "with t as( SELECT DISTINCT weather_sms_rule_id AS sms_id, sms_description, union_id, crop_id, season_id, variety_id, stage_id, schedule_time::date, content_type, substring(voice_sms_file_path FROM 8) voice_sms_file_path,(select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) FROM weather_sms_rule_queue, vwunion WHERE union_id::int = vwunion.id AND status = 'New' and schedule_time between '" + str( from_date) + " 00:00:00'::timestamp and '" + str( to_date) + " 23:59:59'::timestamp and geo_country_id::text like '" + str( country) + "' and geo_zone_id::text like '" + str(division) + "' and geo_upazilla_id::text like '" + str( upazilla) + "' and geo_district_id::text like '" + str(district) + "' and union_id::text like '" + str( union) + "' and crop_id::text like '" + str(crop) + "' and variety_id::text like '" + str(variety) + "' and season_id::text like '" + str(season) + "' and stage_id::text like '" + str(stage) + "' and content_type::text like '"+str(content_type)+"')select *,( select count(distinct mobile_number) FROM weather_sms_rule_queue WHERE status = 'New' AND union_id = t.union_id AND weather_sms_rule_id = sms_id AND crop_id = t.crop_id AND season_id = t.season_id AND variety_id = t.variety_id AND stage_id = t.stage_id AND schedule_time::date = t.schedule_time::date )farmer_cnt from t"
+    query = "with t as( SELECT DISTINCT weather_sms_rule_id AS sms_id, sms_description,(select name from vwunion where id = union_id::int limit 1) union_name, union_id, crop_id, season_id, variety_id,(select stage_name from crop_stage where id = stage_id::int limit 1) , stage_id, schedule_time::date, content_type, substring(voice_sms_file_path FROM 8) voice_sms_file_path,(select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) FROM weather_sms_rule_queue, vwunion WHERE union_id::int = vwunion.id AND status = 'New' and schedule_time between '" + str( from_date) + " 00:00:00'::timestamp and '" + str( to_date) + " 23:59:59'::timestamp and geo_country_id::text like '" + str( country) + "' and geo_zone_id::text like '" + str(division) + "' and geo_upazilla_id::text like '" + str( upazilla) + "' and geo_district_id::text like '" + str(district) + "' and union_id::text like '" + str( union) + "' and crop_id::text like '" + str(crop) + "' and variety_id::text like '" + str(variety) + "' and season_id::text like '" + str(season) + "' and stage_id::text like '" + str(stage) + "' and content_type::text like '"+str(content_type)+"')select *,( select count(distinct mobile_number) FROM weather_sms_rule_queue WHERE status = 'New' AND union_id = t.union_id AND weather_sms_rule_id = sms_id AND crop_id = t.crop_id AND season_id = t.season_id AND variety_id = t.variety_id AND stage_id = t.stage_id AND schedule_time::date = t.schedule_time::date )farmer_cnt from t"
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
 
