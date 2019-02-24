@@ -54,13 +54,15 @@
                 <tr>
                     <th>Farmer Name</th>
                     <th>Mobile Number</th>
-                    <th>SMS Text</th>
+                    <th>Content</th>
                     <th>SMS Type</th>
                     <th>Schedule Time</th>
                     <th>Sent Time</th>
                     <th>District</th>
                     <th>Upazilla</th>
                     <th>Union</th>
+                    <th>Content Type</th>
+
                 </tr>
                 </thead>
                 <tbody>
@@ -122,7 +124,7 @@
         var sms_log = {{ sms_log|safe }};
 
         for (var idx in sms_log) {
-            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_source +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td></tr>';
+            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_source +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td><td>'+ sms_log[idx].content_type +'</td></tr>';
         }
 
         $("#all_info_table").find('tbody').html(tbody);
@@ -247,7 +249,7 @@
 
                     sms_log = result;
                     for (var idx in sms_log) {
-            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_source +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td></tr>';
+            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_source +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td><td>'+ sms_log[idx].content_type +'</td></tr>';
         }
 
         $("#all_info_table").find('tbody').html(tbody);
