@@ -1173,17 +1173,16 @@ def management_farmer_xls_list(request):
 
 @login_required
 def sms_log(request):
-    query = "with t as( select mobile_number,sms_text,schedule_time,sms_source,sent_time,content_type from sms_que where status = 'Sent' order by schedule_time::date desc limit 200), t1 as ( select t.mobile_number,farmer_name,sms_text,schedule_time,sms_source,sent_time,district_id,upazila_id,union_id,content_type from t,farmer where t.mobile_number = farmer.mobile_number )select mobile_number,sms_text,sms_source,to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, coalesce( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time,(select name from geo_district where id = district_id limit 1)district_name, (select name from geo_upazilla where id = upazila_id limit 1)upazilla_name, (select name from geo_union where id = union_id limit 1)union_name,farmer_name,content_type from t1"
-    sms_log = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    sms_log = ''
     return render(request, 'ifcmodule/sms_log.html', {
         'sms_log': sms_log
     })
 
-@login_required
+@csrf_exempt
 def getSMSLogData(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
-    query = "with t as( select mobile_number,sms_text,schedule_time,sms_source,sent_time,content_type from sms_que where status = 'Sent' and schedule_time between '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by schedule_time::date desc), t1 as ( select t.mobile_number,farmer_name,sms_text,sms_source,to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, coalesce( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time,district_id,upazila_id,union_id,content_type from t,farmer where t.mobile_number = farmer.mobile_number )select mobile_number,farmer_name,sms_text,schedule_time,sms_source,sent_time,(select name from geo_district where id = district_id limit 1)district_name, (select name from geo_upazilla where id = upazila_id limit 1)upazilla_name, (select name from geo_union where id = union_id limit 1)union_name,content_type from t1"
+    query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type,mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type FROM sms_que WHERE status = 'Sent' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source = 'management_sms_que' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path FROM t, farmer WHERE t.mobile_number = farmer.mobile_number) SELECT mobile_number, farmer_name, sms_text, schedule_time, sms_type, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,voice_sms_file_path FROM t1"
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
 
