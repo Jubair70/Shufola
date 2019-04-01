@@ -1,0 +1,688 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% load app_filters %}
+{% block additional-headers %}
+    <title xmlns="http://www.w3.org/1999/html">
+        {% block title %} {{ xform.title }}{% endblock %}
+    </title>
+    <!-- start: css for data view and filters -->
+    <style>
+        {#       th {#}
+        {#            text-align: center !important;#}
+        {#            width: auto !important;#}
+        {#        } #}
+
+        .chart-filter {
+            float: left;
+            padding: 10px;
+        }
+
+        .chart-header-btn {
+            float: left;
+            margin-left: 25px;
+            padding: 1px;
+            position: relative;
+            font-size: 13px;
+        }
+
+        .chart-main-container {
+            width: inherit;
+            height: 400px;
+            min-height: 200px;
+            float: center;
+            padding: 2px;
+            border: 2px rgb(89, 89, 89) double;
+        }
+
+        .table-control-container {
+            margin: 0px 2px !important;
+        }
+
+        .exportMargin {
+
+            margin-bottom: 2%;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: 0px solid #111 !important;
+        }
+
+        .container {
+            margin-top: 0px;
+        }
+
+        .image-preview-input {
+            position: relative;
+            overflow: hidden;
+            margin: 0px;
+            color: #333;
+            background-color: #fff;
+            border-color: #ccc;
+        }
+
+        .image-preview-input input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
+
+        .image-preview-input-title {
+            margin-left: 0px;
+        }
+
+
+    </style>
+    <link href="/static/css/datepicker.css" rel="stylesheet">
+    <link href="/static/css/data_view.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/js/DataTables/datatables.css">
+    <link rel="stylesheet" href="/static/css/blueimp-gallery.min.css">
+
+    <!-- For DROPDOWN FILTERING -->
+    <link rel="stylesheet" href="/static/assets/css/style_dropdown_filtering.css">
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom: 40px">
+            <h2>Farmer Details</h2>
+        </div>
+
+        <form action="/maxmodule/cais_module/farmerCreate/" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            <div class="col-md-12">
+
+
+                <input type="hidden" value="" id="isEdit" name="isEdit">
+
+                <div class="row">
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Farmer Name </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <input type="text" class="form-control " name="farmer_name" id="farmer_name" required>
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Mobile No. </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <input type="text" class="form-control " name="mobile_num" id="mobile_num" onkeyup="this.value = (this.value.replace(/[^0-9]/g, ''));" required>
+
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Country</b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="country_id" id="country_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                            {% for list in country_List %}
+                                <option value="{{ list.0 }}">{{ list.1 }}</option>
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Zone </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="zone_id" id="zone_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>District </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="district_id" id="district_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Upazila</b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="upazila_id" id="upazila_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Union </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="union_id" id="union_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Organization </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="organization_id" id="organization_id" class="form-control "
+                                required>
+                            <option value="">Select Any</option>
+                            {% for list in organization_List %}
+                                <option value="{{ list.0 }}">{{ list.1 }}</option>
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Program </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="program_id" id="program_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-5">
+                        <input style="float: right" class="btn btn-primary" id="submit" type="submit" value="Submit">
+                    </div>
+
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="form-group col-md-12">
+            <span class="control-label btn btn-primary"><b>Farmer Group List</b></span>
+        </div>
+    </div>
+
+
+    <div class="row">
+
+        <div class="row">
+
+            <br>
+
+        </div>
+
+        <div class="col-md-12">
+            <table id="farmerInfoListTable" class="table table-bordered table-hover exportMargin">
+                <caption class="textAlign">
+
+                </caption>
+                <thead>
+                <tr>
+                    <th> SI No.</th>
+                    <th> Farmar Name</th>
+                    <th> Mobile No.</th>
+                    <th> Country</th>
+                    <th> Zone</th>
+                    <th> District</th>
+                    <th> Upazila</th>
+                    <th> Union</th>
+                    <th> Organization</th>
+                    <th> Program</th>
+                    <th></th>
+
+                </tr>
+
+
+                </thead>
+                <tbody>
+
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+
+
+
+    <!--Data Table -->
+    <!--  <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/DT_bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/DataTables/datatables.js"></script>
+  -->
+
+    <!--datatable -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.3.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.print.min.js"></script>
+    <!--datatable ended-->
+
+    <script type="text/javascript" src="/static/js/custom_data_view.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript">
+
+
+        $('#submit').on('click',function () {
+           country_id = $('#country_id option:selected').val();
+           mobile_num = $('#mobile_num').val();
+           if(country_id==1)
+           {
+               if(mobile_num.substr(0,2)!='01' || mobile_num.length !=11 )
+
+               {
+                   alert('Mobile Number should be 11 digit and starts with 01')
+                   return false;
+               }
+           }
+           else if (country_id == 2)
+           {
+                if(mobile_num.substr(0,1)!='9' || mobile_num.length !=10 )
+                  {
+                   alert('Mobile Number should be 10 digit and starts with 9')
+                   return false;
+               }
+           }
+           return true;
+        });
+
+        var jsonFarmerInfoList =
+        {{ jsonFarmerInfoList | safe }}
+        var farmerInfoList = jsonFarmerInfoList.farmerInfoList
+
+        country = ''
+        zone = ''
+        district = ''
+        upazila = ''
+        union = ''
+        organization = ''
+        program = ''
+
+
+        $(document).on("change", "#country_id", function () {
+            country = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getZones/',
+                data: {
+
+                    'country': country,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#zone_id').find('option').remove()
+                    $('#zone_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.zone_List.length; i++) {
+                        $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+
+        $(document).on("change", "#zone_id", function () {
+            zone = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getDistricts/',
+                data: {
+
+                    'zone': zone,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#district_id').find('option').remove()
+                    $('#district_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.district_List.length; i++) {
+                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+
+        $(document).on("change", "#district_id", function () {
+            district = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getUpazilas/',
+                data: {
+
+                    'district': district,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#upazila_id').find('option').remove()
+                    $('#upazila_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.upazila_List.length; i++) {
+                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+        $(document).on("change", "#upazila_id", function () {
+            upazila = $(this).val()
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getUnions/',
+                data: {
+
+                    'upazila': upazila,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#union_id').find('option').remove()
+                    $('#union_id').append('<option value="">Select Any </option>')
+
+                    for (var i = 0; i < list.union_List.length; i++) {
+                        $('#union_id').append('<option value = ' + list.union_List[i][0] + '>' + list.union_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+            //  reDataTable()
+        });
+
+        // Get Program List
+
+        $(document).on("change", "#organization_id", function () {
+            organization = $(this).val()
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getProgramList/',
+                data: {
+
+                    'organization': organization,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#program_id').find('option').remove()
+                    $('#program_id').append('<option value="">Select Any </option>')
+
+                    for (var i = 0; i < list.program_List.length; i++) {
+                        $('#program_id').append('<option value = ' + list.program_List[i][0] + '>' + list.program_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //  reDataTable()
+        });
+
+
+        $(document).ready(function () {
+
+            getFarmerInfoList() // Making the crop stage info List table
+
+        });
+
+
+        function getFarmerInfoList() {
+
+            var count = 1
+            var tbody = ''
+
+            for (var i = 0; i < farmerInfoList.length; i++) {
+
+                if (farmerInfoList[i][10] == 1)
+                    tbody += '<tr><td>' + count + '</td><td><a href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                else
+                    tbody += '<tr><td>' + count + '</td><td><a style="color:red;" href="/ifcmodule/farmer_profile_view/' + farmerInfoList[i][0] + '">' + farmerInfoList[i][1] + '</a></td><td>' + farmerInfoList[i][2] + '</td><td>' + farmerInfoList[i][3] + '</td><td>' + farmerInfoList[i][4] + '</td><td>' + farmerInfoList[i][5] + '</td><td>' + farmerInfoList[i][6] + '</td><td>' + farmerInfoList[i][7] + '</td><td>' + farmerInfoList[i][8] + '</td><td>' + farmerInfoList[i][9] + '</td><td><button onclick="getEditId(' + farmerInfoList[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                count++;
+            }
+
+            $('#farmerInfoListTable').find('tbody').html(tbody)
+            dTablewithData = $('#farmerInfoListTable').DataTable({
+                "retrieve": true,
+                "bFilter": true,
+                "paging": true,
+                "scrollCollapse": true,
+                "searching": true,
+                select: true,
+                ordering: true,
+                // "aaSorting": [[0, 'desc', 0]],
+                "scrollX": true,
+                "bLengthChange": true,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "pageLength": 50
+
+            });
+        }
+
+
+        function getEditId(id) {
+
+            $('#isEdit').attr("value", id);
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/farmer_Edit/',
+                data: {
+
+                    'id': id,
+                },
+
+                success: function (data) {
+
+                    list = JSON.parse(data)
+
+                    $('#farmer_name').attr("value", list.getFetchSelectedFarmer[1]);
+                    $('#mobile_num').attr("value", list.getFetchSelectedFarmer[9]);
+
+                    $("#country_id").val(list.getFetchSelectedFarmer[2]).prop('selected', true)
+                    country = $("#country_id").val()
+
+
+                    // *********** Zone ****** start
+
+                    zone = list.getFetchSelectedFarmer[3]
+
+                    $('#zone_id').find('option').remove()
+                    $('#zone_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.zone_List.length; i++) {
+
+                        $('#zone_id').append('<option value = ' + list.zone_List[i][0] + '>' + list.zone_List[i][1] + '</option>')
+                    }
+
+                    $("#zone_id").val(zone).prop('selected', true)
+
+                    zone = $("#zone_id").val()
+
+                    // *********** Zone ****** end
+
+
+
+
+                    // *********** Dis ****** start
+
+                    district = list.getFetchSelectedFarmer[4]
+
+                    $('district_id').find('option').remove()
+                    $('#district_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.district_List.length; i++) {
+
+                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                    }
+
+                    $("#district_id").val(district).prop('selected', true)
+
+                    district = $("#district_id").val()
+
+                    // *********** Dis ****** end
+
+
+
+
+
+                    // *********** Upa ****** start
+
+                    upazila = list.getFetchSelectedFarmer[5]
+
+                    $('#upazila_id').find('option').remove()
+                    $('#upazila_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.upazila_List.length; i++) {
+
+                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                    }
+
+                    $("#upazila_id").val(upazila).prop('selected', true)
+
+                    upazila = $("#upazila_id").val()
+
+                    // *********** Upa ****** end
+
+                    // *********** Uni ****** start
+
+                    union = list.getFetchSelectedFarmer[6]
+
+                    $('#union_id').find('option').remove()
+                    $('#union_id').append('<option value="">Select Any </option>')
+
+                    for (var i = 0; i < list.union_List.length; i++) {
+                        $('#union_id').append('<option value = ' + list.union_List[i][0] + '>' + list.union_List[i][1] + '</option>')
+                    }
+
+                    $("#union_id").val(union).prop('selected', true)
+
+                    // *********** Uni  ****** end
+
+
+                    $("#organization_id").val('' + list.getFetchSelectedFarmer[7] + '').prop('selected', true)
+                    organization = $("#organization_id").val()
+
+                    // ************ Program ********* Start ****
+
+                    program = list.getFetchSelectedFarmer[8]
+
+                    $('#program_id').find('option').remove()
+                    $('#program_id').append('<option value="">Select Any </option>')
+
+                    for (var i = 0; i < list.program_List.length; i++) {
+                        $('#program_id').append('<option value = ' + list.program_List[i][0] + '>' + list.program_List[i][1] + '</option>')
+                    }
+
+                    $("#program_id").val(program).prop('selected', true)
+
+                    // ************ Program ********* end ****
+
+
+                }
+
+
+            });
+
+
+        }
+
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
+

@@ -1,0 +1,503 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+
+{% block content %}
+<div class="modal fade" id="empty_check_dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Alert</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>Please write some content in sms description or select an audio file.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+
+                </div>
+            </div>
+        </div>
+</div>
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="fa fa-reorder"></i> SMS
+            </div>
+        </div>
+
+        <div class="portlet-body">
+            <form class="horizontal-form" id="" method="post" action="/ifcmodule/insert_promotional_sms_form/" id="form" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-body">
+                <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Category: </label>
+                                <select class="form-control" name="category" id="category" required>
+                                    <option value="">Select One</option>
+                                    <option value="2" selected>Promotional / Broadcast</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>SMS:</label>
+                                <textarea class="form-control" style="height: 100px" name="sms_description" id="sms_description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+               <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Voice SMS:</label>
+                                <input id="voice_sms" name="voice_sms"  accept="audio/*" type="file">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Content ID:</label>
+                                    <input type="text" class="form-control" name="content_id" id="content_id">
+                                </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Group: </label>
+                                <select class="form-control" name="group" id="group">
+                                    <option value="0">Select One</option>
+                                    {% for grp_id,grp_name in grp %}
+                                        <option value="{{ grp_id }}" >{{ grp_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Organization: </label>
+                                <select class="form-control" name="organization" id="organization" onclick="load_program(this)">
+                                    <option value="%">Select One</option>
+                                    {% for org_id,org_name in organization %}
+                                        <option value="{{ org_id }}">{{ org_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Program: </label>
+                                <select class="form-control" name="program" id="program">
+                                    <option value="%">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Crop: </label>
+                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this);">
+                                    <option value="%">Select One</option>
+                                    {% for m,n in crop %}
+                                        <option value="{{ m }}">{{ n }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Variety of the Crop: </label>
+                                <select class="form-control" name="crop_variety" id="crop_variety">
+                                    <option value="%">Select One</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="row">
+                     <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Season: </label>
+                                <select class="form-control" name="season" id="season">
+                                    <option value="%">Select One</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Country: </label>
+                        <select class="form-control" name="country" id="country" onclick="load_division(this)">
+                            <option value="%">Select One</option>
+                            {% for country_id,country_name in country %}
+                                <option value="{{ country_id }}">{{ country_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Division: </label>
+                        <select class="form-control" name="division" id="division" onclick="load_district(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>District: </label>
+                        <select class="form-control" name="district" id="district" onclick="load_upazilla(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Upazilla: </label>
+                        <select class="form-control" name="upazilla" id="upazilla" onclick="load_union(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Union: </label>
+                        <select class="form-control" name="union" id="union">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+                </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+        <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+{#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
+{#    <script type="text/javascript" src="/static/js/calendar.min.js"></script>#}
+    <script>
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+        function load_stage(object) {
+            ajaxcall();
+            season_id = parseInt(object.value);
+            crop_id = $('#crop option:selected').val();
+            var_id = $('#crop_variety option:selected').val();
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getStage/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'season_id': season_id,
+                        'crop_id':crop_id,
+                        'var_id':var_id,
+                           },
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].stage_name + "</option>";
+                        }
+                        $('#crop_stage').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function load_program(object) {
+            ajaxcall();
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#program').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getProgram/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
+                        }
+                        $('#program').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function load_division(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#division').html("<option value=\"%\">Select One</option>");
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDivisions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#division').html(html_code);
+                         $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_district(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDistricts/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#district').html(html_code);
+                        $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_upazilla(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUpazillas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazilla').html(html_code);
+                        $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_union(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUnions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#union').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+               if ($('.alert-block').is(':visible')) {
+            window.setTimeout(function () {
+                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+
+
+        $('#wea').on('click',function () {
+            var sms_description = $('#sms_description').val();
+            var voice_sms = $('#voice_sms').val();
+            if(!sms_description.length && !voice_sms.length)
+            {
+                $('#empty_check_dialog').modal('toggle');
+               return false;
+            }
+
+        });
+
+
+    </script>
+
+{% endblock %}

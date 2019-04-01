@@ -1,0 +1,453 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="fa fa-reorder"></i> Add Crop To Farmer
+            </div>
+        </div>
+
+        <div class="portlet-body">
+            <form class="horizontal-form" id="" method="post" action="/ifcmodule/insert_crop_form/" id="form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="farmer_id" id="farmer_id" value="{{ farmer_id }}">
+                <div class="form-body">
+
+                    <div class="row " id="same_as_farmer_geo">
+                        <div class="form-group col-md-12">
+                            <label class="control-label"><b>Same As Farmer Geo Location</b></label> &nbsp;&nbsp;
+                            <input style="transform: scale(1.2) " type="checkbox" class="custom-control-input"
+                                   id="same_geo" name="same_geo"
+                                   onchange="isChecked(this , {{ farmer_id }})">
+                        </div>
+
+
+                    </div>
+
+
+                <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Zone </label>
+                                <select class="form-control" name="zone_id" id="zone_id" required>
+                                    <option value="">Select One</option>
+                                    {% for x,y in zone %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label> District </label>
+                                <select class="form-control" name="district_id" id="district_id" required>
+                                    <option value="">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label> Upazila </label>
+                                <select class="form-control" name="upazila_id" id="upazila_id" required>
+                                    <option value="">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label> Union </label>
+                                <select class="form-control" name="union_id" id="union_id" required>
+                                    <option value="">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Season: </label>
+                                <select class="form-control" name="season" id="season" required>
+                                    <option value="">Select One</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Crop: </label>
+                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" required>
+                                    <option value="">Select One</option>
+                                    {% for m,n in crop %}
+                                        <option value="{{ m }}">{{ n }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Variety of the Crop: </label>
+                                <select class="form-control" name="crop_variety" id="crop_variety" required>
+                                    <option value="">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label >Sowing Date: </label>
+                                <input type="text" class="datepicker form-control"  name="sowing_date" id="sowing_date" autocomplete="off" required>
+                            </div>
+                        </div>
+                    </div>
+                <div class="row">
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Unit of the Cultivable land: </label>
+                                <select class="form-control" name="unit" id="unit" required>
+                                    <option value="">Select One</option>
+                                    {% for w,e in unit %}
+                                        <option value="{{ w }}">{{ e }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Size of cultivable land:</label>
+                                <input type="number" step="0.001" min="0" class="form-control" name="land_size" id="land_size" required>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label></label>
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+        <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+{#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
+{#    <script type="text/javascript" src="/static/js/calendar.min.js"></script>#}
+    <script>
+
+
+        // *******************   Emtiaz Work (Start) ****************
+
+        zone = ''
+        district = ''
+        upazila = ''
+        union = ''
+        checkedValue = ''
+
+
+
+        $(document).on("change", "#zone_id", function () {
+            zone = $(this).val()
+
+            $('#upazila_id').find('option').remove()
+            $('#upazila_id').append('<option value="">Select One </option>')
+
+            $('#union_id').find('option').remove()
+            $('#union_id').append('<option value="">Select One </option>')
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getDistricts/',
+                data: {
+
+                    'zone': zone,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#district_id').find('option').remove()
+                    $('#district_id').append('<option value="">Select One</option>')
+                    for (var i = 0; i < list.district_List.length; i++) {
+                        $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+
+        $(document).on("change", "#district_id", function () {
+            district = $(this).val()
+
+            $('#union_id').find('option').remove()
+            $('#union_id').append('<option value="">Select One </option>')
+
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getUpazilas/',
+                data: {
+
+                    'district': district,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#upazila_id').find('option').remove()
+                    $('#upazila_id').append('<option value="">Select One</option>')
+                    for (var i = 0; i < list.upazila_List.length; i++) {
+                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+        $(document).on("change", "#upazila_id", function () {
+            upazila = $(this).val()
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getUnions/',
+                data: {
+
+                    'upazila': upazila,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#union_id').find('option').remove()
+                    $('#union_id').append('<option value="">Select One</option>')
+
+                    for (var i = 0; i < list.union_List.length; i++) {
+                        $('#union_id').append('<option value = ' + list.union_List[i][0] + '>' + list.union_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+            //  reDataTable()
+        });
+
+
+        function isChecked(checkboxElem, farmer_id) {
+
+            $.ajax({
+                type: 'POST',
+                url: '/ifcmodule/add_crop/get_same_geo_locatio_as_farmer/',
+                data: {
+
+                    'farmer_id': farmer_id,
+                },
+
+                success: function (data) {
+
+                    list = JSON.parse(data)
+
+                    if (checkboxElem.checked) {
+                        $("#zone_id").val(list.getSameGeoAsFarmer[1]).prop('selected', true)
+
+                    }
+                    else
+                        $("#zone_id").prop('selectedIndex', 0);
+                    //zone = $("#zone_id").val()
+
+                    // *********** Dis ****** start
+
+                    if (checkboxElem.checked) {
+                        district = list.getSameGeoAsFarmer[2]
+
+                        $('#district_id').find('option').remove()
+                        $('#district_id').append('<option value="">Select One </option>')
+
+                        for (var i = 0; i < list.district_List.length; i++) {
+
+                            console.log(list.district_List[i][0])
+
+                            $('#district_id').append('<option value = ' + list.district_List[i][0] + '>' + list.district_List[i][1] + '</option>')
+                        }
+                        $("#district_id").val(district).prop('selected', true)
+                    } else {
+
+                        $('#district_id').find('option').remove()
+                        $('#district_id').append('<option value="">Select One </option>')
+
+                    }
+
+                    // *********** Dis ****** end
+
+
+                    // *********** Upa ****** start
+
+                    if (checkboxElem.checked) {
+                        upazila = list.getSameGeoAsFarmer[3]
+
+                        $('#upazila_id').find('option').remove()
+                        $('#upazila_id').append('<option value="">Select One </option>')
+                        for (var i = 0; i < list.upazila_List.length; i++) {
+
+                            $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                        }
+                        $("#upazila_id").val(upazila).prop('selected', true)
+                    }else {
+
+                        $('#upazila_id').find('option').remove()
+                        $('#upazila_id').append('<option value="">Select One </option>')
+
+                    }
+
+                    // *********** Upa ****** end
+
+                    // *********** Uni ****** start
+
+                    if (checkboxElem.checked) {
+                        union = list.getSameGeoAsFarmer[4]
+
+                        $('#union_id').find('option').remove()
+                        $('#union_id').append('<option value="">Select One </option>')
+
+                        for (var i = 0; i < list.union_List.length; i++) {
+                            $('#union_id').append('<option value = ' + list.union_List[i][0] + '>' + list.union_List[i][1] + '</option>')
+                        }
+                        $("#union_id").val(union).prop('selected', true)
+                    }else{
+
+                        $('#union_id').find('option').remove()
+                        $('#union_id').append('<option value="">Select One </option>')
+
+                    }
+
+
+                    // *********** Uni  ****** end
+
+                }
+
+
+            });
+
+
+        }
+
+
+        // *******************   Emtiaz Work (End) ****************
+
+
+$(function () {
+            $('#sowing_date').datepicker({
+                format: 'yyyy-mm-dd',
+                todayHighlight: true
+            }).on('changeDate', function () {
+                $(this).datepicker('hide');
+            });
+
+
+
+        });
+$('#sowing_date').on('keydown', function(e) {
+    e.preventDefault(); // Don't allow direct editing
+});
+
+
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+    </script>
+
+{% endblock %}

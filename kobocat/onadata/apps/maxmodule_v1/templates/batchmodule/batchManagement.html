@@ -1,0 +1,338 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% load app_filters %}
+{% block additional-headers %}
+    <title xmlns="http://www.w3.org/1999/html">
+        {% block title %} {{ xform.title }}{% endblock %}
+    </title>
+    <!-- start: css for data view and filters -->
+    <style>
+        {#       th {#}
+        {#            text-align: center !important;#}
+        {#            width: auto !important;#}
+        {#        } #}
+
+        .chart-filter {
+            float: left;
+            padding: 10px;
+        }
+
+        .chart-header-btn {
+            float: left;
+            margin-left: 25px;
+            padding: 1px;
+            position: relative;
+            font-size: 13px;
+        }
+
+        .chart-main-container {
+            width: inherit;
+            height: 400px;
+            min-height: 200px;
+            float: center;
+            padding: 2px;
+            border: 2px rgb(89, 89, 89) double;
+        }
+
+        .table-control-container {
+            margin: 0px 2px !important;
+        }
+
+        .exportMargin {
+
+            margin-bottom: 2%;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: 0px solid #111 !important;
+        }
+
+    </style>
+    <link href="/static/css/datepicker.css" rel="stylesheet">
+    <link href="/static/css/data_view.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/js/DataTables/datatables.css">
+    <link rel="stylesheet" href="/static/css/blueimp-gallery.min.css">
+
+    <!-- For DROPDOWN FILTERING -->
+    <link rel="stylesheet" href="/static/assets/css/style_dropdown_filtering.css">
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Batch Management
+                {##}
+                {#                <button style="float: right" type="button" class="btn btn-primary"><span aria-hidden="true"><a#}
+                {#                        style="color: white ; text-decoration: none"#}
+                {#                        href="/usermodule/{{ username }}/projects-views/{{ id_string }}/"> Data List </a></span>#}
+                {#                </button>#}
+
+            </h2>
+
+        </div>
+
+    </div>
+    <br>
+
+    <div class="row">
+        <div class="form-group col-md-12">
+            <div class="row">
+                <div class="form-group col-md-12">
+                    <span class="control-label btn btn-primary"><b>Batch Status</b></span>
+                </div>
+            </div>
+            {% for list in batchStatusCount %}
+                <div class="form-group col-md-3">
+                    <label class="control-label"><b>{{ list.0 }} </b> : {{ list.1 }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="form-group col-md-3">
+            <label class="control-label"><b>Form</b></label><br>
+            <select id="formName" class="form-control ">
+                <option value="%">Select Any</option>
+                <option value="%">All</option>
+
+                {% for list in formList %}
+                    <option value="{{ list.0 }}">{{ list.3 }}</option>
+                {% endfor %}
+
+            </select>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label"><b>Batch ID</b></label><br>
+            <select id="batchId" class="form-control ">
+                <option value="%">Select Any</option>
+                <option value="%">All</option>
+
+                {% for list in batchDetails %}
+                    <option value="{{ list.0 }}">{{ list.0 }}</option>
+                {% endfor %}
+
+            </select>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label"><b>Batch Status</b></label><br>
+            <select id="batchStatus" class="form-control ">
+                <option value="%">Select Any</option>
+                <option value="%">All</option>
+                <option value="New">New</option>
+                <option value="Assigned to CCA">Assigned to CCA</option>
+                <option value="Closed">Closed</option>
+
+            </select>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label"><b>Search</b></label><br>
+            <button type="button" onclick="getDefaultSearch()"
+                    class="btn btn-primary" style="width: 50%"><span
+                    class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            </button>
+        </div>
+
+
+    </div>
+
+    <div class="row">
+        <br>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <table id="batchManagementTable" class="table table-bordered table-hover exportMargin">
+                <caption class="textAlign">
+
+                </caption>
+                <thead>
+
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- MOdal of Delete -->
+
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Delete Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    Do you want to delete this Batch ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" onclick="getBatchDelete()" class="btn btn-danger btn-ok" data-dismiss="modal">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+
+
+    <!--Data Table -->
+    <!--  <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/DT_bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/DataTables/datatables.js"></script>
+  -->
+
+    <!--datatable -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.3.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.print.min.js"></script>
+    <!--datatable ended-->
+
+    <script type="text/javascript" src="/static/js/custom_data_view.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+    <script type="text/javascript">
+
+        // jsonbatchDetails = {{ contentList | safe }}
+        //  batchDetailsInfo = jsonbatchDetails.batchDetails
+
+        var cycleCount;
+        var selecteDbatchID
+
+        $(document).ready(function () {
+
+            getDefaultSearch()
+            cycleCount = 0
+
+
+        });
+
+
+        function generateFeedbackTable(batchDetailsInfo) {
+
+
+            if (cycleCount == 0) {
+
+                var thead = ''
+                thead += '<tr><th>Batch ID</th> <th>Form</th><th> Selected Filters</th> <th>Total Data </th><th>Total Verified Data </th> <th>Batch Status </th><th></th><th></th></tr>'
+
+            }
+
+            var tbody = ''
+            for (var i = 0; i < batchDetailsInfo.length; i++) {
+
+                tbody += '<tr>'
+                tbody += '<td>' + batchDetailsInfo[i][0] + '</td><td>' + batchDetailsInfo[i][3] + '</td><td>' + batchDetailsInfo[i][5] + '</td><td>' + batchDetailsInfo[i][4] + '</td><td></td><td>' + batchDetailsInfo[i][2] + '</td><td><a href="/maxmodule/batchmodule/batchlist/' + batchDetailsInfo[i][6] + '/' + batchDetailsInfo[i][0] + '/"  class="btn btn-primary">Details</a></td><td><button id="deletebatch" value = "' + batchDetailsInfo[i][0] + '" type="button" class="btn btn-danger"  data-toggle="modal" data-target="#confirm-delete">Delete</button></td></tr>'
+
+            }
+
+            $('#batchManagementTable').find('thead').html(thead)
+            $('#batchManagementTable').find('tbody').html(tbody)
+            dTablewithData = $('#batchManagementTable').DataTable({
+                "retrieve": true,
+                "bFilter": true,
+                "paging": true,
+                "scrollCollapse": true,
+                select: true,
+                //ordering: true,
+                "scrollX": true,
+                "bLengthChange": true,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+
+            });
+
+
+            cycleCount++
+        }
+
+
+        function getDefaultSearch() {
+
+            formName = $('#formName').val()
+            batchId = $('#batchId').val()
+            batchStatus = $('#batchStatus').val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/batchmodule/createBatchManagementList/',
+                data: {
+
+                    "formName": formName,
+                    "batchId": batchId,
+                    "batchStatus": batchStatus,
+
+                },
+                success: function (data) {
+
+                    batchDetails = data.batchDetails
+                    //   $('#batchManagementTable').DataTable().destroy()
+                    generateFeedbackTable(batchDetails)
+
+                }
+
+            });
+
+
+
+        }
+
+
+        //  Delete Batch From Table Row --- (Start)
+
+        function getBatchDelete() {
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/batchmodule/getBatchDelete/',
+                data: {
+                    'selecteDbatchID': selecteDbatchID
+                },
+                success: function (data) {
+
+                    getDefaultSearch()
+                    location.reload();
+
+                }
+
+            });
+
+        }
+
+
+        //  Delete Batch From Table Row --- (End)
+
+        $(document).on("click", "tr #deletebatch", function (e) {
+            e.preventDefault();
+            selecteDbatchID = $(this).attr("value")
+        });
+
+
+    </script>
+
+{% endblock %}
+

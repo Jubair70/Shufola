@@ -1,0 +1,771 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+{#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">#}
+{#    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">#}
+{#    <link href="/static/css/calendar.min.css" rel="stylesheet" type="text/css"/>#}
+       <style>
+    a { cursor: pointer; }
+
+    </style>
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="alert alert-success" id="alert-success" style="display: none">
+        <strong>SMS WILL BE SENT!</strong>
+    </div>
+    <div class="alert alert-success" id="alert-reject" style="display: none">
+        <strong>User Rejected Successfully!</strong>
+    </div>
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Management SMS Queue</div>
+        </div>
+        <div class="portlet-body">
+            <div class="row">
+
+        <div class="col-md-3">
+                    <label>From Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="from_date" name="from_date" class="form-control"  readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label>To Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="to_date" name="to_date" class="form-control" readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+{#                <div class="col-md-3">#}
+{#                    <div class="form-group">#}
+{#                        <label>From Date: </label>#}
+{#                        <div class="ui calendar" id="from_date">#}
+{#                            <input type="text" class="form-control"  name="from_date" readonly>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-md-3">#}
+{##}
+{#                    <div class="form-group">#}
+{#                        <label>To Date: </label>#}
+{#                        <div class="ui calendar" id="to_date">#}
+{#                            <input type="text" class="form-control" name="to_date"   readonly>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+                <div class="col-md-3">
+
+                    <div class="form-group">
+                        <label >Crop:</label>
+                        <select class="form-control" name="crop" id="crop">
+                            <option value="%">Select One</option>
+                            {% for crop_id,crop_name in crop_list %}
+                                <option value="{{ crop_id }}">{{ crop_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Country: </label>
+                        <select class="form-control" name="country" id="country" onclick="load_division(this)">
+                            <option value="%">Select One</option>
+                            {% for country_id,country_name in country %}
+                                <option value="{{ country_id }}">{{ country_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Division: </label>
+                        <select class="form-control" name="division" id="division" onclick="load_district(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>District: </label>
+                        <select class="form-control" name="district" id="district" onclick="load_upazilla(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Upazilla: </label>
+                        <select class="form-control" name="upazilla" id="upazilla" onclick="load_union(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Union: </label>
+                        <select class="form-control" name="union" id="union">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <button class="btn btn-info pull-left" id="generate_report" name="generate_report"
+                                    data-original-title=""
+                                    title="">Generate Report</button>
+                    </div>
+                </div>
+        </div>
+        <br>
+        <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">
+        <!-- /*<div style="display:none; margin-left: 404px;" id="container"><img src="{{ STATIC_URL }}images/Spinner.gif"></div>*/ -->
+        <div  style="height: 300px;overflow-y:auto;">
+{#            <div id="container"></div>#}
+
+            <table id="all_info_table" class="table table-bordered table-hover table-condensed flip-content nowrap">
+                <col width="200">
+                <thead class="flip-content">
+                <tr>
+                    <th>SMS Description</th>
+                    <th>Union</th>
+                    <th>Crop</th>
+                    <th>Variety</th>
+                    <th>Season</th>
+                    <th>Stage</th>
+                    <th>Schedule Time</th>
+                    <th class="td-center">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+
+        </div>
+    </div>
+
+
+        <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to delete an info, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-ok">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirm-reject" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to reject sms for a union, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm_button" data-dismiss="modal">Confirm</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+{#    <script type="text/javascript">#}
+{#            $.fn.modal = $.fn.modal.noConflict();#}
+{#        </script>#}
+{#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
+{#     <script type="text/javascript" src="/static/js/calendar.min.js"></script>#}
+    <script>
+
+
+        $(document).ready(function () {
+{#             $('#from_date').datepicker({#}
+{#                format: 'dd/mm/yyyy'#}
+{#            });#}
+{#            $('#to_date').datepicker({#}
+{#                format: 'dd/mm/yyyy'#}
+{#            });#}
+{#            var table = $('#all_info_table').DataTable({#}
+{#                "scrollX": true, "ordering": false,#}
+{#                deferRender: true#}
+{#            });#}
+        });
+
+
+        $('#from_date').datepicker({
+        format:'yyyy-mm-dd'
+    });
+    $('#to_date').datepicker({
+        format:'yyyy-mm-dd'
+    });
+    $('#from_date').datepicker('setDate',getDesiredDate(2));
+    $('#to_date').datepicker('setDate',getDesiredDate(1));
+
+        var reject_element = "";
+        var remove_cnt = 0;
+
+        var tbody = '';
+
+        var management_sms_que_list = {{ management_sms_que_list|safe }};
+
+        tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';
+        for (var idx in management_sms_que_list)
+        {
+            row_id =   management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+management_sms_que_list[idx].schedule_time+"_"+idx;
+            ids = management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+idx
+            tbody += '<tr id="'+ids+'"><td>' + management_sms_que_list[idx].sms_text + '</td><td>' + management_sms_que_list[idx].union_name + '</td><td>' + management_sms_que_list[idx].crop_name + '</td><td>' + management_sms_que_list[idx].season_name + '</td><td>' + management_sms_que_list[idx].variety_name + '</td><td>' + management_sms_que_list[idx].stage_name + '</td><td>' + management_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+management_sms_que_list[idx].sms_id+'_'+management_sms_que_list[idx].union_id+'_'+management_sms_que_list[idx].crop_id+'_'+management_sms_que_list[idx].season_id+'_'+management_sms_que_list[idx].variety_id+'_'+management_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" data-toggle="modal" data-target="#myModal" onclick="reject(\''+row_id+'\')"  id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';
+
+        }
+        $("#all_info_table").find('tbody').html(tbody);
+
+
+{#        for (var idx in management_sms_que_list) {#}
+{#            ids = management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+idx#}
+{#            $('#reject_' + ids).click(function (e) {#}
+{#            $('#confirm-reject').modal('toggle');#}
+{#            reject_element = this;#}
+{#        });#}
+{#        }#}
+
+
+        if(remove_cnt == management_sms_que_list.length)
+        {
+            $('#data_empty').show();
+        }
+
+
+
+        $('#generate_report').on('click',function () {
+{#            console.log("sfsfv");#}
+{#            table.destroy();#}
+
+{#            var from_date = $('#from_date').calendar('get date');#}
+{#            var to_date = $('#to_date').calendar('get date');#}
+            var from_date = $('#from_date').val();
+            var to_date =$('#to_date').val();
+            var crop = $('#crop option:selected').val();
+            var country = $('#country option:selected').val();
+            var division = $('#division option:selected').val();
+            var district = $('#district option:selected').val();
+            var upazilla = $('#upazilla option:selected').val();
+            var union = $('#union option:selected').val();
+
+{#            if(from_date != null)#}
+{#                from_date = getFormattedDate(from_date)#}
+{#            else from_date="";#}
+{#            if(to_date != null)#}
+{#                to_date = getFormattedDate(to_date)#}
+{#            else to_date = "";#}
+
+            $.ajax({
+                    url: '/ifcmodule/getManagementQueueData/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { 'from_date': from_date
+                            ,'to_date': to_date
+                            ,'crop':crop
+                            ,'country':country
+                            ,'division':division
+                            ,'district':district
+                            ,'upazilla':upazilla
+                            ,'union':union
+                    },
+                    beforeSend: function () {
+                        $('#container').show();
+{#                        $("#container").html('<div class="ui active inverted dimmer">\n' +#}
+{#                            '    <div class="ui text loader">Loading</div>\n' +#}
+{#                            '  </div>');#}
+                    },
+                success: function (result) {
+                    // console.log(result);
+                    $('#container').hide();
+
+                    var tbody = '';
+
+                    management_sms_que_list = result;
+
+                    tbody += '<tr id="data_empty" hidden><td colspan="8" class="td-center">No Data Available</td></tr>';
+                    for (var idx in management_sms_que_list)
+                    {
+                        row_id =   management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+management_sms_que_list[idx].schedule_time+"_"+idx;
+                        ids = management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+idx
+                        tbody += '<tr id="'+ids+'"><td>' + management_sms_que_list[idx].sms_text + '</td><td>' + management_sms_que_list[idx].union_name + '</td><td>' + management_sms_que_list[idx].crop_name + '</td><td>' + management_sms_que_list[idx].season_name + '</td><td>' + management_sms_que_list[idx].variety_name + '</td><td>' + management_sms_que_list[idx].stage_name + '</td><td>' + management_sms_que_list[idx].schedule_time + '</td><td class="td-center" style="white-space: nowrap"><a class="tooltips" data-container="body" data-placement="top" data-original-title="Approve" id="approve_'+management_sms_que_list[idx].sms_id+'_'+management_sms_que_list[idx].union_id+'_'+management_sms_que_list[idx].crop_id+'_'+management_sms_que_list[idx].season_id+'_'+management_sms_que_list[idx].variety_id+'_'+management_sms_que_list[idx].stage_id+'" onclick="approve(\''+row_id+'\')"><i class="fa fa-2x fa-check-circle"></i></a><a class="delete-item tooltips" data-container="body"  data-placement="top" onclick="reject(\''+row_id+'\')"   id="reject_'+ids+'" data-original-title="Reject" ><i class="fa fa-2x fa-times-circle"></i></a></td></tr>';
+
+                    }
+                    $("#all_info_table").find('tbody').html(tbody);
+
+{#                    for (var idx in management_sms_que_list) {#}
+{#                        ids = management_sms_que_list[idx].sms_id+"_"+management_sms_que_list[idx].union_id+"_"+management_sms_que_list[idx].crop_id+"_"+management_sms_que_list[idx].season_id+"_"+management_sms_que_list[idx].variety_id+"_"+management_sms_que_list[idx].stage_id+"_"+idx#}
+{#                        $('#reject_' + ids).click(function (e) {#}
+{#                        $('#confirm-reject').modal('toggle');#}
+{#                        reject_element = this;#}
+{#                    });#}
+{#                    }#}
+
+
+        if(remove_cnt == management_sms_que_list.length)
+        {
+            $('#data_empty').show();
+        }
+
+
+{#                    var tbody = '';#}
+{#                    for (var idx in result) {#}
+{#                        tbody += '<tr><td>' + result[idx].facility_name + '</td><td>' + result[idx].execution_date + '</td><td>' + result[idx].average_score_adolescents + '</td><td>' + result[idx].average_score_service_providers + '</td><td>' + result[idx].major_comments_adolescents + '</td><td>' + result[idx].major_comments_service_providers + '</td></tr>';#}
+{#                    }#}
+{##}
+{#                    $("#all_info_table").find('tbody').html(tbody);#}
+{#                    table = datatable_reitialize();#}
+
+
+
+
+
+
+
+                }
+            });
+
+
+        });
+
+         function getFormattedDate(date) {
+                var yy = date.getFullYear();
+                var mm = date.getMonth() + 1;
+                var dd = date.getDate();
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                {#                formatted_date = yyyy + '-' + mm + '-' + dd;#}
+                formatted_date = yy + '-' + mm + '-' + dd;
+                return formatted_date;
+            }
+
+
+{#        $('#from_date').calendar({#}
+{#            type: 'date', endCalendar: $('#to_date'),#}
+{#            popupOptions: {#}
+{#                position: 'bottom right'#}
+{#            },#}
+{#            formatter: {#}
+{#                date: function (date, settings) {#}
+{#                    if (!date) return '';#}
+{##}
+{#                    var day = date.getDate();#}
+{#                    var month = date.getMonth() + 1;#}
+{#                    var year = date.getFullYear();#}
+{##}
+{#                    if (day < 10) {#}
+{#                        day = '0' + day#}
+{#                    }#}
+{#                    if (month < 10) {#}
+{#                        month = '0' + month#}
+{#                    }#}
+{#                    return year + '-' + month + '-' + day;#}
+{#                }#}
+{#            }#}
+{#        });#}
+{##}
+{#        $('#to_date').calendar({#}
+{#            type: 'date',#}
+{#            popupOptions: {#}
+{#                position: 'bottom right'#}
+{#            },startCalendar: $('#from_date')#}
+{#            ,#}
+{##}
+{#            formatter: {#}
+{#                date: function (date, settings) {#}
+{#                    if (!date) return '';#}
+{##}
+{#                    var day = date.getDate();#}
+{#                    var month = date.getMonth() + 1;#}
+{#                    var year = date.getFullYear();#}
+{##}
+{#                    if (day < 10) {#}
+{#                        day = '0' + day#}
+{#                    }#}
+{#                    if (month < 10) {#}
+{#                        month = '0' + month#}
+{#                    }#}
+{#                    return year + '-' + month + '-' + day;#}
+{#                }#}
+{#            }#}
+{#        });#}
+{##}
+{#        $('#from_date').calendar('set date',getDesiredDate(2));#}
+{#        $('#to_date').calendar('set date',getDesiredDate(1));#}
+
+
+
+{#        function getDesiredDate(n) {#}
+{#                var today = new Date();#}
+{#                var n_month_before_today = new Date(today);#}
+{#                n_month_before_today.setMonth((today.getMonth() + 1) - n);#}
+{#                var dd = n_month_before_today.getDate();#}
+{#                var mm = n_month_before_today.getMonth() + 1;#}
+{##}
+{#                if (dd < 10) {#}
+{#                    dd = '0' + dd#}
+{#                }#}
+{#                if (mm < 10) {#}
+{#                    mm = '0' + mm#}
+{#                }#}
+{#                var yyyy = n_month_before_today.getFullYear();#}
+                {#                formatted_date = yyyy + '-' + mm + '-' + dd;#}
+{#                formatted_date =   yyyy+ '-' +mm+ '-' +dd   ;#}
+{#                return formatted_date;#}
+{##}
+{#        }#}
+
+        function getDesiredDate(n) {
+
+                var today = new Date();
+                var n_month_before_today = new Date(today);
+
+                n_month_before_today.setMonth((today.getMonth() + 1) - n);
+                var dd = n_month_before_today.getDate();
+                var mm = n_month_before_today.getMonth() + 1;
+
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                var yyyy = n_month_before_today.getFullYear();
+
+                formatted_date =   yyyy+ '/' +mm+ '/' +dd;
+                // console.log(new Date(yyyy,mm,dd));
+                return new Date(yyyy,mm,dd);
+
+            }
+
+        function reject(row_id) {
+                        $('#confirm-reject').modal('toggle');
+                        reject_element = row_id;
+        }
+
+
+        function approve(row_id) {
+            $("#alert-success").css('opacity', '1');
+            $('#alert-success').show();
+            $("#alert-success").fadeTo(4000,0).slideUp();
+
+            row_id = row_id.split('_');
+            remove_cnt++;
+            $.ajax({
+                    url: '/ifcmodule/approve_farmer_sms_management/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'sms_id' : row_id[0],
+                        'union_id'  : row_id[1],
+                        'crop_id' : row_id[2],
+                        'season_id' : row_id[3],
+                        'variety_id' : row_id[4],
+                        'stage_id' : row_id[5],
+                        'schedule_time' : row_id[6]
+
+                    },
+                    beforeSend: function () {},
+                    success: function (result) {}
+            });
+            row_id = row_id[0]+'_'+row_id[1]+'_'+row_id[2]+'_'+row_id[3]+'_'+row_id[4]+'_'+row_id[5]+'_'+row_id[7]
+            // console.log(row_id);
+
+            $('#'+row_id).hide();
+
+
+        if (remove_cnt == management_sms_que_list.length) {
+            $('#data_empty').show();
+        }
+        }
+
+
+
+        $('#confirm_button').on('click',function (e) {
+{#        var row_id = $(reject_element).attr('id').split('_');#}
+           var row_id = reject_element.split('_');;
+        // console.log(row_id);
+{#            return false;#}
+{#            $('#reject_'+reject_element).closest('tr').remove();#}
+            $("#alert-reject").css('opacity', '1');
+            $('#alert-reject').show();
+            $("#alert-reject").fadeTo(4000,0).slideUp();
+
+            remove_cnt++;
+            ajaxcall();
+            $.ajax({
+                    url: '/ifcmodule/reject_farmer_sms_management/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'sms_id' : row_id[0],
+                        'union_id'  : row_id[1],
+                        'crop_id' : row_id[2],
+                        'season_id' : row_id[3],
+                        'variety_id' : row_id[4],
+                        'stage_id' : row_id[5],
+                        'schedule_time' : row_id[6]
+                    },
+                    beforeSend: function () {},
+                    success: function (result) {}
+            });
+
+            row_id = row_id[0]+'_'+row_id[1]+'_'+row_id[2]+'_'+row_id[3]+'_'+row_id[4]+'_'+row_id[5]+'_'+row_id[7]
+            // console.log(row_id);
+
+            $('#'+row_id).hide();
+
+            if(remove_cnt == management_sms_que_list.length)
+            {
+                $('#data_empty').show();
+            }
+{#            $.each($('.tooltip'), function (index, element) {#}
+{#                $(this).remove();#}
+{#            });#}
+    });
+
+
+
+{#        $('.delete-item').on('click', function (e) {#}
+{#            var criteria_id = $(this).attr("data-href");#}
+{#            $('.btn-ok').attr("href", criteria_id);#}
+{#        });#}
+{#        if ($('.alert-block').is(':visible')) {#}
+{#            window.setTimeout(function () {#}
+{#                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {#}
+{#                    $(this).remove();#}
+{#                });#}
+{#            }, 5000);#}
+{#        }#}
+
+    function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+
+        function load_division(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#division').html("<option value=\"%\">Select One</option>");
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDivisions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#division').html(html_code);
+                         $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_district(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDistricts/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#district').html(html_code);
+                        $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_upazilla(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUpazillas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazilla').html(html_code);
+                        $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_union(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUnions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#union').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+    </script>
+{% endblock %}

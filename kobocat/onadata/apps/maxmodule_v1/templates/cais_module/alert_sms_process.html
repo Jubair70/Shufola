@@ -1,0 +1,604 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% load app_filters %}
+{% block additional-headers %}
+    <title xmlns="http://www.w3.org/1999/html">
+        {% block title %} {{ xform.title }}{% endblock %}
+    </title>
+    <!-- start: css for data view and filters -->
+    <style>
+        {#       th {#}
+        {#            text-align: center !important;#}
+        {#            width: auto !important;#}
+        {#        } #}
+
+        .chart-filter {
+            float: left;
+            padding: 10px;
+        }
+
+        .chart-header-btn {
+            float: left;
+            margin-left: 25px;
+            padding: 1px;
+            position: relative;
+            font-size: 13px;
+        }
+
+        .chart-main-container {
+            width: inherit;
+            height: 400px;
+            min-height: 200px;
+            float: center;
+            padding: 2px;
+            border: 2px rgb(89, 89, 89) double;
+        }
+
+        .table-control-container {
+            margin: 0px 2px !important;
+        }
+
+        .exportMargin {
+
+            margin-bottom: 2%;
+        }
+
+        table.dataTable.no-footer {
+            border-bottom: 0px solid #111 !important;
+        }
+
+        .container {
+            margin-top: 0px;
+        }
+
+        .image-preview-input {
+            position: relative;
+            overflow: hidden;
+            margin: 0px;
+            color: #333;
+            background-color: #fff;
+            border-color: #ccc;
+        }
+
+        .image-preview-input input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
+
+        .image-preview-input-title {
+            margin-left: 0px;
+        }
+
+
+    </style>
+    <link href="/static/css/datepicker.css" rel="stylesheet">
+    <link href="/static/css/data_view.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/js/DataTables/datatables.css">
+    <link rel="stylesheet" href="/static/css/blueimp-gallery.min.css">
+
+    <!-- For DROPDOWN FILTERING -->
+    <link rel="stylesheet" href="/static/assets/css/style_dropdown_filtering.css">
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom: 40px">
+            <h2>Alert SMS Configuration</h2>
+        </div>
+
+        <form action="/maxmodule/cais_module/alert_sms_process_info_store/" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            <div class="col-md-12">
+
+                <input type="hidden" value="" id="isEdit" name="isEdit">
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Group</b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="group_id" id="group_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                            {% for list in getGroupList %}
+                                <option value="{{ list.0 }}">{{ list.1 }}</option>
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Crop </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="crop_id" id="crop_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Stage </b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <input type="text" class="form-control " name="stage_name" id="stage_name" value=" " readonly>
+
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Alert Name</b></label>
+
+                    </div>
+                    <div class="col-xs-3 col-md-3 form-group ">
+
+                        <select type="select" name="alert_id" id="alert_id" class="form-control " required>
+                            <option value="">Select Any</option>
+                        </select>
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-2 col-md-2 ">
+                        <label class="control-label"><b>Alert SMS </b></label>
+
+                    </div>
+                    <div class="col-xs-10 col-md-10 form-group ">
+
+
+                        <textarea style="width: 100% ; height: 100px" type="text" class="form-control " name="alert_sms"
+                                  id="alert_sms" value=" " readonly></textarea>
+
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-5">
+                        <input style="float: right" class="btn btn-primary" type="submit" value="Send">
+                    </div>
+
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="form-group col-md-12">
+            <span class="control-label btn btn-primary"><b>Farmer Group List</b></span>
+        </div>
+    </div>
+
+
+    <div class="row">
+
+        <div class="row">
+
+            <br>
+
+        </div>
+
+        <div class="col-md-12">
+            <table id="farmerGroupInfoListTable" class="table table-bordered table-hover exportMargin">
+                <caption class="textAlign">
+
+                </caption>
+                <thead>
+                <tr>
+                    <th> SI No.</th>
+                    <th> Group</th>
+                    <th> Crop</th>
+                    <th> Stage</th>
+                    <th> Alert Name</th>
+                    <th> Alert SMS</th>
+                    <th></th>
+
+
+                </tr>
+
+
+                </thead>
+                <tbody>
+
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+
+
+
+    <!--Data Table -->
+    <!--  <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/data-tables/DT_bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/DataTables/datatables.js"></script>
+  -->
+
+    <!--datatable -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.3.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.27/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.3.1/js/buttons.print.min.js"></script>
+    <!--datatable ended-->
+
+    <script type="text/javascript" src="/static/js/custom_data_view.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+    <script type="text/javascript">
+
+
+        //     var jsonFarmerGroupInfoList ={{ jsonFarmerGroupInfoList |safe }}
+
+        //  var farmerGroupInfoList = jsonFarmerGroupInfoList.farmerGroupInfoList
+
+        //    console.log(farmerGroupInfoList)
+
+
+        $(document).ready(function () {
+
+            getQueryAlertInfoTable() // Making the crop stage info List table
+
+        });
+
+
+        $(document).on("change", "#group_id", function () {
+
+            $('#crop_id').prop('selectedIndex', 0);
+            $('#stage_name').attr("value", " ");
+            $('#alert_id').prop('selectedIndex', 0);
+            $('#alert_sms').attr("value", " ");
+
+
+            group = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/alert_sms_process_crop_list/',
+                data: {
+
+                    'group': group,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+                    $('#crop_id').find('option').remove()
+                    $('#crop_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.crop_List.length; i++) {
+                        $('#crop_id').append('<option value = ' + list.crop_List[i][0] + '>' + list.crop_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+
+        });
+
+
+        $(document).on("change", "#crop_id", function () {
+
+            $('#stage_name').attr("value", " ");
+            $('#alert_id').prop('selectedIndex', 0);
+            $('#alert_sms').attr("value", " ");
+
+
+            crop = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/alert_sms_process_stage_name/',
+                data: {
+
+                    'group': group,
+                    'crop': crop,
+                },
+                success: function (data) {
+
+                    list = JSON.parse(data)
+
+                    console.log(list)
+
+//                    $('#stage_name').append('<option>Select Any </option>')
+                    for (var i = 0; i < list.stage.length; i++) {
+//                        $('#stage_name').append('<option value = ' + list.crop_List[i][0] + '>' + list.crop_List[i][1] + '</option>')
+
+                        $('#stage_name').attr("value", list.stage[i][0]);
+
+
+                    }
+
+
+                    // Alert List
+
+                    stage = $('#stage_name').val()
+                    $.ajax({
+                        type: 'POST',
+                        url: '/maxmodule/cais_module/alert_sms_process_alert_list/',
+                        data: {
+
+                            'stage': stage,
+                            'crop':crop,
+                        },
+                        success: function (data) {
+
+                            list = JSON.parse(data)
+
+                            console.log(list)
+
+                            $('#alert_id').find('option').remove()
+                            $('#alert_id').append('<option value="">Select Any </option>')
+                            for (var i = 0; i < list.alertList.length; i++) {
+                                $('#alert_id').append('<option value = ' + list.alertList[i][0] + '>' + list.alertList[i][1] + '</option>')
+
+
+                            }
+                        }
+
+                    });
+
+
+                }
+
+            });
+
+
+        });
+
+
+        $(document).on("change", "#alert_id", function () {
+            $('#alert_sms').attr("value", " ");
+
+            alert_name = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/alert_sms_process_alert_sms/',
+                data: {
+
+                    'alert_name': alert_name,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    console.log(list)
+
+                    for (var i = 0; i < list.alertSMS.length; i++) {
+                        //  $('#crop_id').append('<option value = ' + list.crop_List[i][0] + '>' + list.crop_List[i][1] + '</option>')
+
+                        $('#alert_sms').attr("value", list.alertSMS[i][2]);
+
+
+                    }
+                }
+
+            });
+
+
+        });
+
+
+        var jsonCropList =
+        {{ jsonCropList | safe }}
+        var getQueryAlertInfo = jsonCropList.getQueryAlertInfo
+
+
+        function getQueryAlertInfoTable() {
+
+            var count = 1
+            var tbody = ''
+
+            for (var i = 0; i < getQueryAlertInfo.length; i++) {
+
+                tbody += '<tr><td>' + count + '</td><td>' + getQueryAlertInfo[i][1] + '</td><td>' + getQueryAlertInfo[i][2] + '</td><td>' + getQueryAlertInfo[i][3] + '</td><td>' + getQueryAlertInfo[i][4] + '</td><td>' + getQueryAlertInfo[i][5] + '</td><td><button onclick="getEditId(' + getQueryAlertInfo[i][0] + ')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+
+                count++;
+            }
+
+
+            $('#farmerGroupInfoListTable').find('tbody').html(tbody)
+            dTablewithData = $('#farmerGroupInfoListTable').DataTable({
+                "retrieve": true,
+                "bFilter": true,
+                "paging": true,
+                "scrollCollapse": true,
+                "searching": true,
+                select: true,
+                ordering: true,
+                // "aaSorting": [[0, 'desc', 0]],
+                "scrollX": true,
+                "bLengthChange": true,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "pageLength": 50
+
+            });
+
+        }
+
+
+        // "************* Enter INTO THE EDIT LOOP (Start) ************************"
+
+
+        function getEditId(id) {
+
+
+            $('#isEdit').attr("value", id);
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/alert_sms_process_Edit/',
+
+                data: {
+
+                    'id': id,
+                },
+                success: function (data) {
+
+
+                    list = JSON.parse(data)
+                    console.log(list.getFetchSelectedAlertSMSProcess)
+
+                    $("#group_id").val("" + list.getFetchSelectedAlertSMSProcess[3] + "").change();
+                    group = $("#group_id").val()
+
+                    console.log(group + "************* Group List  ************************")
+
+                    crop = list.getFetchSelectedAlertSMSProcess[4]
+                    stage = list.getFetchSelectedAlertSMSProcess[5]
+                    alert_name = list.getFetchSelectedAlertSMSProcess[6]
+                    alert_sms = list.getFetchSelectedAlertSMSProcess[7]
+
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/maxmodule/cais_module/alert_sms_process_crop_list/',
+                        data: {
+
+                            'group': group,
+                        },
+                        success: function (data) {
+                            list = JSON.parse(data)
+                            $('#crop_id').find('option').remove()
+                            $('#crop_id').append('<option value="">Select Any </option>')
+                            for (var i = 0; i < list.crop_List.length; i++) {
+                                $('#crop_id').append('<option value = ' + list.crop_List[i][0] + '>' + list.crop_List[i][1] + '</option>')
+                            }
+
+
+                            $("#crop_id").val("" + crop + "").change();
+
+                            crop = $("#crop_id").val()
+
+                            console.log(crop + "************* Crop List  ************************")
+
+
+                            $.ajax({
+                                type: 'POST',
+                                url: '/maxmodule/cais_module/alert_sms_process_stage_name/',
+                                data: {
+
+                                    'group': group,
+                                    'crop': crop,
+                                },
+                                success: function (data) {
+
+                                    list = JSON.parse(data)
+
+                                    console.log(list)
+
+//                    $('#stage_name').append('<option>Select Any </option>')
+                                    for (var i = 0; i < list.stage.length; i++) {
+//                        $('#stage_name').append('<option value = ' + list.crop_List[i][0] + '>' + list.crop_List[i][1] + '</option>')
+
+                                        $('#stage_name').attr("value", list.stage[i][0]);
+
+
+                                    }
+
+
+                                    // Alert List
+
+                                    stage = $('#stage_name').val()
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/maxmodule/cais_module/alert_sms_process_alert_list/',
+                                        data: {
+
+                                            'stage': stage,
+                                            'crop':crop,
+                                        },
+                                        success: function (data) {
+
+                                            list = JSON.parse(data)
+
+                                            console.log(list)
+
+                                            $('#alert_id').find('option').remove()
+                                            $('#alert_id').append('<option value="">Select Any </option>')
+                                            for (var i = 0; i < list.alertList.length; i++) {
+                                                $('#alert_id').append('<option value = ' + list.alertList[i][0] + '>' + list.alertList[i][1] + '</option>')
+
+
+                                            }
+
+                                            $("#alert_id").val("" + alert_name + "").change();
+
+
+
+                                           //  $("#alert_sms").removeAttr("readonly");
+
+
+                                            //Add the "required" attribute.
+                                           // txt.attr("required", "true");
+
+
+                                        }
+
+                                    });
+
+
+                                }
+
+                            });
+
+
+                        }
+
+                    });
+
+
+                }
+
+            });
+
+
+        }
+
+
+        // "************* Enter INTO THE EDIT LOOP (End) ************************"
+
+
+    </script>
+
+{% endblock %}
+

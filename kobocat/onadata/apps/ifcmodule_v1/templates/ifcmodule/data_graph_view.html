@@ -1,0 +1,493 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% load app_filters %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css"
+          href="{{ STATIC_URL }}assets/plugins/bootstrap-multiselect/bootstrap-multiselect.css">
+    <style>
+        .row {
+            margin: 10px;
+        }
+    .portlet-body
+    {
+            height: 815px;
+    }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="portlet box red">
+    <div class="portlet-title">
+        <div class="caption"><i class="fa fa-adn"></i>Graph View</div>
+    </div>
+    <div class="portlet-body">
+                <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Country: </label>
+                        <select class="form-control" name="country" id="country">
+                            <option value="%">Select One</option>
+                            {% for country_id,country_name in country %}
+                                <option value="{{ country_id }}">{{ country_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Organization: </label>
+                                <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
+                                    <option value="%">Select One</option>
+                                    {% for org_id,org_name in organization %}
+                                        <option value="{{ org_id }}">{{ org_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Program: </label>
+                                <select class="form-control" name="program" id="program" >
+                                    <option value="%">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+                      <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Crop: </label>
+                                <select class="form-control" name="crop" id="crop" multiple="multiple">
+
+                                    {% for m,n in crop %}
+                                        <option value="{{ m }}">{{ n }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <button style="margin-top: 25px;" class="btn btn-info pull-left" id="generate_report" name="generate_report"
+                                    data-original-title=""
+                                    title="">Generate Report</button>
+                    </div>
+                </div>
+                </div>
+
+        <div class="row">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#table" data-toggle="tab">Number of Farmers</a></li>
+                <li class=""><a href="#chart" data-toggle="tab">Amount of Cultivable Land</a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="table" class="tab-pane fade  in active">
+                    <div class="form-group pull-right">
+                        <span class="control-label btn btn-primary" style="background-color:#5D5F5F"><b>Total Number of Farmers</b></span>
+                        <span class="control-label btn btn-primary red" id="total_farmer">0</span>
+                    </div>
+                    <img style="display:none; margin-left: 430px; height:70px;width:70px" id="farmer_loading" src="{{ STATIC_URL }}images/Spinner.gif">
+                    <div id="farmer_container" style="width:100%; height:500px;"></div>
+                </div>
+                <div id="chart" class="tab-pane fade">
+                    <div class="form-group pull-right">
+                        <span class="control-label btn btn-primary" style="background-color:#5D5F5F"><b>Total Number of Cultivable Land (in acre)</b></span>
+                        <span class="control-label btn btn-primary red" id="total_land">0</span>
+                    </div>
+                    <img style="display:none; margin-left: 430px; height:70px;width:70px" id="land_loading" src="{{ STATIC_URL }}images/Spinner.gif">
+                    <div id="land_container" style="width:100%; height:500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block additional-javascript %}
+    <script src="http://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/plugins/bootstrap-multiselect/bootstrap-multiselect.js"></script>
+    <script src="https://code.highcharts.com/modules/no-data-to-display.js"></script>
+    <script>
+
+    $("#crop").multiselect({
+            enableFiltering: true,
+            enableCaseInsensitiveFiltering: true,
+            maxHeight: 200,
+            numberDisplayed: 1,
+            includeSelectAllOption: true,
+            buttonWidth: '100%'
+        });
+
+
+
+        {#        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {#}
+        {#            var target = $(e.target).attr("href")#}
+        {#            console.log(target);#}
+        {#            map_affected.resize();#}
+        {#            map_mortality.resize();#}
+        {#        });#}
+
+
+        //    $(document).ready(function () {
+
+
+
+        // charts
+{#        categories = {{ categories |safe }};#}
+{#        data = {{ data |safe }};#}
+        highcharts('Farmers','farmer_container',[], []);
+        highcharts('Cultivable Land(in Acre)','land_container',[], []);
+
+{#Highcharts.setOptions({lang: {noData: "Your custom message"}})#}
+        //        });
+
+{#        var max = data.reduce(function (a, b) {#}
+{#            return Math.max(a, b);#}
+{#        });#}
+
+
+        function highcharts(title_txt,con_name,categories, data) {
+                Highcharts.setOptions({lang: {noData: "No Data Available"}});
+              Highcharts.chart(con_name, {
+                chart: {
+
+                    type: 'column'
+                },
+                title: {
+                    text: title_txt
+                },
+                xAxis: {
+
+                    categories: categories,
+                    min: 0,
+                    max: Math.min(5, categories.length - 1),
+
+                },
+                yAxis: {
+                    title: {
+                        text: ''
+                    }
+                },
+                legend: {
+                    enabled: false,
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle'
+                },
+
+                plotOptions: {
+                    line: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    },
+                    series: {
+                        label: {
+                            enabled: false
+                        }
+                    }
+
+                },
+
+                series: [{name: "count", data: data
+                ,
+                dataLabels: {
+                    enabled: true,
+                    rotation: -90,
+                    color: '#FFFFFF',
+                    align: 'right',
+                    format: '{point.y:.1f}', // one decimal
+                    y: 10, // 10 pixels down from the top
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                }
+                }]
+                ,
+                scrollbar: {
+                    enabled: true,
+                    barBackgroundColor: 'gray',
+                    barBorderRadius: 7,
+                    barBorderWidth: 0,
+                    buttonBackgroundColor: 'gray',
+                    buttonBorderWidth: 0,
+                    buttonArrowColor: 'yellow',
+                    buttonBorderRadius: 7,
+                    rifleColor: 'yellow',
+                    trackBackgroundColor: 'white',
+                    trackBorderWidth: 1,
+                    trackBorderColor: 'silver',
+                    trackBorderRadius: 7
+                }
+                ,
+                exporting: {
+                    sourceWidth: 120 * categories.length,
+                    sourceHeight: 500,
+                    chartOptions: {
+                        xAxis: [{
+                            categories: categories,
+                            min: 0,
+                            max: categories.length - 1
+                        }],
+                        scrollbar: {
+                            enabled: false
+                        }
+
+                    }
+
+                }
+                , credits:
+                    {
+                        enabled: false
+                    }
+                    ,
+                loading: {
+        hideDuration: 1000,
+        showDuration: 1000
+    }
+
+            });
+        }
+
+
+
+
+
+         $('#generate_report').on('click',function () {
+             ajaxcall();
+            var crop = JSON.stringify($('#crop').val());
+            var country = $('#country option:selected').val();
+            var organization = $('#organization option:selected').val();
+            var program = $('#program option:selected').val();
+            console.log(crop);
+{#            return false;#}
+
+            $.ajax({
+                    url: '/ifcmodule/getGraphData/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { 'program': program
+                            ,'organization': organization
+                            ,'crop':crop
+                            ,'country':country
+                    },
+                    beforeSend: function () {
+
+                        $('#farmer_loading').show();
+                        $('#land_loading').show();
+
+{#                        $("#container").html('<div class="ui active inverted dimmer">\n' +#}
+{#                            '    <div class="ui text loader">Loading</div>\n' +#}
+{#                            '  </div>');#}
+                    },
+                success: function (result) {
+                        $('#farmer_loading').hide();
+                        $('#land_loading').hide();
+                    console.log(result);
+                    farmer_categories = result.farmer_categories
+                    farmer_count  = result.farmer_count
+                    land_categories = result.land_categories
+                    land_count = result.land_count
+                    total_farmer = result.total_farmer
+                    total_land = result.total_land
+                    $('#total_farmer').text(total_farmer);
+                    $('#total_land').text(total_land);
+                    highcharts('Farmers','farmer_container',farmer_categories, farmer_count);
+                    highcharts('Cultivable Land(in Acre)','land_container',land_categories,land_count);
+{#                    $('#container').hide();#}
+
+
+                }
+            });
+
+
+        });
+
+
+        function load_program(object) {
+            ajaxcall();
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#program').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getProgram/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
+                        }
+                        $('#program').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+        // functions for table tab
+
+
+
+        // functions for chart tab
+{#        function load_district_chart(div_object) {#}
+{#            ajaxcall();#}
+{#            div = parseInt(div_object.value);#}
+{#            if (isNaN(parseFloat(div))) {#}
+{#                $('#district_chart').html("<option value=\"\">ALL</option>");#}
+{#                $('#interviewer').html("<option value=\"\">ALL</option>");#}
+{#                $('#district_chart').attr("disabled", true);#}
+{#                $('#interviewer').attr("disabled", true);#}
+{#                var categories = {{ categories |safe }};#}
+{#                var data = {{ data |safe }};#}
+{#                highcharts(categories, data);#}
+{#            }#}
+{#            else {#}
+{#                $('#district_chart').attr("disabled", false);#}
+{#                $('#interviewer').html("<option value=\"\">ALL</option>");#}
+{#                $('#interviewer').attr("disabled", true);#}
+{#                $.ajax({#}
+{#                    url: '/hhp_module/getDistrictsCharts/',#}
+{#                    type: 'POST',#}
+{#                    dataType: 'json',#}
+{#                    data: {'div': div},#}
+{#                    success: function (result) {#}
+{#                        var html_code = "<option value=\"\">ALL</option>";#}
+{#                        district_id_value = JSON.parse(result.district_id_value);#}
+{#                        for (i = 0; i < district_id_value.length; i++) {#}
+{##}
+{#                            html_code += "<option value=\"" + district_id_value[i].dist_id + "\"> " + district_id_value[i].district + "</option>";#}
+{#                        }#}
+{#                        $('#district_chart').html(html_code);#}
+{#                        var data = JSON.parse(result.data);#}
+{#                        var categories = JSON.parse(result.categories);#}
+{#                        highcharts(categories, data);#}
+{#                    }#}
+{#                });#}
+{#            }#}
+{##}
+{#        }#}
+{##}
+{#        function load_users_chart(dist_obj) {#}
+{#            ajaxcall();#}
+{#            dist = parseInt(dist_obj.value);#}
+{#            if (isNaN(parseFloat(dist))) {#}
+{#                $('#interviewer').html("<option value=\"\">ALL</option>");#}
+{#                $('#interviewer').attr("disabled", true);#}
+{#                $.ajax({#}
+{#                    url: '/hhp_module/getUsersCharts/',#}
+{#                    type: 'POST',#}
+{#                    dataType: 'json',#}
+{#                    data: {'dist': dist, 'div': $('#division_chart').find(":selected").val()},#}
+{#                    success: function (result) {#}
+{#                        var data = JSON.parse(result.data);#}
+{#                        var categories = JSON.parse(result.categories);#}
+{#                        highcharts(categories, data);#}
+{##}
+{#                    }#}
+{#                });#}
+{#            }#}
+{#            else {#}
+{#                $('#interviewer').html("<option value=\"\">ALL</option>");#}
+{#                $('#interviewer').attr("disabled", false);#}
+{#                $.ajax({#}
+{#                    url: '/hhp_module/getUsersCharts/',#}
+{#                    type: 'POST',#}
+{#                    dataType: 'json',#}
+{#                    data: {'dist': dist},#}
+{#                    success: function (result) {#}
+{#                        var html_code = "<option value=\"\">ALL</option>";#}
+{#                        user_data = JSON.parse(result.user_data);#}
+{#                        for (i = 0; i < user_data.length; i++) {#}
+{##}
+{#                            html_code += "<option value=\"" + user_data[i].user_id + "\"> " + user_data[i].username + "</option>";#}
+{#                        }#}
+{#                        $('#interviewer').html(html_code);#}
+{#                        var data = JSON.parse(result.data);#}
+{#                        var categories = JSON.parse(result.categories);#}
+{#                        highcharts(categories, data);#}
+{#                    }#}
+{#                });#}
+{#            }#}
+{#        }#}
+{##}
+{##}
+{#        function load_individual_user_data(user_obj) {#}
+{#            ajaxcall();#}
+{#            user_id = parseInt(user_obj.value);#}
+{#            console.log(user_id);#}
+{#            if (isNaN(parseFloat(user_id))) {#}
+{#                $.ajax({#}
+{#                    url: '/hhp_module/getIndividualUsersData/',#}
+{#                    type: 'POST',#}
+{#                    dataType: 'json',#}
+{#                    data: {'user_id': user_id, 'dist': $('#district_chart').find(":selected").val()},#}
+{#                    success: function (result) {#}
+{#                        var data = JSON.parse(result.data);#}
+{#                        var categories = JSON.parse(result.categories);#}
+{#                        highcharts(categories, data);#}
+{##}
+{#                    }#}
+{#                });#}
+{#            }#}
+{#            else {#}
+{#                $.ajax({#}
+{#                    url: '/hhp_module/getIndividualUsersData/',#}
+{#                    type: 'POST',#}
+{#                    dataType: 'json',#}
+{#                    data: {'user_id': user_id},#}
+{#                    success: function (result) {#}
+{#                        var data = JSON.parse(result.data);#}
+{#                        var categories = JSON.parse(result.categories);#}
+{#                        highcharts(categories, data);#}
+{#                    }#}
+{#                });#}
+{#            }#}
+{#        }#}
+    </script>
+{% endblock %}

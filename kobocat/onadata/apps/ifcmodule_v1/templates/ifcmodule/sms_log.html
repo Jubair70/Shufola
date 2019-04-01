@@ -1,0 +1,265 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>SMS LOG</div>
+        </div>
+        <div class="portlet-body">
+             <div class="row">
+
+            <div class="col-md-3">
+                    <label>From Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="from_date" name="from_date" class="form-control"  readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label>To Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="to_date" name="to_date" class="form-control" readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+
+             </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <button class="btn btn-info pull-left" id="generate_report" name="generate_report"
+                                    data-original-title=""
+                                    title="">Generate Report</button>
+                    </div>
+                </div>
+        </div>
+            <br>
+            <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">
+            <table id="all_info_table" class="table table-bordered table-hover">
+                <thead class="flip-content">
+                <tr>
+                    <th>Farmer Name</th>
+                    <th>Mobile Number</th>
+                    <th>SMS Text</th>
+                    <th>SMS Type</th>
+                    <th>Schedule Time</th>
+                    <th>Sent Time</th>
+                    <th>District</th>
+                    <th>Upazilla</th>
+                    <th>Union</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to delete a sms info, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-ok">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+    <script>
+
+
+
+        $(document).ready(function () {
+
+        });
+
+
+
+        var tbody = '';
+        var sms_log = {{ sms_log|safe }};
+
+        for (var idx in sms_log) {
+            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_source +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td></tr>';
+        }
+
+        $("#all_info_table").find('tbody').html(tbody);
+
+        var table = $('#all_info_table').DataTable({
+                "scrollX": true, "ordering": false,
+                deferRender: true
+            });
+
+
+        $('#from_date').datepicker({
+        format:'yyyy-mm-dd'
+    });
+    $('#to_date').datepicker({
+        format:'yyyy-mm-dd'
+    });
+    $('#from_date').datepicker('setDate',getDesiredDate(2));
+    $('#to_date').datepicker('setDate',getDesiredDate(1));
+
+
+    function getDesiredDate(n) {
+
+                var today = new Date();
+                var n_month_before_today = new Date(today);
+
+                n_month_before_today.setMonth((today.getMonth() + 1) - n);
+                var dd = n_month_before_today.getDate();
+                var mm = n_month_before_today.getMonth() + 1;
+
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                var yyyy = n_month_before_today.getFullYear();
+
+                formatted_date =   yyyy+ '/' +mm+ '/' +dd;
+                console.log(new Date(yyyy,mm,dd));
+                return new Date(yyyy,mm,dd);
+
+            }
+
+        $('.delete-item').on('click', function (e) {
+            var criteria_id = $(this).attr("data-href");
+            $('.btn-ok').attr("href", criteria_id);
+        });
+        if ($('.alert-block').is(':visible')) {
+            window.setTimeout(function () {
+                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+
+                $('#generate_report').on('click',function () {
+            console.log("sfsfv");
+            table.destroy();
+
+
+            var from_date = $('#from_date').val();
+            var to_date =$('#to_date').val();
+
+
+            $.ajax({
+                    url: '/ifcmodule/getSMSLogData/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { 'from_date': from_date
+                            ,'to_date': to_date
+                    },
+                    beforeSend: function () {
+                        $('#container').show();
+
+                    },
+                success: function (result) {
+                    $('#container').hide();
+
+                    var tbody = '';
+
+                    sms_log = result;
+                    for (var idx in sms_log) {
+            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_source +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td></tr>';
+        }
+
+        $("#all_info_table").find('tbody').html(tbody);
+
+                    table = datatable_reitialize();
+
+
+
+
+
+
+
+                }
+            });
+
+
+        });
+
+
+        function datatable_reitialize() {
+            return $('#all_info_table').DataTable({
+                "scrollX": true, "ordering": false,
+                deferRender: true
+            });
+        }
+    </script>
+{% endblock %}

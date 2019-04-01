@@ -1,0 +1,199 @@
+{% extends 'base_test.html' %}
+
+{% block additional-headers %}
+
+<link rel="stylesheet" href="{{STATIC_URL}}assets/plugins/data-tables/DT_bootstrap.css"/>
+<link href="/static/css/datepicker.css" rel="stylesheet">
+
+
+
+    <style type="text/css">
+    .thumbnail{
+        border: 0;
+    }
+/*display: inline-block;
+overflow-wrap: break-word;
+word-wrap: break-word;
+word-break: normal;
+line-break: strict;
+hyphens: none;
+-webkit-hyphens: none;
+-moz-hyphens: none;
+*/
+    #sms_table{
+     table-layout: fixed !important;
+        word-wrap:break-word;
+        display: inline-block;
+        overflow-wrap: break-word;
+
+    }
+    .table-scrollable > .table > thead > tr > th, .table-scrollable > .table > tbody > tr > th, .table-scrollable > .table > tfoot > tr > th, .table-scrollable > .table > thead > tr > td, .table-scrollable > .table > tbody > tr > td, .table-scrollable > .table > tfoot > tr > td {
+        white-space: pre;
+    }
+
+    </style>
+
+{% endblock %}
+
+
+{% block content %}
+    <div class ="col-md-12" style = "">
+    <div class="page-header align">
+        <h3>SMS Queue</h3>
+    </div>
+         <div class="row">
+        <div class="col-md-3"><label class="control-label">From </label>
+                    <input type="text" class="form-control datepicker" id="from_date" placeholder="From"
+                           value=""></input>
+                </div>
+                <div class="col-md-3"><label class="control-label">To </label>
+                    <input type="text" class="form-control datepicker" id="to_date" placeholder="To" value=""></input>
+                </div>
+
+        <div class="col-md-3"><label class="control-label">Crop </label><br>
+            <select class="form-control" id = "crop_id">
+            <option value="%">All</option>
+                {% for data in crop_list %}
+                    <option value="{{ data.crop_id }}">{{ data.crop_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="control-label"> </label><br>
+            <button id="filter_sms_list" style="margin-top:8px;" class="btn red-custom btn-md"  data-original-title="" title="">Search</button>
+        </div>
+</div>
+
+    </div>
+
+
+
+    </div>
+
+    <br>
+
+    <div class="portlet box red" style="margin-top:10px;">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-adn"></i></div>
+            </div>
+            <div class="portlet-body">
+
+                <div id="sms_table_block">
+
+                </div>
+            </div>
+        </div>
+
+</div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+
+
+    <!--datatable -->
+    <script type="text/javascript" src="{{STATIC_URL}}assets/plugins/data-tables/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}assets/plugins/data-tables/DT_bootstrap.js"></script>
+     <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+    <script>
+
+        //  Page Loading First Time
+
+        $(document).ready(function () {
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                todayHighlight: true
+                //startDate: '-0d',
+
+            });
+            $('.datepicker').on('changeDate', function (ev) {
+                $(this).datepicker('hide');
+            });
+            get_sms_table()
+
+
+
+
+        });
+     $(document).on("click", ".send_sms", function () {
+             id = $(this).attr("id");
+             console.log(id)
+             if(confirm("Are you sure to send this SMS?")){
+                $.ajax({
+                    type : 'POST',
+                    url : "/ifcmodule/send_sms/"+id+"/",
+                    success : function(data) {
+                        get_sms_table();
+                    }
+                }); //ajax end
+            }
+
+
+        });
+
+    function get_sms_table(){
+        getfilterCriteria();
+        $.ajax({
+            url: '/ifcmodule/get_sms_table/',
+            type: 'POST',
+            data: {'from_date' : from_date,'to_date' : to_date ,'crop' : crop },
+            success: function (data) {
+                $("#sms_table_block").html(data);
+                $('#sms_table').dataTable({
+                            "retrieve": true,
+                            "bFilter": true,
+                            "paging": true,
+                            "scrollCollapse": true,
+                            select: true,
+                            // dom: 'Bfrtip',
+                            dom: 'Blfrtip',
+                            buttons: [{extend: 'excel', text: "Export to excel", title: 'Direct Beneficiary list'}],
+                            ordering: true,
+                           // "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                            "scrollX": true,
+                    "bAutoWidth": false, // Disable the auto width calculation
+   "columnDefs": [
+        {
+            "width": "20%",
+            "targets": 0
+        }
+    ],
+
+
+                        });
+
+            }
+        });
+    //}
+    }
+
+
+
+     /*function send_sms(id) {
+        console.log(typeof(id))
+         if(confirm("Are you sure to send this SMS?")){
+            $.ajax({
+                type : 'POST',
+                url : "/ifcmodule/send_sms/"+id+"/",
+                success : function(data) {
+                    get_sms_table();
+                }
+            }); //ajax end
+        }
+
+     }*/
+    function getfilterCriteria() {
+            from_date = $('#from_date').val();
+            to_date = $('#to_date').val();
+            crop = $('#crop_id').val();
+    }
+
+        $(document).on("click", "#filter_sms_list", function () {
+                get_sms_table()
+        });
+
+
+</script>
+
+{% endblock %}
