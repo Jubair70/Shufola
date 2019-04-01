@@ -560,7 +560,7 @@ def insert_promotional_sms_form(request):
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
 
-        if group_id == 0:
+        if group_id == '0':
             if crop_id == '%' and season_id == '%' and variety_id == '%':
                 insert_query = "INSERT INTO public.promotional_sms(organization_id, program_id, crop_id, variety_id, season_id, country_id, division_id, district_id, upazilla_id, union_id, farmer_id, farmer_name, mobile_number, sms_description, created_by,voice_sms_file_path,content_id,group_id) select '" + str(
                     org_id) + "', '" + str(program_id) + "', '" + str(crop_id) + "', '" + str(variety_id) + "', '" + str(
@@ -1182,7 +1182,40 @@ def sms_log(request):
 def getSMSLogData(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
-    query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type,mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type FROM sms_que WHERE status = 'Sent' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source = 'management_sms_que' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path FROM t, farmer WHERE t.mobile_number = farmer.mobile_number) SELECT mobile_number, farmer_name, sms_text, schedule_time, sms_type, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,voice_sms_file_path FROM t1"
+    status = request.POST.get('status')
+    sms_source = request.POST.get('sms_source')
+    query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type,mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type,tx_id response FROM sms_que WHERE status like '"+str(status)+"' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source like '"+str(sms_source)+"' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path,response FROM t, farmer WHERE t.mobile_number = farmer.mobile_number) SELECT mobile_number, farmer_name, sms_text, schedule_time, sms_type, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,voice_sms_file_path,response FROM t1"
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return HttpResponse(data)
+
+@login_required
+def weather_forecast_list(request):
+    list = ''
+    query = "select distinct place_name from weather_forecast"
+    df = pandas.read_sql(query,connection)
+    place_name = df.place_name.tolist()
+    return render(request,'ifcmodule/weather_forecast_list.html',{'list':list,'place_name':place_name})
+
+@csrf_exempt
+def getWeatherForecastList(request):
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    place_name = request.POST.get('place_name')
+    query = "select place_name,TO_CHAR(date_time::timestamp,'YYYY-MM-DD HH24:MM:SS') as date_time,coalesce(temperature,'') temperature, coalesce(humidity,'') humidity, coalesce(wind_speed,'') wind_speed, coalesce(wind_direction,'') wind_direction, coalesce(rainfall,'') rainfall from weather_forecast  where place_name like '"+str(place_name)+"' AND date_time::timestamp BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by date_time::timestamp"
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return HttpResponse(data)
+
+@login_required
+def weather_observed_list(request):
+    list = ''
+    return render(request,'ifcmodule/weather_observed_list.html',{'list':list})
+
+@csrf_exempt
+def getWeatherObservedList(request):
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    station_id = request.POST.get('station_name')
+    query = "select case when station_id::int = 1 then 'Khulna' when station_id::int = 2 then 'Biratnagar' when station_id::int = 3 then 'Barisal' end station_name,substring(date_time from 1 for  20) as date_time,coalesce(temperature,'') temperature,coalesce(dew_point_temperature,'') dew_point_temperature,coalesce(humidity,'') humidity,coalesce(solar_radiation,'') solar_radiation, coalesce(wind_speed,'') wind_speed, coalesce(wind_direction,'') wind_direction, coalesce(soil_moisture,'') soil_moisture, coalesce(rainfall,'') rainfall, coalesce(qfe,'') qfe,coalesce(qff,'') qff from weather_observed  where station_id like '"+str(station_id)+"' AND date_time::timestamp BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by date_time::timestamp"
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
 

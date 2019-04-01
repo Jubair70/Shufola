@@ -13,7 +13,7 @@
 
     <div class="portlet box red">
         <div class="portlet-title">
-            <div class="caption"><i class="fa fa-adn"></i>SMS LOG</div>
+            <div class="caption"><i class="fa fa-adn"></i>Weather Forecast</div>
         </div>
         <div class="portlet-body">
              <div class="row">
@@ -36,22 +36,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                <label>Status: </label>
-                     <select type="select" name="status" id="status" class="form-control">
+                 <div class="col-md-3">
+                    <label>Place: </label>
+                     <select type="select" name="place_name" id="place_name" class="form-control">
                             <option value="%">Select Any</option>
-                            <option value="Sent">Sent</option>
-                            <option value="Failed">Failed</option>
-                        </select>
-                 </div>
-                  <div class="col-md-3">
-                <label>SMS Source: </label>
-                     <select type="select" name="sms_source" id="sms_source" class="form-control">
-                            <option value="%">Select Any</option>
-                            <option value="management_sms_que">Management</option>
-                            <option value="weather_sms_rule_queue">Weather</option>
-                            <option value="promotional_sms">Promotional</option>
-                        </select>
+                         {% for x in place_name %}
+                             <option value="{{ x }}">{{ x }}</option>
+                         {% endfor %}
+
+                     </select>
                  </div>
 
              </div>
@@ -69,17 +62,13 @@
             <table id="all_info_table" class="table table-bordered table-hover">
                 <thead class="flip-content">
                 <tr>
-                    <th>Farmer Name</th>
-                    <th>Mobile Number</th>
-                    <th>Advisory</th>
-                    <th>Type of Advisory</th>
-                    <th>Schedule Time</th>
-                    <th>Sent Time</th>
-                    <th>District</th>
-                    <th>Upazilla</th>
-                    <th>Union</th>
-                    <th>Content Type</th>
-                    <th>Response</th>
+                    <th>Place Name</th>
+                    <th>Date_Time</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>Wind Speed</th>
+                    <th>Wind Direction</th>
+                    <th>Rainfall</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -144,7 +133,7 @@
             ,
             buttons: [
                 {
-                    filename: "SMS Log",
+                    filename: "Weather Forecast",
                     title: "",
                     text: "<strong>Export</strong>",
                     extend: 'excel'
@@ -236,19 +225,16 @@
 
             var from_date = $('#from_date').val();
             var to_date =$('#to_date').val();
-            var status = $('#status option:selected').val();
-            var sms_source = $('#sms_source option:selected').val();
-
+            var place_name = $('#place_name option:selected').val();
 
 
             $.ajax({
-                    url: '/ifcmodule/getSMSLogData/',
+                    url: '/ifcmodule/getWeatherForecastList/',
                     type: 'POST',
                     dataType: 'json',
                     data: { 'from_date': from_date
                             ,'to_date': to_date
-                            ,'status':status
-                            , 'sms_source':sms_source
+                        ,'place_name':place_name
                     },
                     beforeSend: function () {
                         $('#container').show();
@@ -261,11 +247,8 @@
 
                     sms_log = result;
                     for (var idx in sms_log) {
-                        if(sms_log[idx].content_type == 'audio')
-                            tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td><audio preload="metadata" controls><source src="'+sms_log[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+sms_log[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+sms_log[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td>'+ sms_log[idx].sms_type +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td><td>'+ sms_log[idx].content_type +'</td><td>'+ sms_log[idx].response +'</td></tr>';
-                            else
-                                tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td>'+ sms_log[idx].sms_text +'</td><td>'+ sms_log[idx].sms_type +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td><td>'+ sms_log[idx].content_type +'</td><td>'+ sms_log[idx].response +'</td></tr>';
-        }
+                        tbody += '<tr><td>' + sms_log[idx].place_name + '</td><td>' + sms_log[idx].date_time + '</td><td>'+ sms_log[idx].temperature +'</td><td>'+ sms_log[idx].humidity +'</td><td>'+ sms_log[idx].wind_speed +'</td><td>'+ sms_log[idx].wind_direction +'</td><td>'+ sms_log[idx].rainfall +'</td></tr>';
+                    }
 
         $("#all_info_table").find('tbody').html(tbody);
 
@@ -295,7 +278,7 @@
             ,
             buttons: [
                 {
-                    filename: "SMS Log",
+                    filename: "Weather Forecast",
                     title: "",
                     text: "<strong>Export</strong>",
                     extend: 'excel'
