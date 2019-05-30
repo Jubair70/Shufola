@@ -14,16 +14,32 @@
             <div class="caption"><i class="fa fa-adn"></i>Promotional SMS List</div>
         </div>
         <div class="portlet-body">
-            <div class="row">
-                <div class="col-md-12">
+            <div class="row" style="margin-top: 30px">
+                <div class="col-md-2 col-md-offset-3">
                     <a href="/ifcmodule/promotional_sms_form/">
                         <button type="submit" class="btn btn-info pull-left" id="add_new" data-original-title=""
-                                title="">Add New
+                                title="">Add New SMS
+                        </button>
+                    </a>
+                </div>
+                <div class="col-md-2" style="margin-left: 10px">
+                    <a href="/ifcmodule/promotional_sms_history/">
+                        <button type="submit" class="btn btn-warning pull-left" id="history" data-original-title=""
+                                title="">History
+                        </button>
+                    </a>
+                </div>
+                <div class="col-md-1">
+                    <a href="/ifcmodule/promotional_schedule_sms_history/">
+                        <button type="submit" class="btn btn-success pull-left" id="gen_schedule" data-original-title=""
+                                title="">Generated Schedule
                         </button>
                     </a>
                 </div>
             </div>
             <br>
+            <br>
+            <!--
             <table id="all_info_table" class="table table-bordered table-striped table-condensed flip-content nowrap">
                 <thead class="flip-content">
                 <tr>
@@ -47,6 +63,7 @@
 
                 </tbody>
             </table>
+            -->
         </div>
     </div>
 
@@ -88,24 +105,24 @@
 
     <script>
 
-        $(document).ready(function () {
-            var table = $('#all_info_table').DataTable({
-                "scrollX": true, "ordering": false,"iDisplayLength": 25,
-                deferRender: true
-            });
-        });
-
-        var tbody = '';
-        var promotional_sms_list = {{ promotional_sms_list|safe }};
-
-        for (var idx in promotional_sms_list) {
-            if(promotional_sms_list[idx].content_type == 'text')
-            tbody += '<tr><td>' + promotional_sms_list[idx].category_name + '</td><td>' + promotional_sms_list[idx].organization_name + '</td><td>'+ promotional_sms_list[idx].program_name +'</td><td>'+ promotional_sms_list[idx].crop_name +'</td><td>'+ promotional_sms_list[idx].variety_name +'</td><td>'+ promotional_sms_list[idx].season_name +'</td><td>'+ promotional_sms_list[idx].country_name +'</td><td>'+ promotional_sms_list[idx].division_name +'</td><td>'+ promotional_sms_list[idx].district_name +'</td><td>'+ promotional_sms_list[idx].upazilla_name +'</td><td>'+ promotional_sms_list[idx].union_name +'</td><td>'+ promotional_sms_list[idx].sms_description +'</td><td>'+ promotional_sms_list[idx].mobile_number +'</td><td>'+ promotional_sms_list[idx].farmer_name +'</td></tr>';
-            else
-                tbody += '<tr><td>' + promotional_sms_list[idx].category_name + '</td><td>' + promotional_sms_list[idx].organization_name + '</td><td>'+ promotional_sms_list[idx].program_name +'</td><td>'+ promotional_sms_list[idx].crop_name +'</td><td>'+ promotional_sms_list[idx].variety_name +'</td><td>'+ promotional_sms_list[idx].season_name +'</td><td>'+ promotional_sms_list[idx].country_name +'</td><td>'+ promotional_sms_list[idx].division_name +'</td><td>'+ promotional_sms_list[idx].district_name +'</td><td>'+ promotional_sms_list[idx].upazilla_name +'</td><td>'+ promotional_sms_list[idx].union_name +'</td><td><audio preload="metadata" controls><source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td>'+ promotional_sms_list[idx].mobile_number +'</td><td>'+ promotional_sms_list[idx].farmer_name +'</td></tr>'
-        }
-
-        $("#all_info_table").find('tbody').html(tbody);
+        // $(document).ready(function () {
+        //     var table = $('#all_info_table').DataTable({
+        //         "scrollX": true, "ordering": false,"iDisplayLength": 25,
+        //         deferRender: true
+        //     });
+        // });
+        //
+        // var tbody = '';
+        // var promotional_sms_list = {{ promotional_sms_list|safe }};
+        //
+        // for (var idx in promotional_sms_list) {
+        //     if(promotional_sms_list[idx].content_type == 'text')
+        //     tbody += '<tr><td>' + promotional_sms_list[idx].category_name + '</td><td>' + promotional_sms_list[idx].organization_name + '</td><td>'+ promotional_sms_list[idx].program_name +'</td><td>'+ promotional_sms_list[idx].crop_name +'</td><td>'+ promotional_sms_list[idx].variety_name +'</td><td>'+ promotional_sms_list[idx].season_name +'</td><td>'+ promotional_sms_list[idx].country_name +'</td><td>'+ promotional_sms_list[idx].division_name +'</td><td>'+ promotional_sms_list[idx].district_name +'</td><td>'+ promotional_sms_list[idx].upazilla_name +'</td><td>'+ promotional_sms_list[idx].union_name +'</td><td>'+ promotional_sms_list[idx].sms_description +'</td><td>'+ promotional_sms_list[idx].mobile_number +'</td><td>'+ promotional_sms_list[idx].farmer_name +'</td></tr>';
+        //     else
+        //         tbody += '<tr><td>' + promotional_sms_list[idx].category_name + '</td><td>' + promotional_sms_list[idx].organization_name + '</td><td>'+ promotional_sms_list[idx].program_name +'</td><td>'+ promotional_sms_list[idx].crop_name +'</td><td>'+ promotional_sms_list[idx].variety_name +'</td><td>'+ promotional_sms_list[idx].season_name +'</td><td>'+ promotional_sms_list[idx].country_name +'</td><td>'+ promotional_sms_list[idx].division_name +'</td><td>'+ promotional_sms_list[idx].district_name +'</td><td>'+ promotional_sms_list[idx].upazilla_name +'</td><td>'+ promotional_sms_list[idx].union_name +'</td><td><audio preload="metadata" controls><source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+promotional_sms_list[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td>'+ promotional_sms_list[idx].mobile_number +'</td><td>'+ promotional_sms_list[idx].farmer_name +'</td></tr>'
+        // }
+        //
+        // $("#all_info_table").find('tbody').html(tbody);
 
 
         $('.delete-item').on('click', function (e) {

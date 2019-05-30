@@ -1,0 +1,454 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/alertify.min.css" media="all"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/themes/semantic.min.css" media="all"/>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" media="all"/>
+
+    <style>
+        #map {
+            width: 780px;
+            height: 650px;
+        }
+
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+
+        .legend {
+            text-align: left;
+            line-height: 18px;
+            color: #555;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        table.paleBlueRows {
+            border: 1px solid #FFFFFF;
+            width: 350px;
+            display: block;
+            border-collapse: collapse;
+        }
+
+        table.paleBlueRows thead, tbody {
+            display: block;
+        }
+
+        table.paleBlueRows tbody {
+
+        }
+
+        table.paleBlueRows td, table.paleBlueRows th {
+            border: 1px solid #FFFFFF;
+            padding: 3px 2px;
+        }
+
+        table.paleBlueRows tbody td {
+            font-size: 13px;
+            width: 100%;
+        }
+
+        table.paleBlueRows tr:nth-child(even) {
+            background: #D0E4F5;
+        }
+
+        table.paleBlueRows thead {
+            background: #1e90ff;
+            border-bottom: 5px solid #FFFFFF;
+        }
+
+        table.paleBlueRows th {
+            background: #1e90ff;
+            font-size: 13px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-align: center;
+            border-left: 2px solid #FFFFFF;
+            width: 100%;
+        }
+
+        table.paleBlueRows thead th:first-child {
+            border-left: none;
+        }
+
+        table.paleBlueRows tfoot {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333333;
+            background: #D0E4F5;
+            border-top: 3px solid #444444;
+        }
+
+        table.paleBlueRows tfoot td {
+            font-size: 14px;
+        }
+
+        @media print {
+            @page {
+                size: A3 landscape;
+            }
+
+            .leaflet-control-attribution {
+                display: none;
+            }
+
+            #map {
+                width: 780px;
+                height: 650px;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+
+            .info {
+                padding: 6px 8px;
+                font: 14px/16px Arial, Helvetica, sans-serif;
+                background: white;
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                border-radius: 5px;
+            }
+
+            .info h4 {
+                margin: 0 0 5px;
+                color: #777;
+            }
+
+            .legend {
+                text-align: left;
+                line-height: 18px;
+                color: #555;
+            }
+
+            .legend i {
+                width: 18px;
+                height: 18px;
+                float: left;
+                margin-right: 8px;
+                opacity: 1;
+            }
+
+            table.paleBlueRows {
+                border: 1px solid #FFF;
+                width: 350px;
+                display: block;
+                border-collapse: collapse;
+            }
+
+            table.paleBlueRows thead, tbody {
+                display: block;
+            }
+
+            table.paleBlueRows tbody {
+
+            }
+
+            table.paleBlueRows td, table.paleBlueRows th {
+                border: 1px solid #FFF;
+                padding: 3px 2px;
+            }
+
+            table.paleBlueRows tbody td {
+                font-size: 13px;
+                width: 100%;
+            }
+
+            table.paleBlueRows tr:nth-child(even) {
+                background: #D0E4F5;
+            }
+
+            table.paleBlueRows thead {
+                background: #1e90ff;
+                border-bottom: 5px solid #FFF;
+            }
+
+            table.paleBlueRows th {
+                background: #1e90ff;
+                font-size: 13px;
+                font-weight: bold;
+                color: #FFF;
+                text-align: center;
+                border-left: 2px solid #FFF;
+                width: 100%;
+            }
+
+            table.paleBlueRows thead th:first-child {
+                border-left: none;
+            }
+
+            table.paleBlueRows tfoot {
+                font-size: 14px;
+                font-weight: bold;
+                color: #333333;
+                background: #D0E4F5;
+                border-top: 3px solid #444444;
+            }
+
+            table.paleBlueRows tfoot td {
+                font-size: 14px;
+            }
+        }
+        .e:hover{
+             background-color:#FF6666;
+             color: white;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Area</div>
+        </div>
+        <div class="portlet-body" >
+            <div class="row">
+
+                <form class="" method="POST">
+                {% csrf_token %}
+
+                <div class="col-md-12" style="margin-bottom: 20px">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label> Sort by:</label>
+                            <select type="select" name="filter_id" id="filter_id" class="form-control " required>
+                                <option value="%">--Select One--</option>
+                                <option value="1">Farmer</option>
+                                <option value="2">Crop</option>
+                                <option value="3">Program</option>
+                                <option value="4">SMS</option>
+                                <option value="5">Voice SMS</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <button style="margin-top:25px;" type="submit" class="btn red" id="default_search">Submit</button>
+                        </div>
+                    </div>
+                                   <div class="col-md-6">
+                    <div class="form-group">
+                        <a style="margin-top:25px;" class="btn blue pull-right hidden-print" onclick="javascript:window.print();">Print <i class="fa fa-print"></i></a>
+                    </div>
+                </div>
+
+
+                </div>
+                </form>
+
+             </div>
+
+
+
+            <div class="span8">
+                <div id="map" style="height: 600px;margin: 0px auto"></div>
+            </div>
+        </div>
+     </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
+
+
+    <script type="text/javascript">
+        var indicator_type = '';
+        var rdata = {{ dist_dict|safe }};
+        var range_list = {{ processed_range_list|safe }};
+        total_no_of_farmer = {{ total_farmer_no|safe }};
+        console.log(rdata);
+
+        if (JSON.stringify(rdata) != '{}') {
+
+            myArray = objectToArray(rdata).sort(Comparator);
+            addDatatoTable(myArray);
+
+            var map = L.map('map').setView([23.946096, 90.128173], 6.9);
+
+            var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
+            {
+                attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+                key: 'BC9A493B41014CAABB98F0471D759707',
+                styleId: 22677
+            }).addTo(map);
+
+
+            // control that shows state info on hover
+            var info = L.control();
+
+            info.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+
+            info.update = function (props) {
+                this._div.innerHTML = '<h4>District wise Map</h4>' + (props ?
+                        '<br /><b>' + props.NAME_3 + ' </b> ' + rdata[props.NAME_3]
+                        : 'Hover over a district');
+            };
+
+            info.addTo(map);
+
+
+            function style(feature) {
+                return {
+                    weight: 1,
+                    opacity: 1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 0.7,
+                    fillColor: getColor(feature.properties.NAME_3)
+                };
+            }
+
+            function highlightFeature(e) {
+                var layer = e.target;
+
+                layer.setStyle({
+                    weight: 1,
+                    color: '#666',
+                    dashArray: '',
+                    fillOpacity: 0.7,
+                });
+
+                if (!L.Browser.ie && !L.Browser.opera) {
+                    layer.bringToFront();
+                }
+
+                info.update(layer.feature.properties);
+            }
+
+            var geojson;
+
+            function resetHighlight(e) {
+                geojson.resetStyle(e.target);
+                info.update();
+            }
+
+            function zoomToFeature(e) {
+                map.fitBounds(e.target.getBounds());
+            }
+
+            function onEachFeature(feature, layer) {
+                layer.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight,
+                    click: zoomToFeature
+                });
+            }
+
+            geojson = L.geoJson(statesData, {
+                style: style,
+                onEachFeature: onEachFeature
+            }).addTo(map);
+
+
+            var legend = L.control({position: 'bottomleft'});
+
+            legend.onAdd = function (map) {
+                var div = L.DomUtil.create('div', 'info legend'),
+                labels = ['<b>Total Area(Decimal): ' + total_no_of_farmer + '</b>'];
+
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,204,204);stroke-width:3;stroke:rgb(255,204,204)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,153,153);stroke-width:3;stroke:rgb(255,153,153)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,102,102);stroke-width:3;stroke:rgb(255,102,102)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,51,51);stroke-width:3;stroke:rgb(255,51,51)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(153,0,0);stroke-width:3;stroke:rgb(153,0,0)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
+
+                div.innerHTML = labels.join('<br>');
+                return div;
+            };
+
+            legend.addTo(map);
+            map.scrollWheelZoom.disable();
+
+            $('.leaflet-top').addClass('noprint');
+        }
+
+        function objectToArray(obj) {
+            return Object.keys(obj).map(function (prop) {
+                return [prop, obj[prop]];
+            });
+        }
+
+        function Comparator(a, b) {
+            if (a[1] < b[1]) return 1;
+            if (a[1] > b[1]) return -1;
+            return 0;
+        }
+
+        function addDatatoTable(tabledata) {
+            var k = 1;
+            console.log(k);
+
+            for (var idx in tabledata) {
+                $('#dtext_' + k).text(tabledata[idx][0])
+                $('#dvalue_' + k).text(parseFloat(Math.round(tabledata[idx][1] * 100) / 100).toFixed(1));
+                k = k + 1;
+            }
+
+            $('#diswisemap').show();
+        }
+
+         function getColor(s) {
+            d = rdata[s];
+            if (d > range_list[0] && d <= range_list[1] ) {
+                return '#FFCCCC';
+            } else if (d >= range_list[2] && d <= range_list[3] ) {
+                return '#FF9999';
+            } else if (d >= range_list[4] && d <= range_list[5] ) {
+                return '#FF6666';
+            } else if (d >= range_list[6] && d <= range_list[7] ) {
+                return '#FF3333';
+            } else if (d >= range_list[8] && d <= range_list[9] ) {
+                return '#990000';
+            }
+        }
+
+    </script>
+
+{% endblock %}

@@ -31,7 +31,13 @@ import datetime
 
 ##  General Few Function for Work *** (Start)***********
 
-
+def __db_commit_query_ret(query):
+    cursor = connection.cursor()
+    cursor.execute(query)
+    connection.commit()
+    fetchval = cursor.fetchone()
+    cursor.close()
+    return fetchval[0]
 
 
 def __db_commit_query(query):
@@ -86,6 +92,13 @@ def makeTableList(tableListQuery):
     cursor.execute(tableListQuery)
     tableList = list(cursor.fetchall())
     return tableList
+
+def __db_fetch_single_value(query):
+    cursor = connection.cursor()
+    cursor.execute(query)
+    fetchVal = cursor.fetchone()
+    cursor.close()
+    return fetchVal[0]
 
 
 ##  General Few Function for Work *** (End)***********
@@ -594,7 +607,8 @@ def crop_stage_alert_Edit(request):
 
 @login_required
 def group_details(request):
-    queryGroupNameList = 'SELECT id, group_name FROM public.group_details order by id desc'
+    org_list = getOrgList(request)
+    queryGroupNameList = "SELECT id, group_name FROM public.group_details where org_id = any('{"+str(org_list).strip('[]')+" }') order by id desc"
     groupNameList = multipleValuedQuryExecution(queryGroupNameList)
     jsonGroupNameList = json.dumps({'groupNameList': groupNameList}, default=decimal_date_default)
 
@@ -608,6 +622,7 @@ def group_details(request):
 
 @login_required
 def groupCreate(request):
+    org_id = getOrgId(request)
     username = request.user.username
     groupName = request.POST.get('group_name', '')
     isEdit = request.POST.get('isEdit')
@@ -615,8 +630,8 @@ def groupCreate(request):
         queryEditGroupName = "UPDATE public.group_details SET group_name='" + groupName + "' WHERE id= " + str(isEdit)
         __db_commit_query(queryEditGroupName)  ## Query Execution Function
     else:
-        queryCreateGroupName = "INSERT INTO public.group_details (group_name, created_at, created_by, updated_at, updated_by) VALUES('" + str(
-            groupName) + "', now(), '" + str(username) + "', now(), '" + str(username) + "')"
+        queryCreateGroupName = "INSERT INTO public.group_details (group_name, created_at, created_by, updated_at, updated_by,org_id) VALUES('" + str(
+            groupName) + "', now(), '" + str(username) + "', now(), '" + str(username)+"', " + str(org_id)+")"
         __db_commit_query(queryCreateGroupName)  ## Query Execution Function
 
     return HttpResponseRedirect('/maxmodule/cais_module/group_details/')
@@ -760,7 +775,6 @@ def crop_group_Edit(request):
 """
 @csrf_exempt
 def get_farmer_list(request):
-
     draw = request.POST['draw']
     start = int(request.POST['start'])
     length = int(request.POST['length'])
@@ -782,6 +796,10 @@ def get_farmer_list(request):
     crop_variety = request.POST.get('crop_variety', '%')
     season = request.POST.get('season', '%')
     group = request.POST.get('group', '%')
+
+    if organization == '%':
+        if not request.user.is_superuser:
+            organization = getOrgId(request)
 
     farmer_list = []
     df_fcq = pandas.DataFrame()
@@ -846,11 +864,119 @@ def get_farmer_list(request):
             }, default=decimal_date_default))
 
 
-def export_farmer(request):
+@csrf_exempt
+def get_farmer_list_by_status(request):
+    draw = request.POST['draw']
+    start = int(request.POST['start'])
+    length = int(request.POST['length'])
+    search_val = str(request.POST['search[value]'])
+    if not len(search_val):
+        search_val = '%'
+    else:  search_val = '%'+str(search_val)+'%'
+
+    country = request.POST.get('country','%')
+    division = request.POST.get('division','%')
+    district = request.POST.get('district','%')
+    upazilla = request.POST.get('upazilla','%')
+    union = request.POST.get('union','%')
+    organization = request.POST.get('organization','%')
+    program = request.POST.get('program','%')
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date', 'now()::date')
+    crop = request.POST.get('crop', '%')
+    crop_variety = request.POST.get('crop_variety', '%')
+    season = request.POST.get('season', '%')
+    group = request.POST.get('group', '%')
+    status = request.POST.get('status', '%')
+    filter_id = request.POST.get('filter_id')
+
+    if organization == '%':
+        if not request.user.is_superuser:
+            organization = getOrgId(request)
+
+    farmer_list = []
+    df_fcq = pandas.DataFrame()
+    df_gr = pandas.DataFrame()
+    stat_crop = 0
+    stat_grp = 0
+    if crop != '%' or from_date != '':
+        stat_crop = 1
+        if crop != '%' and from_date != '' :
+            if filter_id == '1':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop)+"' and crop_variety_id::text like '"+str(crop_variety)+"' and season_id::text like '"+str(season)+"' and sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
+            if filter_id == '2':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '" + str(crop) + "' and crop_variety_id::text like '" + str(crop_variety) + "' and season_id::text like '" + str(season)
+            df_fcq = pandas.read_sql(farmer_crop_query,connection)
+        elif crop != '%':
+            farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop)+"' and crop_variety_id::text like '"+str(crop_variety)+"' and season_id::text like '"+str(season)+"'"
+            df_fcq = pandas.read_sql(farmer_crop_query, connection)
+        elif from_date != '' :
+            if filter_id == '1':
+                farmer_crop_query = " select distinct farmer_id from farmer_crop_info where sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
+            if filter_id == '2':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info"
+            df_fcq = pandas.read_sql(farmer_crop_query, connection)
+        print(farmer_crop_query)
+
+    if group != '%':
+        stat_grp = 1
+        group_query = "select distinct farmer_id from farmer_group where group_id::text like '"+str(group)+"'"
+        df_gr = pandas.read_sql(group_query, connection)
+
+    if not df_fcq.empty and not df_gr.empty:
+        final_df = pandas.merge(df_gr, df_fcq, on='farmer_id')
+        farmer_list = final_df.farmer_id.tolist()
+    else:
+        if not df_fcq.empty:
+            farmer_list = df_fcq.farmer_id.tolist()
+        elif not df_gr.empty:
+            farmer_list = df_gr.farmer_id.tolist()
+
+    if filter_id == '2':
+        reg_query = " and farmer.created_at between symmetric '" + str(from_date) + "' and '" + str(to_date)+"'"
+    else:
+        reg_query = ""
+
+    data = []
+    if stat_crop or stat_grp:
+        farmer_list = str(farmer_list).replace('[', '{').replace(']', '}')
+        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">' ,farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where farmer.id = any('"+str(farmer_list)+"') and LOWER(farmer_name) like '"+str(search_val)+"' and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+        data = multipleValuedQuryExecution(data_query)
+        print data_query
+        print data
+        total_count_query = "select count(*) total_farmer from farmer where farmer.id = any('"+str(farmer_list)+"') and LOWER(farmer_name) like '"+str(search_val)+"' and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"'and status::text like '"+str(status)+"' and upazila_id::text like '"+str(upazilla)+"' and union_id::text like '"+str(union)+"'"+reg_query
+        df = pandas.DataFrame()
+        df = pandas.read_sql(total_count_query, connection)
+        total_count = df.total_farmer.tolist()[0]
+    else:
+        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">', farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number,farmer.created_at::timestamp::date::text reg_date,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id  where LOWER(farmer_name) like '"+str(search_val)+"' and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+        data = multipleValuedQuryExecution(data_query)
+        print data_query
+        print data
+        total_count_query = "select count(*) total_farmer from farmer where  LOWER(farmer_name) like '" + str(
+            search_val) + "' and organization_id::text like '" + str(
+            organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
+            country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
+            district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
+            union) + "'"+reg_query
+        df = pandas.DataFrame()
+        df = pandas.read_sql(total_count_query, connection)
+        total_count = df.total_farmer.tolist()[0]
+
+    filtered_count = len(data)
+    return HttpResponse(json.dumps({"draw": draw,
+        "recordsTotal": total_count,
+        "recordsFiltered": total_count,
+        "data": data,
+            }, default=decimal_date_default))
+
+
+def export_farmer_by_status(request):
     country = request.POST.get('country', '%')
     division = request.POST.get('division', '%')
     district = request.POST.get('district', '%')
     upazilla = request.POST.get('upazilla', '%')
+    status = request.POST.get('status', '%')
     union = request.POST.get('union', '%')
     organization = request.POST.get('organization', '%')
     program = request.POST.get('program', '%')
@@ -860,6 +986,102 @@ def export_farmer(request):
     crop_variety = request.POST.get('crop_variety')
     season = request.POST.get('season')
     group = request.POST.get('group')
+    filter_id = request.POST.get('filter_id')
+
+    if organization == '%':
+        if not request.user.is_superuser:
+            organization = getOrgId(request)
+
+    farmer_list = []
+    df_fcq = pandas.DataFrame()
+    df_gr = pandas.DataFrame()
+    stat_crop = 0
+    stat_grp = 0
+    if crop != '%' or from_date != '':
+        stat_crop = 1
+        if crop != '%' and from_date != '' :
+            if filter_id == '1':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop)+"' and crop_variety_id::text like '"+str(crop_variety)+"' and season_id::text like '"+str(season)+"' and sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
+            if filter_id == '2':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '" + str(crop) + "' and crop_variety_id::text like '" + str(crop_variety) + "' and season_id::text like '" + str(season)
+            df_fcq = pandas.read_sql(farmer_crop_query,connection)
+        elif crop != '%':
+            farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop)+"' and crop_variety_id::text like '"+str(crop_variety)+"' and season_id::text like '"+str(season)+"'"
+            df_fcq = pandas.read_sql(farmer_crop_query, connection)
+        elif from_date != '' :
+            if filter_id == '1':
+                farmer_crop_query = " select distinct farmer_id from farmer_crop_info where sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
+            if filter_id == '2':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info"
+            df_fcq = pandas.read_sql(farmer_crop_query, connection)
+        print(farmer_crop_query)
+
+    if group != '%':
+        stat_grp = 1
+        group_query = "select distinct farmer_id from farmer_group where group_id::text like '" + str(group) + "'"
+        df_gr = pandas.read_sql(group_query, connection)
+
+    if not df_fcq.empty and not df_gr.empty:
+        final_df = pandas.merge(df_gr, df_fcq, on='farmer_id')
+        farmer_list = final_df.farmer_id.tolist()
+    else:
+        if not df_fcq.empty:
+            farmer_list = df_fcq.farmer_id.tolist()
+        elif not df_gr.empty:
+            farmer_list = df_gr.farmer_id.tolist()
+
+
+    if filter_id == '2':
+        reg_query = " and farmer.created_at between symmetric '" + str(from_date) + "' and '" + str(to_date)+"'"
+    else:
+        reg_query = ""
+
+    df = pandas.DataFrame()
+    if stat_crop or stat_grp:
+        farmer_list = str(farmer_list).replace('[', '{').replace(']', '}')
+        query = "with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where farmer.id = any('" + str(farmer_list) + "') and  organization_id::text like '" + str(
+            organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
+            country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
+            district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
+            union) + "' "+reg_query+" ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
+        df = pandas.read_sql(query, connection)
+
+    else:
+        query = " with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where organization_id::text like '" + str(
+            organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
+            country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
+            district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
+            union) + "' "+reg_query+" ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
+        df = pandas.read_sql(query, connection)
+
+    writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xls")
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    writer.save()
+    f = open('onadata/media/uploaded_files/output.xls', 'r')
+    response = HttpResponse(f, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=Farmer.xls'
+    return response
+
+
+def export_farmer(request):
+    country = request.POST.get('country', '%')
+    division = request.POST.get('division', '%')
+    district = request.POST.get('district', '%')
+    upazilla = request.POST.get('upazilla', '%')
+    status = request.POST.get('status', '%')
+    union = request.POST.get('union', '%')
+    organization = request.POST.get('organization', '%')
+    program = request.POST.get('program', '%')
+    from_date = request.POST.get('from_date')
+    to_date = request.POST.get('to_date')
+    crop = request.POST.get('crop')
+    crop_variety = request.POST.get('crop_variety')
+    season = request.POST.get('season')
+    group = request.POST.get('group')
+
+    if organization == '%':
+        if not request.user.is_superuser:
+            organization = getOrgId(request)
 
     farmer_list = []
     df_fcq = pandas.DataFrame()
@@ -904,7 +1126,7 @@ def export_farmer(request):
         query = "with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where farmer.id = any('" + str(farmer_list) + "') and  organization_id::text like '" + str(
             organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
-            district) + "' and upazila_id::text like '" + str(upazilla) + "' and union_id::text like '" + str(
+            district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
             union) + "' ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
         df = pandas.read_sql(query, connection)
 
@@ -912,7 +1134,7 @@ def export_farmer(request):
         query = " with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where organization_id::text like '" + str(
             organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
-            district) + "' and upazila_id::text like '" + str(upazilla) + "' and union_id::text like '" + str(
+            district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
             union) + "' ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
         df = pandas.read_sql(query, connection)
 
@@ -923,6 +1145,22 @@ def export_farmer(request):
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=Farmer.xls'
     return response
+
+def getOrgId(request):
+    user_id = request.user.id
+    org_id = __db_fetch_single_value("select organisation_name_id from usermodule_usermoduleprofile where user_id = " + str(user_id))
+    return org_id
+
+def getOrgList(request):
+    org_list = []
+    if request.user.is_superuser:
+        org_list_result = __db_fetch_values_dict("select id from usermodule_organizations")
+        for data in org_list_result:
+            org_list.append(data['id'])
+    else:
+        org_list.append(getOrgId(request))
+    return org_list
+
 
 @login_required
 def farmer(request):
@@ -944,9 +1182,10 @@ def farmer(request):
     # disQuery = "select id,name from public.geo_district"
     # dist_List = makeTableList(disQuery)
 
+    org_list = getOrgList(request)
 
     ##  Get Organization  List
-    organizationQuery = "select id,organization from public.usermodule_organizations"
+    organizationQuery = "select id,organization from public.usermodule_organizations where id = any('{"+str(org_list).strip('[]')+" }')"
     organization_List = makeTableList(organizationQuery)
 
     # jsonFarmerInfoList = json.dumps({'farmerInfoList': farmerInfoList}, default=decimal_date_default)
@@ -957,7 +1196,7 @@ def farmer(request):
     country_name = df.country_name.tolist()
     country = zip(country_id, country_name)
 
-    query = "select id,organization from usermodule_organizations"
+    query = "select id,organization from usermodule_organizations where id = any('{"+str(org_list).strip('[]')+" }')"
     df = pandas.DataFrame()
     df = pandas.read_sql(query, connection)
     org_id = df.id.tolist()
@@ -995,6 +1234,85 @@ def farmer(request):
 
 
 @login_required
+def add_farmer(request):
+    ##  Get Geo Country List
+    countryQuery = "select id,name from public.geo_country"
+    country_List = makeTableList(countryQuery)
+
+    org_list = getOrgList(request)
+
+    ##  Get Organization  List
+    organizationQuery = "select id,organization from public.usermodule_organizations where id = any('{"+str(org_list).strip('[]')+" }')"
+    organization_List = makeTableList(organizationQuery)
+
+    # jsonFarmerInfoList = json.dumps({'farmerInfoList': farmerInfoList}, default=decimal_date_default)
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
+
+    query = "select id,organization from usermodule_organizations where id = any('{"+str(org_list).strip('[]')+" }')"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop_list = zip(crop_id, crop_name)
+
+
+    query = "select id,group_name from group_details"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    id = df.id.tolist()
+    group_name = df.group_name.tolist()
+    group = zip(id, group_name)
+
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+
+    query = "select id,unit_name from land_units"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    unit_id = df.id.tolist()
+    unit_name = df.unit_name.tolist()
+    unit = zip(unit_id, unit_name)
+
+    content = {
+        'country_List': country_List,
+        'organization_List': organization_List,
+        'country':country,
+        'organization':organization,
+        'crop_list':crop_list,
+        'season':season,
+        'group':group,
+        'season': season,
+        'crop': crop,
+        'unit': unit
+    }
+
+    return render(request, 'cais_module/add_farmer.html', content)
+
+
+@login_required
 def farmerCreate(request):
     username = request.user.username
     farmer_name = request.POST.get('farmer_name', '')
@@ -1020,6 +1338,58 @@ def farmerCreate(request):
         __db_commit_query(queryCreateCropGroup)
 
     return HttpResponseRedirect('/maxmodule/cais_module/farmer/')
+
+
+@login_required
+def farmerAndCropCreate(request):
+    username = request.user.username
+    farmer_name = request.POST.get('farmer_name', '')
+    mobile_num = request.POST.get('mobile_num', '')
+    country_id = request.POST.get('country_id', '')
+    zone_id = request.POST.get('zone_id', '')
+    district_id = request.POST.get('district_id', '')
+    upazila_id = request.POST.get('upazila_id', '')
+    union_id = request.POST.get('union_id', '')
+    organization_id = request.POST.get('organization_id', '')
+    program_id = request.POST.get('program_id', '')
+
+    season_ids = request.POST.getlist('season[]')
+    crop_ids = request.POST.getlist('crop[]')
+    crop_variety_ids = request.POST.getlist('crop_variety[]')
+    sowing_date_ids = request.POST.getlist('sowing_date[]')
+    unit_ids = request.POST.getlist('unit[]')
+    land_ids = request.POST.getlist('land_size[]')
+
+    if farmer_name != '' and mobile_num != '' and country_id != '' and zone_id != '' and district_id != '' and upazila_id != '' and union_id != '' and organization_id != '' and program_id != '':
+
+        farmer_id = __db_commit_query_ret("INSERT INTO public.farmer(id, farmer_name, country_id , zone_id,  district_id, upazila_id, union_id,  organization_id , program_id , mobile_number, created_at, created_by, updated_at, updated_by ) VALUES(nextval('farmer_id_seq'::regclass), '" + str(farmer_name) + "',"+str(country_id)+" ,"+str(zone_id)+"," + str(district_id) + ", " + str(upazila_id) + ", " + str(union_id) + ", " + str(organization_id) + "," + str(program_id) + ", '" + str(mobile_num) + "', now(), '" + str(username) + "', now(), '" + str(username) + "') returning id")
+
+        loop_count = len(crop_ids)
+        # print loop_count
+        for i in range(loop_count):
+            season = season_ids[i]
+            crop = crop_ids[i]
+            crop_variety = crop_variety_ids[i]
+            sowing_date = sowing_date_ids[i]
+            unit = unit_ids[i]
+            land_size = land_ids[i]
+            user_id = request.user.id
+
+            if season != '' and crop != '' and crop_variety != '' and sowing_date != '' and unit != '' and land_size != '':
+                item_req_id = __db_commit_query_ret("INSERT INTO public.farmer_crop_info(farmer_id,zone_id , district_id , upazila_id, union_id , crop_id, season_id, crop_variety_id, sowing_date, unit_id, land_size, created_at, created_by, updated_at, updated_by) VALUES(" + str(farmer_id) + ", " + str(zone_id) + " , " + str(district_id) + " , " + str(upazila_id) + " , " + str(union_id) + " , " + str(crop) + ", " + str(season) + ", " + str(crop_variety) + ", '" + str(sowing_date) + "', " + str(unit) + ", '" + str(land_size) + "', now(), " + str(user_id) + ", now(), " + str(user_id) + ") returning id")
+
+            else:
+                messages.success(request, '<i class="fa fa-check-circle"></i> Field is empty or an Error occurred!',
+                                 extra_tags='alert-danger crop-both-side')
+                return HttpResponseRedirect('/maxmodule/cais_module/add_farmer/')
+
+        messages.success(request, '<i class="fa fa-check-circle"></i> Successfully Added Farmer and crop!',
+                             extra_tags='alert-success crop-both-side')
+        return HttpResponseRedirect('/maxmodule/cais_module/farmer/')
+    else:
+        messages.success(request, '<i class="fa fa-check-circle"></i> Field is empty or an Error occurred!',
+                         extra_tags='alert-danger crop-both-side')
+        return HttpResponseRedirect('/maxmodule/cais_module/add_farmer/')
 
 
 @login_required
@@ -1081,16 +1451,17 @@ def getProgramList(request):
 
 @login_required
 def farmer_group(request):
-    queryFarmerList = "SELECT id, farmer_name FROM public.farmer;"
+    org_list = getOrgList(request)
+    queryFarmerList = "SELECT id, farmer_name FROM public.farmer where organization_id = any('{"+str(org_list).strip('[]')+" }');"
     getFarmerList = makeTableList(queryFarmerList)
 
     queryCropGroupList = "SELECT id FROM public.group_details"
     getCropGroupList = makeTableList(queryCropGroupList)
 
-    queryIncludedGroupListInCropGroup = "SELECT id group_id , group_name group_id_name FROM public.group_details"
+    queryIncludedGroupListInCropGroup = "SELECT id group_id , group_name group_id_name FROM public.group_details where org_id = any('{"+str(org_list).strip('[]')+" }')"
     getIncludedGroupListInCropGroup = makeTableList(queryIncludedGroupListInCropGroup)
 
-    queryCreateFarmerGroup = "select id,(select farmer_name from farmer where id = farmer_id )farmer_id,(select group_name from group_details where id = group_id)group_name from farmer_group"
+    queryCreateFarmerGroup = "select id,(select farmer_name from farmer where id = farmer_id )farmer_id,(select group_name from group_details where id = group_id)group_name from farmer_group where org_id = any('{"+str(org_list).strip('[]')+" }')"
     print(queryCreateFarmerGroup)
     farmerGroupInfoList = multipleValuedQuryExecution(queryCreateFarmerGroup)
 
@@ -1142,6 +1513,7 @@ def groupCropNameForEdit(request):
 
 @login_required
 def farmer_groupCreate(request):
+    org_id = getOrgId(request)
     username = request.user.username
     farmer_id = request.POST.get('farmer_id')
     group_id = request.POST.get('group_id')
@@ -1151,8 +1523,8 @@ def farmer_groupCreate(request):
             isEdit)
         __db_commit_query(queryEditFarmerGroup)
     else:
-        queryCreateFarmerGroup = "INSERT INTO public.farmer_group (farmer_id,group_id, created_at, created_by, updated_at, updated_by) VALUES(" + str(
-            farmer_id) + ", " + str(group_id) + ", now(), '" + str(username) + "', now(), '" + str(username) + "')"
+        queryCreateFarmerGroup = "INSERT INTO public.farmer_group (farmer_id,group_id, created_at, created_by, updated_at, updated_by,org_id) VALUES(" + str(
+            farmer_id) + ", " + str(group_id) + ", now(), '" + str(username) + "', now(), '" + str(username) +", "+ str(org_id) +"')"
         __db_commit_query(queryCreateFarmerGroup)
 
     return HttpResponseRedirect('/maxmodule/cais_module/farmer_group/')

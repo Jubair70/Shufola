@@ -75,7 +75,9 @@ urlpatterns = patterns('',
                        url(r'^cais_module/crop_group_Edit/$', views_cais.crop_group_Edit, name="crop_group_Edit"),
 
                        url(r'^cais_module/farmer/$', views_cais.farmer, name="farmer"),
+                       url(r'^cais_module/add_farmer/$', views_cais.add_farmer, name="add_farmer"),
                        url(r'^cais_module/farmerCreate/$', views_cais.farmerCreate, name="farmerCreate"),
+                       url(r'^cais_module/farmerAndCropCreate/$', views_cais.farmerAndCropCreate, name="farmerAndCropCreate"),
                        url(r'^cais_module/farmer_Edit/$', views_cais.farmer_Edit, name="farmer_Edit"),
                        url(r'^cais_module/getProgramList/$', views_cais.getProgramList, name="getProgramList"),
 
@@ -140,7 +142,9 @@ urlpatterns = patterns('',
                            name="geo_union_Edit"),
 
                        url(r'^cais_module/get_farmer_list/$', views_cais.get_farmer_list, name="get_farmer_list"),
+                       url(r'^cais_module/get_farmer_list_by_status/$', views_cais.get_farmer_list_by_status, name="get_farmer_list_by_status"),
                        url(r'^cais_module/export_farmer/$', views_cais.export_farmer, name="export_farmer"),
+                       url(r'^cais_module/export_farmer_by_status/$', views_cais.export_farmer_by_status, name="export_farmer_by_status"),
                         url(r'^cais_module/farmer_group_bulk_upload/$', views_cais.farmer_group_bulk_upload, name="farmer_group_bulk_upload"),
                        ##**********************  CASI WORK (End) *******************
 

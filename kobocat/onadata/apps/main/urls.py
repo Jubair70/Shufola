@@ -50,7 +50,7 @@ urlpatterns = patterns(
     ################################# cup urls end ###################################
 
 
-    url(r'^$', 'onadata.apps.ifcmodule.views.management_sms_que_list'), # Home URL
+    url(r'^$', 'onadata.apps.ifcmodule.views.get_dashboard'), # Home URL
     url(r'^delete-instance/$', 'onadata.apps.viewer.views.delete_instance'),
     url(r"^update-instance-status/$", 'onadata.apps.main.views.instance_status_update'),
 

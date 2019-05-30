@@ -1,0 +1,249 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>SMS LOG</div>
+        </div>
+        <div class="portlet-body">
+             <div class="row">
+
+            <div class="col-md-3">
+                    <label>From Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="from_date" name="from_date" class="form-control"  readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label>To Date: </label>
+                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                        <input type="text" id="to_date" name="to_date" class="form-control" readonly>
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                <label>Status: </label>
+                     <select type="select" name="status" id="status" class="form-control">
+                            <option value="%">Select Any</option>
+                            <option value="Sent">Sent</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                 </div>
+                  <div class="col-md-3">
+                <label>SMS Source: </label>
+                     <select type="select" name="sms_source" id="sms_source" class="form-control">
+                            <option value="%">Select Any</option>
+                            <option value="management_sms_que">Management</option>
+                            <option value="weather_sms_rule_queue">Weather</option>
+                            <option value="promotional_sms">Promotional</option>
+                        </select>
+                 </div>
+
+             </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <button class="btn btn-info pull-left" id="generate_report" name="generate_report"
+                                    data-original-title="" title="">Generate Report
+                        </button>
+                        <form  method="post" action="/ifcmodule/export_sms_log/"   enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input name = "from_date" type="hidden" >
+                        <input name = "to_date" type="hidden">
+                        <input name = "status" type="hidden" >
+                        <input name = "sms_source" type="hidden">
+                            <div class="row">
+                                <div class="col-md-1" style="width: 6%;">
+                                        <button type="submit" id="export" class="btn btn-info pull-left" >Export
+                                        </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+        </div>
+            <br>
+            <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">
+            <table id="all_info_table" class="table table-bordered table-hover">
+                <thead class="flip-content">
+                <tr>
+                    <th>Farmer Name</th>
+                    <th>Mobile Number</th>
+                    <th>Advisory</th>
+                    <th>Type of Advisory</th>
+                    <th>Schedule Time</th>
+                    <th>Sent Time</th>
+                    <th>District</th>
+                    <th>Upazilla</th>
+                    <th>Union</th>
+                    <th>Content Type</th>
+                    <th>Response</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to delete a sms info, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-ok">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+    <script>
+
+
+        $('#from_date').datepicker({
+            format:'yyyy-mm-dd'
+        });
+
+        $('#to_date').datepicker({
+            format:'yyyy-mm-dd'
+        });
+
+        $('#from_date').datepicker('setDate',getDesiredDate(2));
+        $('#to_date').datepicker('setDate',getDesiredDate(2));
+
+        $('#export').on('click',function (e) {
+                var from_date                =   document.getElementsByName("from_date");
+                var to_date = document.getElementsByName("to_date");
+                var status = document.getElementsByName("status");
+                var sms_source = document.getElementsByName("sms_source");
+                from_date[1].value    =   from_date[0].value;
+                to_date[1].value      =   to_date[0].value;
+                status[1].value       =   status[0].value;
+                sms_source[1].value       =   sms_source[0].value;
+            });
+
+
+        function getDesiredDate(n) {
+
+                var today = new Date();
+                var n_month_before_today = new Date(today);
+
+                n_month_before_today.setMonth((today.getMonth() + 1) - n);
+                var dd = n_month_before_today.getDate();
+                var mm = n_month_before_today.getMonth() + 1;
+
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                var yyyy = n_month_before_today.getFullYear();
+
+                formatted_date =   yyyy+ '/' +mm+ '/' +dd;
+                console.log(new Date(yyyy,mm,dd));
+                return new Date(yyyy,mm,dd);
+
+        }
+
+        $('.delete-item').on('click', function (e) {
+            var criteria_id = $(this).attr("data-href");
+            $('.btn-ok').attr("href", criteria_id);
+        });
+        if ($('.alert-block').is(':visible')) {
+            window.setTimeout(function () {
+                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+
+        var from_date = $('#from_date').val();
+        var to_date =$('#to_date').val();
+        var status = $('#status option:selected').val();
+        var sms_source = $('#sms_source option:selected').val();
+
+        dTablewithData = $('#all_info_table').DataTable({
+            "retrieve": true,
+            "bFilter": true,
+            "paging": true,
+            "scrollCollapse": true,
+            "searching": true,
+            select: true,
+            ordering: true,
+            "scrollX": true,
+            "bLengthChange": true,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            "pageLength": 10,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "/ifcmodule/getSMSLogDataNew/",
+                "type": "POST",
+                "data": function (d) {
+                        d.from_date = from_date,
+                        d.to_date = to_date,
+                        d.status = status,
+                        d.sms_source =sms_source
+                }
+
+            }
+
+         });
+
+        $('#generate_report').on('click',function () {
+             from_date = $('#from_date').val();
+             to_date =$('#to_date').val();
+             status = $('#status option:selected').val();
+             sms_source = $('#sms_source option:selected').val();
+             dTablewithData.ajax.reload();
+
+        });
+
+
+    </script>
+{% endblock %}

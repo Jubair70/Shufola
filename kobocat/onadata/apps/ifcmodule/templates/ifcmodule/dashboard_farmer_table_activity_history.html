@@ -1,0 +1,164 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <style>
+        .e:hover{
+             background-color:#FF6666;
+             color: white;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Activity History</div>
+        </div>
+
+        <div class="portlet-body" >
+            <div class="col-md-3" style="margin-left: 0px">
+                <div class="form-group">
+                    <label>Status: </label>
+                    <select class="form-control" name="status" id="status"  required>
+                        <option value="0">Decactivate</option>
+                        <option value="1">Activate</option>
+
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3" style="margin-top: 24px;">
+                <div class="form-group">
+
+                    <button class="btn btn-success pull-left" id="active" data-original-title="">
+                        Activate
+                    </button>
+
+                </div>
+            </div>
+
+            <table id="activity_histroy__table" class="table table-bordered table-striped table-condensed flip-content">
+                <thead class="flip-content">
+                <tr>
+                    <th style="width: 3.66% !important;"> Select </th>
+                    <th>Date </th>
+                    <th>Number of Farmers</th>
+                    <th>T. Country</th>
+                    <th>T. Zone</th>
+                    <th>T. District</th>
+                    <th>T. Upazila</th>
+                    <th>T. Union</th>
+
+
+                </tr>
+                </thead>
+                <tbody>
+
+                {% for data in activity_history %}
+                <tr>
+                    <td><input type="checkbox" val="{{data.ids}}" id="{{data.ids}}"></td>
+                    <td>{{data.activity_date}}</td>
+                    <td>{{data.t_farmer}}</td>
+                    <td>{{data.t_country}}</td>
+                    <td>{{data.t_zone}}</td>
+                    <td>{{data.t_district}}</td>
+                    <td>{{data.t_upazila}}</td>
+                    <td>{{data.t_union}}</td>
+
+                </tr>
+                {% endfor %}
+
+
+               </tbody>
+        </table>
+         </div>
+     </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+
+    <script>
+        $(document).ready(function(){
+            $('#activity_histroy__table').dataTable();
+        });
+
+
+        // Data table multiple checkbox select for pagination
+        // Start
+
+        var selectedCheckBoxArray = [] ;
+
+        $('#activity_histroy__table tbody').on('click', 'input[type="checkbox"]', function(e) {
+            var checkBoxId = $(this).attr('id');
+
+
+            res = checkBoxId.split('_');
+            l = res.length;
+
+            if(this.checked) {
+                for (var row = 0 ;row < l ; row++){
+                    selectedCheckBoxArray.push(parseInt(res[row]));
+                }
+            }
+            else if (!this.checked) {
+                for (var row = 0 ;row < l ; row++){
+                    const index = selectedCheckBoxArray.indexOf(parseInt(res[row]));
+                    selectedCheckBoxArray.splice(index, 1);
+                }
+
+            }
+            console.log(selectedCheckBoxArray);
+
+        });
+
+        $("#activity_histroy__table").on('draw.dt', function() {
+            for (var i = 0; i < selectedCheckBoxArray.length; i++) {
+                checkboxId = selectedCheckBoxArray[i];
+                $('#' + checkboxId).attr('checked', true);
+            }
+        });
+
+        // End
+
+        $('#active').on('click',function () {
+            console.log('yes');
+            console.log(selectedCheckBoxArray);
+            $.ajax({
+                    type: 'POST',
+                    url: '/ifcmodule/change_multiple_farmer_status/',
+                    traditional:true,
+                    data: {
+                        status : 1,
+                        farmer_ids : selectedCheckBoxArray,
+                    },
+                    success: function () {
+                        alert("Re Activation Successful !!")
+                        window.location.reload();
+                    }
+
+                });
+
+        });
+
+    </script>
+
+{% endblock %}

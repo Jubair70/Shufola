@@ -18,6 +18,98 @@
         </div>
         <div class="portlet-body">
             <div class="row">
+            <form class="" method="POST">
+                {% csrf_token %}
+
+            <div class="col-md-12" style="padding: 0px;margin: 0px">
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Organization: </label>
+                        <select name="org_id" class="form-control" id="org_id" class="form-control userlist" onclick="load_program(this,0)" required>
+                            <option value="%">Select an organization</option>
+                                {% for item in org_list %}
+                                    <option value="{{ item.id }}"  {% if org_for_template == item.id %} selected {% endif %}>{{ item.organization }}</option>
+                                {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Program: </label>
+                        <select class="form-control" name="program" id="program" required>
+                            <option value="%">Select One</option>
+                        </select>
+
+                    </div>
+                </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label >Crop:</label>
+                            <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" >
+                                <option value="%">Select One</option>
+                                {% for crop_id,crop_name in crop_list %}
+                                    <option value="{{ crop_id }}" {% if crop_for_template == crop_id %} selected {% endif %}>{{ crop_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Variety of the Crop: </label>
+                            <select class="form-control" name="crop_variety" id="crop_variety"  required>
+                                <option value="%">Select One</option>
+
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Season: </label>
+                            <select class="form-control" name="season" id="season" onclick="load_stage(this,0,0);" required>
+                                <option value="%">Select One</option>
+                                {% for x,y in season %}
+                                    <option value="{{ x }}" {% if season_for_template == x %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Stage: </label>
+                            <select class="form-control" name="crop_stage" id="crop_stage" required>
+                                 <option value="%">Select One</option>
+
+                            </select>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Content Type: </label>
+                            <select class="form-control" name="content_type" id="content_type">
+                                <option value="%">Select One</option>
+                                <option value="audio" {% if content_for_template == 2 %} selected {% endif %}>Audio</option>
+                                <option value="text" {% if content_for_template == 1 %} selected {% endif %}>Text</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                            <div class="form-group">
+                                <button style="margin-top:25px;" type="submit" class="btn red" id="default_search">Filter</button>
+                            </div>
+                        </div>
+
+                </div>
+                </form>
+                </div>
+            <br>
+            <div class="row">
                 <div class="col-md-12">
                     <a href="/ifcmodule/weather_sms_form/">
                         <button type="submit" class="btn btn-info pull-left" id="add_new" data-original-title=""
@@ -26,6 +118,14 @@
                     </a>
                 </div>
             </div>
+
+            <input type="hidden" id="data-org" value="{{org_for_template}}">
+            <input type="hidden" id="data-program" value="{{program_for_template}}">
+            <input type="hidden" id="data-crop" value="{{crop_for_template}}">
+            <input type="hidden" id="data-variety" value="{{variety_crop_for_template}}">
+            <input type="hidden" id="data-season" value="{{season_for_template}}">
+            <input type="hidden" id="data-stage" value="{{stage_for_template}}">
+
             <br>
             <table id="all_info_table" class="table table-bordered table-hover flip-content">
                 <thead>
@@ -88,10 +188,38 @@
     <script>
 
         $(document).ready(function () {
-            var table = $('#all_info_table').DataTable({
+             var table = $('#all_info_table').DataTable({
                 "scrollX": true, "ordering": false, "iDisplayLength": 25,
                 deferRender: true
-            });
+             });
+
+             org_id = document.getElementById("data-org").value;
+             crop_id = document.getElementById("data-crop").value;
+             program_id = document.getElementById("data-program").value;
+             variety_id = document.getElementById("data-variety").value;
+             season_id = document.getElementById("data-season").value;
+             stage_id = document.getElementById("data-stage").value;
+
+             if (org_id != '%'){
+                 if(program_id != '%'){
+                     var obj = {value:org_id};
+                     load_program(obj,program_id);
+                 }
+             }
+
+             if (crop_id != '%'){
+                 if(variety_id != '%'){
+                     var obj = {value:crop_id};
+                     load_variety(obj,variety_id);
+                 }
+             }
+
+             if (season_id != '%'){
+                 if(stage_id != '%'){
+                     var obj = {value:season_id};
+                     load_stage(obj,stage_id,1);
+                 }
+             }
         });
 
         var tbody = '';
@@ -120,5 +248,104 @@
                 });
             }, 5000);
         }
+
+        function load_variety(object,selectValue) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > "+ result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function checkSelect(id,selectValue){
+            if (id == selectValue) return "selected";
+            else return 1 ;
+        }
+
+        function load_program(object,selectValue) {
+            obj = parseInt(object.value);
+
+            if (isNaN(parseFloat(obj))) {
+                $('#program').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getProgram/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > "+ result[i].program_name + "</option>";
+                        }
+                        $('#program').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function load_stage(object,selectValue,type) {
+
+            season_id = parseInt(object.value);
+            if(type == 0){
+                crop_id = $('#crop option:selected').val();
+                var_id = $('#crop_variety option:selected').val();
+            }else{
+                crop_id = document.getElementById("data-crop").value;
+                var_id = document.getElementById("data-variety").value;
+            }
+
+
+            if (season_id=='%') {
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getStage/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'season_id': season_id,
+                        'crop_id':crop_id,
+                        'var_id':var_id,
+                           },
+
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > " + result[i].stage_name + "</option>";
+                        }
+                        $('#crop_stage').html(html_code);
+                    }
+                });
+            }
+
+        }
+
     </script>
 {% endblock %}

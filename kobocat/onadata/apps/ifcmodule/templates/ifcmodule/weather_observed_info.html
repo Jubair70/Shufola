@@ -1,0 +1,590 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <style>
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Weather observed data</div>
+        </div>
+        <div class="portlet-body" >
+            <div class="row">
+
+                {% csrf_token %}
+
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label >Weather data type:</label>
+                            <select type="select" name="data_id" id="data_id" class="form-control " required>
+
+                                <option value="1">Observe Data</option>
+
+                            </select>
+                        </div>
+                    </div>
+
+                     <div class="col-md-3">
+                        <div class="form-group">
+                            <label> Query:</label>
+                            <select type="select" name="query_id" id="query_id" class="form-control " required>
+                                <option value="1">Climate one minute Data</option>
+                                <option value="2">Climate Daily Extremes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                     <div class="col-md-3">
+                        <div class="form-group">
+                            <label> Station Id:</label>
+                            <select type="select" name="station_id" id="station_id" class="form-control " required>
+                                <option value="%">All</option>
+                                <option value="1">Khulna</option>
+                                <option value="2">Biratnagar</option>
+                                <option value="3">Barisal</option>
+
+                            </select>
+                        </div>
+                    </div>
+                     <div class="col-md-3">
+                         <div class="form-group">
+                             <label>Time: </label>
+                             <div class='input-group time' id='datetimepicker2'>
+                             <input class="form-control time_pick" type="text" name="time" id="time">
+                             <span class="input-group-addon">
+                               <span class="glyphicon glyphicon-time"></span>
+                             </span>
+                           </div>
+
+                         </div>
+                     </div>
+
+                    <div class="col-md-3">
+                        <label>From Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="start_date" name="start_date" class="form-control" value="{{start_date}}"  readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>End Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="end_date" name="end_date" value="{{end_date}}" class="form-control" readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <button style="margin-top:25px;" type="submit" class="btn red" id="default_search" onclick="fetchData()">Fetch</button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <a style="margin-top:25px;" class="btn blue pull-right hidden-print" onclick="javascript:window.print();">Print <i class="fa fa-print"></i></a>
+                        </div>
+                    </div>
+
+                    </div>
+
+
+            </div>
+
+
+            <div class="row">
+                 <div class="col-md-12">
+                        <div id="table" class="col-md-2"  style="background: #efecfb;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer;margin-left: 15px;margin-top: 15px; height: 35px; text-align: center" >
+                           <h4 style="color: black;font-size: medium">Table View</h4>
+                        </div>
+                        <div id="graph" class="col-md-2"  style="background: #efecfb;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer;  height: 35px; margin-top: 15px; margin-left: 5px; text-align: center" >
+                           <h4 style="color: black;font-size: medium">Graph View</h4>
+                        </div>
+
+
+                  </div>
+             </div>
+
+            <div id="container_1" style="margin: 15px">
+                <div id="add_div">Select options and fetch data</div>
+            </div>
+
+            <input type="hidden" id="selected_category_id" name="selected_category_id" value="1">
+
+        </div>
+
+     </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
+
+
+
+    <script>
+
+        var table = $('#all_info_table').DataTable({
+            "scrollX": true,
+            "ordering": false,
+            "searching": false,
+            deferRender: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    filename: "Weather Observed",
+                    title: "",
+                    text: "<strong>Export</strong>",
+                    extend: 'excel'
+                }
+            ]
+
+        });
+
+        $(function () {
+            $('#start_date').datepicker({
+                format: "yyyy-mm-dd",
+            });
+
+            $('#end_date').datepicker({
+                format: "yyyy-mm-dd",
+
+            });
+
+            $(function() {
+                $('.time_pick').datetimepicker().data("DateTimePicker").options({format: "HH:mm"});
+            });
+
+        });
+
+
+        $("#table").on("click", function() {
+            resetAllColor();
+            document.getElementById("selected_category_id").value = 1 ;
+            $(this).css("background", "#d01928");
+            $('#add_div').remove();
+            $("#query_id").val(1);
+
+            var date = new Date();
+            var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+            var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            var modified_firstDay = firstDay.toLocaleDateString('km-KH');
+            var modified_lastDay = lastDay.toLocaleDateString('km-KH');
+
+            var startdatepicker = $('#start_date');
+            var enddatepicker = $('#end_date');
+
+            startdatepicker.datepicker();
+            startdatepicker.datepicker('setDate', modified_firstDay);
+            enddatepicker.datepicker();
+            enddatepicker.datepicker('setDate', modified_lastDay);
+
+            generateWeatherObserveTable('1', '%', "", modified_firstDay, modified_lastDay);
+
+        });
+
+
+        $("#graph").on("click", function() {
+            resetAllColor();
+            document.getElementById("selected_category_id").value = 2 ;
+            $(this).css("background", "#d01928");
+            $('#add_div').remove();
+
+            $("#query_id").val(2);
+
+            var date = new Date();
+            var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+            var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            var modified_firstDay = firstDay.toLocaleDateString('km-KH');
+            var modified_lastDay = lastDay.toLocaleDateString('km-KH');
+
+            var startdatepicker = $('#start_date');
+            var enddatepicker = $('#end_date');
+
+            startdatepicker.datepicker();
+            startdatepicker.datepicker('setDate', modified_firstDay);
+            enddatepicker.datepicker();
+            enddatepicker.datepicker('setDate', modified_lastDay);
+
+            generateWeatherObserveGraph('2', '%', "", modified_firstDay, modified_lastDay);
+
+        });
+
+
+        function resetAllColor() {
+
+           $("#table").css("background", "#efecfb");
+           $("#graph").css("background", "#efecfb");
+
+        }
+
+        $(document).ready(function(){
+           category_id = 1;
+           console.log(category_id);
+           if (category_id == 1)
+               document.getElementById("table").style.background = "#d01928";
+           else
+               document.getElementById("graph").style.background = "#d01928";
+
+        });
+
+
+       function fetchData() {
+            cat_id = document.getElementById("selected_category_id").value ;
+            station_id = $('#station_id option:selected').val();
+            query_id = $('#query_id option:selected').val();
+            time = document.getElementById("time").value;
+            start_date = document.getElementById("start_date").value;
+            end_date = document.getElementById("end_date").value;
+
+            console.log(station_id);
+            console.log(query_id);
+            console.log(time);
+            console.log(start_date);
+            console.log(end_date);
+
+            if (cat_id == '1'){
+
+                if (time != "" && start_date != "" && end_date != ""){
+                    console.log("yes");
+                    $('#add_div').remove();
+                    generateWeatherObserveTable(query_id, station_id, time, start_date, end_date);
+
+                }else{
+                    alert("Please Fill all the fields");
+                }
+            }
+            else{
+
+                if (time != "" && start_date != "" && end_date != ""){
+                    console.log("yes");
+                    $('#add_div').remove();
+                    generateWeatherObserveGraph(query_id, station_id, time, start_date, end_date);
+
+                }else{
+                    alert("Please Fill all the fields");
+                }
+            }
+       }
+
+
+       function generateWeatherObserveTable(q_id , s_id , t , s_d , e_d) {
+
+            query_id = q_id;
+            station_id = s_id;
+            time = t;
+            start_date = s_d;
+            end_date = e_d;
+
+            html_one_minute =
+                        '            <div id="add_div">\n'+
+                        '            <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">\n'+
+                        '            <table id="all_info_table" class="table table-bordered table-hover">\n'+
+                        '                <thead class="flip-content">\n'+
+                        '                <tr>\n'+
+                        '                    <th>Station Name</th>\n'+
+                        '                    <th>Date_Time</th>\n'+
+                        '                    <th>Temperature</th>\n'+
+                        '                    <th>Dew Point Temperature</th>\n'+
+                        '                    <th>Humidity</th>\n'+
+                        '                    <th>Solar Radiation</th>\n'+
+                        '                    <th>Wind Speed</th>\n'+
+                        '                    <th>Wind Direction</th>\n'+
+                        '                    <th>Soil Moisture</th>\n'+
+                        '                    <th>Rainfall</th>\n'+
+                        '                    <th>QFE</th>\n'+
+                        '                    <th>QFF</th>\n'+
+                        '                </tr>\n'+
+                        '                </thead>\n'+
+                        '                <tbody>\n'+
+                        '\n'+
+                        '                </tbody>\n'+
+                        '            </table>\n'+
+                        '            </div>';
+
+
+            html_daily =  '            <div id="add_div">\n'+
+                          '            <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">\n'+
+                          '            <table id="all_info_table" class="table table-bordered table-hover">\n'+
+                          '              <col>\n'+
+                          '              <colgroup span="2"></colgroup>\n'+
+                          '              <colgroup span="2"></colgroup>\n'+
+                          '                <thead class="flip-content">\n'+
+                          '              <tr>\n'+
+                          '                <td rowspan="2">Station Name</td>\n'+
+                          '                <td rowspan="2">Date</td>\n'+
+                          '                <th colspan="3" scope="colgroup">Temperature</th>\n'+
+                          '                <th colspan="3" scope="colgroup">Humidity</th>\n'+
+                          '                <td rowspan="2">Solar Radiation</td>\n'+
+                          '                <td rowspan="2">Max Wind Speed</td>\n'+
+                          '                <td rowspan="2">Rainfall</td>\n'+
+                          '              </tr>\n'+
+                          '              <tr>\n'+
+                          '                <th scope="col">T. Max</th>\n'+
+                          '                <th scope="col">T. Min</th>\n'+
+                          '                <th scope="col">T. Avg</th>\n'+
+                          '                <th scope="col">RH. Max</th>\n'+
+                          '                <th scope="col">RH. Min</th>\n'+
+                          '                <th scope="col">RH. Avg</th>\n'+
+                          '              </tr>\n'+
+                          '                </thead>\n'+
+                          '              <tbody>\n'+
+                          '\n'+
+                          '              </tbody>\n'+
+                          '            </table>\n'+
+                          '            </div>';
+
+            $(function(){
+                if(query_id == '1'){
+                   $('#container_1').append(html_one_minute);
+                }
+                if(query_id == '2'){
+                   $('#container_1').append(html_daily);
+                }
+            });
+
+            table.destroy();
+
+            if(query_id == '1'){
+                console.log("yes");
+                $.ajax({
+                    url: '/ifcmodule/getWeatherObservedList/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'from_date': start_date,
+                        'to_date': end_date,
+                        'station_name': station_id
+                    },
+                    beforeSend: function () {
+                        $('#container').show();
+
+                    },
+                success: function (result) {
+                    $('#container').hide();
+
+                    var tbody = '';
+
+                    sms_log = result;
+                    for (var idx in sms_log) {
+                        tbody += '<tr><td>' + sms_log[idx].station_name + '</td><td>' + sms_log[idx].date_time + '</td><td>'+ sms_log[idx].temperature +'</td><td>'+ sms_log[idx].dew_point_temperature +'</td><td>'+ sms_log[idx].humidity +'</td><td>'+ sms_log[idx].solar_radiation +'</td><td>'+ sms_log[idx].wind_speed +'</td><td>'+ sms_log[idx].wind_direction +'</td><td>'+ sms_log[idx].soil_moisture +'</td><td>'+ sms_log[idx].rainfall +'</td><td>'+ sms_log[idx].qfe +'</td><td>'+ sms_log[idx].qff +'</td></tr>';
+                    }
+
+                    $("#all_info_table").find('tbody').html(tbody);
+                    table = datatable_reitialize();
+
+                    }
+
+                 });
+            }
+
+            if(query_id == '2'){
+                console.log("yes");
+                $.ajax({
+                    url: '/ifcmodule/getDailyWeatherObservedList/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'from_date': start_date,
+                        'to_date': end_date,
+                        'station_name': station_id
+                    },
+                    beforeSend: function () {
+                        $('#container').show();
+
+                    },
+                success: function (result) {
+                    $('#container').hide();
+
+                    var tbody = '';
+
+                    sms_log = result;
+                    console.log(sms_log);
+                    for (var idx in sms_log) {
+
+                        tbody +=
+                                  '                  <tr>\n'+
+                                  '                    <th scope="row">'+sms_log[idx].station_name+'</th>\n'+
+                                  '                    <td>'+sms_log[idx].date_info+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].temp_min+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].temp_max+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].temp_avg+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].humidity_min+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].humidity_max+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].humidity_avg+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].sum_solar_radiation+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].max_wind_speed+'</td>\n'+
+                                  '                    <td>'+sms_log[idx].sum_rainfall+'</td>\n'+
+                                  '                  </tr>\n';
+
+                    }
+                    $("#all_info_table").find('tbody').html(tbody);
+                    table = datatable_reitialize();
+
+                    }
+
+                 });
+
+            }
+
+        }
+
+
+       function generateWeatherObserveGraph(q_id , s_id , t , s_d , e_d) {
+            console.log("ok");
+            query_id = q_id;
+            station_id = s_id;
+            time = t;
+            start_date = s_d;
+            end_date = e_d;
+
+            html_daily =
+               '            <div id="add_div">\n'+
+               '              <div class="row" style="margin-top: 50px; margin-bottom: 20px">\n'+
+               '                    <div class="card" style="height: auto;  margin: 5px">\n'+
+               '                        <div class="card-body">\n'+
+               '                            <div id="container_a" style=" margin: 0 auto;"></div>\n'+
+               '                            <div id="container_b" style=" margin: 0 auto;"></div>\n'+
+                '                            <div id="container_c" style=" margin: 0 auto;"></div>\n'+
+                '                            <div id="container_d" style=" margin: 0 auto;"></div>\n'+
+               '\n'+
+               '                        </div>\n'+
+               '                    </div>\n'+
+               '                </div>'+
+               '            </div>';
+
+
+            $(function(){
+                if(query_id == '2'){
+                   $('#container_1').append(html_daily);
+                }
+            });
+
+
+            if(query_id == '2'){
+
+                $.ajax({
+                    url : '/ifcmodule/getWeatherObservedGraphData/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'from_date': start_date,
+                        'to_date': end_date,
+                        'station_name': station_id
+                    },
+                    beforeSend: function () {
+
+                    },
+                    success: function (result) {
+
+                        dashboardBarChart('container_a', 'Temperature', 'Temperature (°C)' , result.category_list, result.series_list_temp);
+                        dashboardBarChart('container_b', 'Humidity', 'Humidity(Rh)' ,result.category_list, result.series_list_hum);
+                        dashboardBarChart('container_c', 'Solar Radiation', ' Sum Solar Radiation(Srad)' ,result.category_list, result.series_list_solar_rad);
+                        dashboardBarChart('container_d', 'Rainfall', ' Sum Rainfall' ,result.category_list, result.series_list_rainfall);
+
+                    }
+                });
+
+
+            }
+
+       }
+
+
+       function dashboardBarChart(div, title, text, categories, series) {
+           Highcharts.chart(div, {
+                chart: {
+                    type: 'line',
+                    height:300
+                },
+                title: {
+                    text: title
+                },
+
+                xAxis: {
+                    categories: categories
+                },
+                yAxis: {
+                    title: {
+                        text: text
+                    }
+                },
+                plotOptions: {
+                    line: {
+                        dataLabels: {
+                            enabled: true
+                        },
+                        enableMouseTracking: false
+                    }
+                },
+                series: series
+            });
+       }
+
+
+       function datatable_reitialize() {
+            return $('#all_info_table').DataTable({
+            "scrollX": true,
+            "ordering": false,
+            "searching": false,
+            deferRender: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    filename: "Weather Observed",
+                    title: "",
+                    text: "<strong>Export</strong>",
+                    extend: 'excel'
+                }
+            ]
+            });
+       }
+
+    </script>
+
+{% endblock %}

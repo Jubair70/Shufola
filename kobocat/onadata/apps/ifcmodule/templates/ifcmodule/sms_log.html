@@ -261,6 +261,8 @@
 
                     sms_log = result;
                     for (var idx in sms_log) {
+                        console.log('okaa');
+                        console.log(sms_log[idx].org_id);
                         if(sms_log[idx].content_type == 'audio')
                             tbody += '<tr><td>' + sms_log[idx].farmer_name + '</td><td>' + sms_log[idx].mobile_number + '</td><td><audio preload="metadata" controls><source src="'+sms_log[idx].voice_sms_file_path+'" type="audio/mp4;" codecs="mp4a.40.2"/> <source src="'+sms_log[idx].voice_sms_file_path+'" type="audio/mpeg;" codecs="vorbis"/> <source src="'+sms_log[idx].voice_sms_file_path+'" type="audio/ogg;" codecs="vorbis"/></audio></td><td>'+ sms_log[idx].sms_type +'</td><td>'+ sms_log[idx].schedule_time +'</td><td>'+ sms_log[idx].sent_time +'</td><td>'+ sms_log[idx].district_name +'</td><td>'+ sms_log[idx].upazilla_name +'</td><td>'+ sms_log[idx].union_name +'</td><td>'+ sms_log[idx].content_type +'</td><td>'+ sms_log[idx].response +'</td></tr>';
                             else

@@ -1,0 +1,102 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>DashBoard</div>
+        </div>
+        <div class="portlet-body" >
+             <div class="row" style="padding: 15px; margin-left: 15px">
+                <div class='col-md-3' style="background: #990000;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer; margin: 5px;width: 300px;height: 100px" onclick="location.href='/ifcmodule/dashboard/program/graph';">
+                   <h4 style="color: white;padding-top: 8px;"><strong>Program</strong> </h4>
+                   <h1 class="count" style="color: white;margin-top: 0px;">{{program_count}}</h1>
+                   <div class="col-md-12" style="text-align: right;margin-right: 0px;padding: 0px;opacity: 0.3; position: absolute; bottom: -10px;">
+                       <i class="fa fa-calendar-o" style="font-size: 80px;color: white;transform: rotate(0deg)"></i>
+                   </div>
+                </div>
+
+                <div class='col-md-3' style="background: #990000;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer; margin: 5px;width: 300px;height: 100px " onclick="location.href='/ifcmodule/dashboard/crop';">
+                   <h4 style="color: white;padding-top: 8px;"><strong>Crops</strong> </h4>
+                   <h1 class="count" style="color: white;margin-top: 0px;">{{crop_count}} </h1>
+                   <div class="col-md-12" style="text-align: right;margin-right: 0px;padding: 0px;opacity: 0.3; position: absolute; bottom: -10px;">
+                       <i class="fa fa-snowflake-o" style="font-size: 80px;color: white;transform: rotate(0deg)"></i>
+                   </div>
+                </div>
+
+                <div class='col-md-3' style="background: #990000;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer; margin: 5px;width: 300px;height: 100px" onclick="location.href='/ifcmodule/dashboard/farmer/map';">
+                   <h4 style="color: white;padding-top: 8px;"><strong>Farmers</strong> </h4>
+                   <h1 class="count" style="color: white;margin-top: 0px;">{{farmer_count}} </h1>
+                   <div class="col-md-12" style="text-align: right;margin-right: 0px;padding: 0px;opacity: 0.3; position: absolute; bottom: -10px;">
+                       <i class="fa fa-users" style="font-size: 80px;color: white;transform: rotate(0deg)"></i>
+                   </div>
+                </div>
+
+                <div class='col-md-4' style="background: #990000;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer; margin: 5px;width: 300px;height: 100px" onclick="location.href='/ifcmodule/dashboard/sms/map';">
+                   <h4 style="color: white;padding-top: 8px;"><strong>Sent SMS</strong> </h4>
+                   <h1 class="count" style="color: white;margin-top: 0px;">{{sent_sms_count}} </h1>
+                   <div class="col-md-12" style="text-align: right;margin-right: 0px;padding: 0px;opacity: 0.3; position: absolute; bottom: -10px;">
+                       <i class="fa fa-comments-o" style="font-size: 80px;color: white;transform: rotate(-10deg)"></i>
+                   </div>
+                </div>
+
+                <div class='col-md-4' style="background: #990000;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer; margin: 5px;width: 300px;height: 100px" onclick="location.href='/ifcmodule/dashboard/voice_sms/map';">
+                   <h4 style="color: white;padding-top: 8px;"><strong>Sent Voice</strong> </h4>
+                   <h1 class="count" style="color: white;margin-top: 0px;">{{sent_voice_sms_count}} </h1>
+                   <div class="col-md-12" style="text-align: right;margin-right: 0px;padding: 0px;opacity: 0.3; position: absolute; bottom: -10px;">
+                       <i class="fa fa-microphone" style="font-size: 80px;color: white;transform: rotate(0deg)"></i>
+                   </div>
+                </div>
+
+                <div class='col-md-4' style="background: #990000;text-align: center;padding: 0px;position: relative;border-radius: 10px;cursor: pointer; margin: 5px;width: 300px;height: 100px" onclick="location.href='/ifcmodule/dashboard/area/';">
+                   <h4 style="color: white;padding-top: 8px;"><strong>Acreage(H)</strong> </h4>
+                   <h1 class="count" style="color: white;margin-top: 0px;"> {{area_count}} </h1>
+                   <div class="col-md-12" style="text-align: right;margin-right: 0px;padding: 0px;opacity: 0.3; position: absolute; bottom: -10px;">
+                       <i class="fa fa-map-marker" style="font-size: 80px;color: white;transform: rotate(0deg)"></i>
+                   </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+
+
+    <script>
+        $('.count').each(function () {
+           $(this).prop('Counter',0).animate({
+               Counter: $(this).text()
+           }, {
+               duration: 1000,
+               easing: 'swing',
+               step: function (now) {
+                   $(this).text(Math.ceil(now));
+               }
+           });
+       });
+    </script>
+{% endblock %}

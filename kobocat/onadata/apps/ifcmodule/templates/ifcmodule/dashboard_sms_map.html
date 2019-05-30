@@ -1,0 +1,749 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/alertify.min.css" media="all"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/themes/semantic.min.css" media="all"/>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" media="all"/>
+
+    <style>
+        #map {
+            width: 780px;
+            height: 650px;
+        }
+
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+
+        .legend {
+            text-align: left;
+            line-height: 18px;
+            color: #555;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        table.paleBlueRows {
+            border: 1px solid #FFFFFF;
+            width: 350px;
+            display: block;
+            border-collapse: collapse;
+        }
+
+        table.paleBlueRows thead, tbody {
+
+        }
+
+        table.paleBlueRows tbody {
+
+        }
+
+        table.paleBlueRows td, table.paleBlueRows th {
+            border: 1px solid #FFFFFF;
+            padding: 3px 2px;
+        }
+
+        table.paleBlueRows tbody td {
+            font-size: 13px;
+            width: 100%;
+        }
+
+        table.paleBlueRows tr:nth-child(even) {
+            background: #D0E4F5;
+        }
+
+        table.paleBlueRows thead {
+            background: #1e90ff;
+            border-bottom: 5px solid #FFFFFF;
+        }
+
+        table.paleBlueRows th {
+            background: #1e90ff;
+            font-size: 13px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-align: center;
+            border-left: 2px solid #FFFFFF;
+            width: 100%;
+        }
+
+        table.paleBlueRows thead th:first-child {
+            border-left: none;
+        }
+
+        table.paleBlueRows tfoot {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333333;
+            background: #D0E4F5;
+            border-top: 3px solid #444444;
+        }
+
+        table.paleBlueRows tfoot td {
+            font-size: 14px;
+        }
+
+        @media print {
+            @page {
+                size: A3 landscape;
+            }
+
+            .leaflet-control-attribution {
+                display: none;
+            }
+
+            #map {
+                width: 780px;
+                height: 650px;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+
+            .info {
+                padding: 6px 8px;
+                font: 14px/16px Arial, Helvetica, sans-serif;
+                background: white;
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                border-radius: 5px;
+            }
+
+            .info h4 {
+                margin: 0 0 5px;
+                color: #777;
+            }
+
+            .legend {
+                text-align: left;
+                line-height: 18px;
+                color: #555;
+            }
+
+            .legend i {
+                width: 18px;
+                height: 18px;
+                float: left;
+                margin-right: 8px;
+                opacity: 1;
+            }
+
+            table.paleBlueRows {
+                border: 1px solid #FFF;
+                width: 350px;
+                display: block;
+                border-collapse: collapse;
+            }
+
+            table.paleBlueRows thead, tbody {
+                display: block;
+            }
+
+            table.paleBlueRows tbody {
+
+            }
+
+            table.paleBlueRows td, table.paleBlueRows th {
+                border: 1px solid #FFF;
+                padding: 3px 2px;
+            }
+
+            table.paleBlueRows tbody td {
+                font-size: 13px;
+                width: 100%;
+            }
+
+            table.paleBlueRows tr:nth-child(even) {
+                background: #D0E4F5;
+            }
+
+            table.paleBlueRows thead {
+                background: #1e90ff;
+                border-bottom: 5px solid #FFF;
+            }
+
+            table.paleBlueRows th {
+                background: #1e90ff;
+                font-size: 13px;
+                font-weight: bold;
+                color: #FFF;
+                text-align: center;
+                border-left: 2px solid #FFF;
+                width: 100%;
+            }
+
+            table.paleBlueRows thead th:first-child {
+                border-left: none;
+            }
+
+            table.paleBlueRows tfoot {
+                font-size: 14px;
+                font-weight: bold;
+                color: #333333;
+                background: #D0E4F5;
+                border-top: 3px solid #444444;
+            }
+
+            table.paleBlueRows tfoot td {
+                font-size: 14px;
+            }
+        }
+        .e:hover{
+             background-color:#FF6666;
+             color: white;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>SMS</div>
+        </div>
+        <div class="portlet-body" >
+            <div class="row">
+                <div class="col-md-12 col-xs-12" style="margin-bottom: 20px">
+                    <div class="col-md-4 col-xs-6 col-md-offset-4 col-xs-offset-3" style="border: 1px solid #e02222;padding: 0px">
+                          <div class="btn col-md-6 col-xs-6 active" style="background: #e02222;color: white;font-weight: bold" onclick="location.href='';">Map View</div>
+                          <div class="btn e col-md-6 col-xs-6" style="font-weight: bold;" onclick="location.href='/ifcmodule/dashboard/sms/bar';" >Bar Chart</div>
+                    </div>
+                 </div>
+
+
+                <form class="" method="POST">
+                {% csrf_token %}
+
+                <div class="col-md-12">
+                    <div class="col-md-3 col-md-offset-3">
+                        <label>From Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="start_date" name="start_date" class="form-control" value="{{start_date}}"  readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>To Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="end_date" name="end_date" class="form-control" value="{{end_date}}" readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12" style="margin-bottom: 20px">
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label >Country:</label>
+                            <select type="select" name="country_id" id="country_id" class="form-control" onclick="load_division(this,0)" required>
+                                <option value="%">Select One</option>
+                                <option value="1">Bangladesh</option>
+                            </select>
+                        </div>
+                    </div>
+                     <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Division: </label>
+                            <select class="form-control" data-division = "{{division}}" name="division" id="division" onclick="load_district(this,0)">
+                                <option value="%">Select One</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>District: </label>
+                            <select class="form-control" name="district" id="district" onclick="load_upazilla(this,0)">
+                                <option value="%">Select One</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Upazilla: </label>
+                            <select class="form-control" name="upazilla" id="upazilla">
+                                <option value="%">Select One</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Crop:</label>
+                            <select class="form-control" name="crop" id="crop" onclick="load_variety(this)">
+                                <option value="%">Select One</option>
+                                {% for crop_id,crop_name in crop_list %}
+                                    <option value="{{ crop_id }}">{{ crop_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Variety of the Crop: </label>
+                            <select class="form-control" name="crop_variety" id="crop_variety" required>
+                                <option value="%">Select One</option>
+
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Season: </label>
+                            <select class="form-control" name="season" id="season" required>
+                                <option value="%">Select One</option>
+                                {% for x,y in season %}
+                                    <option value="{{ x }}" {% if x == season_id_for_template %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Advisory Type: </label>
+                            <select class="form-control" name="advisory_type" id="advisory_type" required>
+                                <option value="%">Select One</option>
+                                <option value="management" {% if advisory_id_for_template == 1 %} selected {% endif %}>Management</option>
+                                <option value="promotional" {% if advisory_id_for_template == 2 %} selected {% endif %}>Promotional</option>
+                                <option value="weather" {% if advisory_id_for_template == 3 %} selected {% endif %}>Weather</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>SMS Range: </label>
+                            <select class="form-control" name="sms_range" id="sms_range" required>
+                                <option value="%">Select One</option>
+                                <option value="1">1-5</option>
+                                <option value="2">6-10</option>
+                                <option value="3">11-15</option>
+                                <option value="4">16-20</option>
+                                <option value="5">20+</option>
+
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <button style="margin-top:25px;" type="submit" class="btn red" id="default_search">Filter</button>
+                        </div>
+                    </div>
+
+                </div>
+                </form>
+
+             </div>
+            <input type="hidden" id="data-country" value="{{country}}">
+            <input type="hidden" id="data-division" value="{{division}}">
+            <input type="hidden" id="data-district" value="{{district}}">
+            <input type="hidden" id="data-upazilla" value="{{upazilla}}">
+
+
+            <div class="span8">
+                <div id="map" style="height: 600px;margin: 0px auto"></div>
+            </div>
+        </div>
+     </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
+
+
+    <script type="text/javascript">
+        var indicator_type = '';
+        var rdata = {{ dist_dict|safe }};
+        var range_list = {{ processed_range_list|safe }};
+        total_no_of_farmer = {{ total_farmer_no|safe }};
+        var total_sms_sent = {{total_sms_sent|safe}}
+        console.log(rdata);
+
+        if (JSON.stringify(rdata) != '{}') {
+
+            myArray = objectToArray(rdata).sort(Comparator);
+            addDatatoTable(myArray);
+
+            var map = L.map('map').setView([23.946096, 90.128173], 6.9);
+
+            var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
+            {
+
+                key: 'BC9A493B41014CAABB98F0471D759707',
+                styleId: 22677
+            }).addTo(map);
+
+
+            // control that shows state info on hover
+            var info = L.control();
+
+            info.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+
+            info.update = function (props) {
+                this._div.innerHTML = '<h4>District wise Map</h4>'+ '<p>Total SMS Sent : '+total_sms_sent+' </p>' + (props ?
+                        '<br /><b>' + props.NAME_3 + ' </b> ' + rdata[props.NAME_3]
+                        : 'Hover over a district');
+            };
+
+            info.addTo(map);
+
+
+            function style(feature) {
+                return {
+                    weight: 1,
+                    opacity: 1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 0.7,
+                    fillColor: getColor(feature.properties.NAME_3)
+                };
+            }
+
+            function highlightFeature(e) {
+                var layer = e.target;
+
+                layer.setStyle({
+                    weight: 1,
+                    color: '#666',
+                    dashArray: '',
+                    fillOpacity: 0.7,
+                });
+
+                if (!L.Browser.ie && !L.Browser.opera) {
+                    layer.bringToFront();
+                }
+
+                info.update(layer.feature.properties);
+            }
+
+            var geojson;
+
+            function resetHighlight(e) {
+                geojson.resetStyle(e.target);
+                info.update();
+            }
+
+            function zoomToFeature(e) {
+                map.fitBounds(e.target.getBounds());
+            }
+
+            function onEachFeature(feature, layer) {
+                layer.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight,
+                    click: zoomToFeature
+                });
+            }
+
+            geojson = L.geoJson(statesData, {
+                style: style,
+                onEachFeature: onEachFeature
+            }).addTo(map);
+
+
+            var legend = L.control({position: 'bottomleft'});
+
+            legend.onAdd = function (map) {
+                var div = L.DomUtil.create('div', 'info legend'),
+                labels = ['<b>Number of Farmer: ' + total_no_of_farmer + '</b>'];
+
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,204,204);stroke-width:3;stroke:rgb(255,204,204)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,153,153);stroke-width:3;stroke:rgb(255,153,153)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,102,102);stroke-width:3;stroke:rgb(255,102,102)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,51,51);stroke-width:3;stroke:rgb(255,51,51)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(153,0,0);stroke-width:3;stroke:rgb(153,0,0)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
+
+                div.innerHTML = labels.join('<br>');
+                return div;
+            };
+
+            legend.addTo(map);
+            map.scrollWheelZoom.disable();
+
+            $('.leaflet-top').addClass('noprint');
+        }
+
+        function objectToArray(obj) {
+            return Object.keys(obj).map(function (prop) {
+                return [prop, obj[prop]];
+            });
+        }
+
+        function Comparator(a, b) {
+            if (a[1] < b[1]) return 1;
+            if (a[1] > b[1]) return -1;
+            return 0;
+        }
+
+        function addDatatoTable(tabledata) {
+            var k = 1;
+            console.log(k);
+
+            for (var idx in tabledata) {
+                $('#dtext_' + k).text(tabledata[idx][0])
+                $('#dvalue_' + k).text(parseFloat(Math.round(tabledata[idx][1] * 100) / 100).toFixed(1));
+                k = k + 1;
+            }
+
+            $('#diswisemap').show();
+        }
+
+         function getColor(s) {
+            d = rdata[s];
+            if (d > range_list[0] && d <= range_list[1] ) {
+                return '#FFCCCC';
+            } else if (d >= range_list[2] && d <= range_list[3] ) {
+                return '#FF9999';
+            } else if (d >= range_list[4] && d <= range_list[5] ) {
+                return '#FF6666';
+            } else if (d >= range_list[6] && d <= range_list[7] ) {
+                return '#FF3333';
+            } else if (d >= range_list[8] && d <= range_list[9] ) {
+                return '#990000';
+            }
+        }
+
+        $(document).on("change", "#district_id", function () {
+            district = $(this).val()
+
+            $.ajax({
+                type: 'POST',
+                url: '/maxmodule/cais_module/getUpazilas/',
+                data: {
+
+                    'district': district,
+                },
+                success: function (data) {
+                    list = JSON.parse(data)
+
+                    $('#upazila_id').find('option').remove()
+                    $('#upazila_id').append('<option value="">Select Any </option>')
+                    for (var i = 0; i < list.upazila_List.length; i++) {
+                        $('#upazila_id').append('<option value = ' + list.upazila_List[i][0] + '>' + list.upazila_List[i][1] + '</option>')
+                    }
+                }
+
+            });
+
+            //reDataTable()
+        });
+
+        function checkSelect(id,selectValue){
+            if (id == selectValue) return "selected";
+            else return 1 ;
+        }
+
+        function load_division(object,selectValue) {
+            obj = parseInt(object.value);
+
+            if (isNaN(parseFloat(obj))) {
+                $('#division').html("<option value=\"%\">Select One</option>");
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDivisions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > " + result[i].field_name + "</option>";
+                        }
+                        $('#division').html(html_code);
+                         $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_district(object,selectValue) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDistricts/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > " + result[i].field_name + "</option>";
+                        }
+                        $('#district').html(html_code);
+                        $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_upazilla(object,selectValue) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUpazillas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazilla').html(html_code);
+                        $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_variety(object) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        $(document).ready(function(){
+
+             country_id = document.getElementById("data-country").value;
+             division_id = document.getElementById("data-division").value;
+             district_id = document.getElementById("data-district").value;
+             upazilla_id = document.getElementById("data-upazilla").value;
+
+             if (country_id != '%'){
+                 $("#country_id").val(country_id);
+                 if(division_id != '%'){
+                     var obj = {value:country_id};
+                     load_division(obj,division_id);
+
+                     if(district_id != '%'){
+                         var obj = {value:division_id};
+                         load_district(obj,district_id);
+
+                         if(district_id != '%'){
+                             var obj = {value:district_id};
+                             load_upazilla(obj,upazilla_id);
+                        }
+                     }
+
+                 }
+
+             }
+
+        });
+
+    </script>
+
+{% endblock %}

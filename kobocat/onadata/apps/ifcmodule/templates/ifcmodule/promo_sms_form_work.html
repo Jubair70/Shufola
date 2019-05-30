@@ -1,0 +1,1071 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/alertify.min.css" media="all"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/themes/semantic.min.css" media="all"/>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" media="all"/>
+
+    <style>
+     #map {
+            width: 780px;
+            height: 650px;
+        }
+
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+
+        .legend {
+            text-align: left;
+            line-height: 18px;
+            color: #555;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        table.paleBlueRows {
+            border: 1px solid #FFFFFF;
+            width: 350px;
+            display: block;
+            border-collapse: collapse;
+        }
+
+        table.paleBlueRows thead, tbody {
+
+        }
+
+        table.paleBlueRows tbody {
+
+        }
+
+        table.paleBlueRows td, table.paleBlueRows th {
+            border: 1px solid #FFFFFF;
+            padding: 3px 2px;
+        }
+
+        table.paleBlueRows tbody td {
+            font-size: 13px;
+            width: 100%;
+        }
+
+        table.paleBlueRows tr:nth-child(even) {
+            background: #D0E4F5;
+        }
+
+        table.paleBlueRows thead {
+            background: #1e90ff;
+            border-bottom: 5px solid #FFFFFF;
+        }
+
+        table.paleBlueRows th {
+            background: #1e90ff;
+            font-size: 13px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-align: center;
+            border-left: 2px solid #FFFFFF;
+            width: 100%;
+        }
+
+        table.paleBlueRows thead th:first-child {
+            border-left: none;
+        }
+
+        table.paleBlueRows tfoot {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333333;
+            background: #D0E4F5;
+            border-top: 3px solid #444444;
+        }
+
+        table.paleBlueRows tfoot td {
+            font-size: 14px;
+        }
+
+        @media print {
+            @page {
+                size: A3 landscape;
+            }
+
+            .leaflet-control-attribution {
+                display: none;
+            }
+
+            #map {
+                width: 780px;
+                height: 650px;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+
+            .info {
+                padding: 6px 8px;
+                font: 14px/16px Arial, Helvetica, sans-serif;
+                background: white;
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                border-radius: 5px;
+            }
+
+            .info h4 {
+                margin: 0 0 5px;
+                color: #777;
+            }
+
+            .legend {
+                text-align: left;
+                line-height: 18px;
+                color: #555;
+            }
+
+            .legend i {
+                width: 18px;
+                height: 18px;
+                float: left;
+                margin-right: 8px;
+                opacity: 1;
+            }
+
+            table.paleBlueRows {
+                border: 1px solid #FFF;
+                width: 350px;
+                display: block;
+                border-collapse: collapse;
+            }
+
+            table.paleBlueRows thead, tbody {
+                display: block;
+            }
+
+            table.paleBlueRows tbody {
+
+            }
+
+            table.paleBlueRows td, table.paleBlueRows th {
+                border: 1px solid #FFF;
+                padding: 3px 2px;
+            }
+
+            table.paleBlueRows tbody td {
+                font-size: 13px;
+                width: 100%;
+            }
+
+            table.paleBlueRows tr:nth-child(even) {
+                background: #D0E4F5;
+            }
+
+            table.paleBlueRows thead {
+                background: #1e90ff;
+                border-bottom: 5px solid #FFF;
+            }
+
+            table.paleBlueRows th {
+                background: #1e90ff;
+                font-size: 13px;
+                font-weight: bold;
+                color: #FFF;
+                text-align: center;
+                border-left: 2px solid #FFF;
+                width: 100%;
+            }
+
+            table.paleBlueRows thead th:first-child {
+                border-left: none;
+            }
+
+            table.paleBlueRows tfoot {
+                font-size: 14px;
+                font-weight: bold;
+                color: #333333;
+                background: #D0E4F5;
+                border-top: 3px solid #444444;
+            }
+
+            table.paleBlueRows tfoot td {
+                font-size: 14px;
+            }
+        }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="modal fade" id="empty_check_dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Alert</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>Please write some content in sms description or select an audio file.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+
+                </div>
+            </div>
+        </div>
+</div>
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="fa fa-reorder"></i> SMS
+            </div>
+        </div>
+
+        <div class="portlet-body">
+            <form class="horizontal-form" id="" method="post" action="/ifcmodule/insert_promotional_sms_form/" id="form" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-body">
+                <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Category: </label>
+                                <select class="form-control" name="category" id="category" required>
+                                    <option value="">Select One</option>
+                                    <option value="2" selected>Promotional / Broadcast</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>SMS:</label>
+                                <textarea class="form-control" style="height: 100px" name="sms_description" id="sms_description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+               <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Voice SMS:</label>
+                                <input id="voice_sms" name="voice_sms"  accept="audio/*" type="file">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Content ID:</label>
+                                    <input type="text" class="form-control" name="content_id" id="content_id">
+                                </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Group: </label>
+                                <select class="form-control" name="group" id="group">
+                                    <option value="0">Select One</option>
+                                    {% for grp_id,grp_name in grp %}
+                                        <option value="{{ grp_id }}" >{{ grp_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Organization: </label>
+                                <select class="form-control" name="organization" id="organization" onclick="load_program(this)">
+                                    <option value="%">Select One</option>
+                                    {% for org_id,org_name in organization %}
+                                        <option value="{{ org_id }}">{{ org_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Program: </label>
+                                <select class="form-control" name="program" id="program">
+                                    <option value="%">Select One</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Crop: </label>
+                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this);">
+                                    <option value="%">Select One</option>
+                                    {% for m,n in crop %}
+                                        <option value="{{ m }}">{{ n }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Variety of the Crop: </label>
+                                <select class="form-control" name="crop_variety" id="crop_variety">
+                                    <option value="%">Select One</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="row">
+                     <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Season: </label>
+                                <select class="form-control" name="season" id="season">
+                                    <option value="%">Select One</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Country: </label>
+                        <select class="form-control" name="country" id="country" onclick="load_division(this)">
+                            <option value="%">Select One</option>
+                            {% for country_id,country_name in country %}
+                                <option value="{{ country_id }}">{{ country_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Division: </label>
+                        <select class="form-control" name="division" id="division" onclick="load_district(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>District: </label>
+                        <select class="form-control" name="district" id="district" onclick="load_upazilla(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Upazilla: </label>
+                        <select class="form-control" name="upazilla" id="upazilla" onclick="load_union(this)">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Union: </label>
+                        <select class="form-control" name="union" id="union">
+                            <option value="%">Select One</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                     <button style="width: 100%; margin-top: 25px" id="map_id" name="map_id" type="button"
+                            class="btn pull-left" data-original-title="" title="">Generate Map
+                    </button>
+                </div>
+
+                </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;"id="cancel" name="cancel" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <div class="row">
+                 <div class="col-md-3">
+                    <button style="margin-left: 10px;width: 100%" class="btn btn-success pull-left" id="make_schedule" name="make_schedule" type="submit"
+                            data-original-title=""
+                            title=""> Make Schedule
+                    </button>
+                </div>
+            </div>
+            <div class="row" id="ok">
+
+            </div>
+            <br>
+            <div class="span8" id="a">
+                <div id="map" style="height: 450px; width: 450px;margin: 0px auto"></div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
+
+    <script>
+        var indicator_type = '';
+        var rdata ;
+        var range_list ;
+        var total_no_of_farmer ;
+
+        $(document).ready(function(){
+            console.log("yes");
+            crop_id = $('#crop option:selected').val();
+            program_id = $('#program option:selected').val();
+            $.ajax({
+                url: '/ifcmodule/getMapData/',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'crop':crop_id,
+                    'program':program_id,
+                },
+                beforeSend: function () {
+
+
+                },
+            success: function (result) {
+                    console.log(result);
+                    rdata = JSON.parse("{\"Dhaka\": 0}");
+                    range_list =  JSON.parse("[0, 100, 101, 350, 351, 500, 501, 750, 751, 1000]");
+                    total_no_of_farmer = JSON.parse("0");
+                    generateMap();
+                }
+
+             });
+
+        });
+
+        $("#map_id").on("click", function() {
+            document.getElementById('a').innerHTML = "<div id=\"map\" style=\"height: 450px; width: 450px;margin: 0px auto\"></div>";
+
+            crop_id = $('#crop option:selected').val();
+            program_id = $('#program option:selected').val();
+            crop_variety_id = $('#crop_variety option:selected').val();
+            season_id = $('#season option:selected').val();
+            division_id = $('#division option:selected').val();
+            district_id = $('#district option:selected').val();
+            upazilla_id = $('#upazilla option:selected').val();
+            union_id = $('#union option:selected').val();
+            $.ajax({
+                url: '/ifcmodule/getMapData/',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'crop':crop_id,
+                    'program':program_id,
+                    'crop_variety':crop_variety_id,
+                    'season':season_id,
+                    'division':division_id,
+                    'district':district_id,
+                    'upazilla':upazilla_id,
+                    'union':union_id,
+                },
+                beforeSend: function () {
+
+                },
+            success: function (result) {
+                    console.log(result);
+                    rdata = JSON.parse(result.dist_dict);
+                    range_list =  JSON.parse(result.processed_range_list);
+                    total_no_of_farmer = JSON.parse(result.total_farmer_no);
+                    generateMap();
+                }
+
+             });
+        });
+
+
+        function generateMap(){
+             if (JSON.stringify(rdata) != '{}') {
+
+                    myArray = objectToArray(rdata).sort(Comparator);
+                    addDatatoTable(myArray);
+
+                    console.log(myArray);
+
+                    var map = L.map('map').setView([23.946096, 90.128173], 6.3);
+
+                    var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
+                    {
+
+                        key: 'BC9A493B41014CAABB98F0471D759707',
+                        styleId: 22677
+                    }).addTo(map);
+
+
+                    // control that shows state info on hover
+                    var info = L.control();
+
+                    info.onAdd = function (map) {
+                        this._div = L.DomUtil.create('div', 'info');
+                        this.update();
+                        return this._div;
+                    };
+
+                    info.update = function (props) {
+                        this._div.innerHTML = '<p>District wise Map</p>' + (props ?
+                                '<br /><b>' + props.NAME_3 + ' </b> ' + rdata[props.NAME_3]
+                                : 'Hover over a district');
+                    };
+
+                    info.addTo(map);
+
+
+                    function style(feature) {
+                        return {
+                            weight: 1,
+                            opacity: 1,
+                            color: 'white',
+                            dashArray: '3',
+                            fillOpacity: 0.7,
+                            fillColor: getColor(feature.properties.NAME_3)
+                        };
+                    }
+
+                    function highlightFeature(e) {
+                        var layer = e.target;
+
+                        layer.setStyle({
+                            weight: 1,
+                            color: '#666',
+                            dashArray: '',
+                            fillOpacity: 0.7,
+                        });
+
+                        if (!L.Browser.ie && !L.Browser.opera) {
+                            layer.bringToFront();
+                        }
+
+                        info.update(layer.feature.properties);
+                    }
+
+                    var geojson;
+
+                    function resetHighlight(e) {
+                        geojson.resetStyle(e.target);
+                        info.update();
+                    }
+
+                    function zoomToFeature(e) {
+                        map.fitBounds(e.target.getBounds());
+                    }
+
+                    function onEachFeature(feature, layer) {
+                        layer.on({
+                            mouseover: highlightFeature,
+                            mouseout: resetHighlight,
+                            click: zoomToFeature
+                        });
+                    }
+
+                    geojson = L.geoJson(statesData, {
+                        style: style,
+                        onEachFeature: onEachFeature
+                    }).addTo(map);
+
+
+                    var legend = L.control({position: 'bottomleft'});
+
+                    legend.onAdd = function (map) {
+                        var div = L.DomUtil.create('div', 'info legend'),
+                        labels = ['<b>Total Farmer: ' + total_no_of_farmer + '</b>'];
+
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,204,204);stroke-width:3;stroke:rgb(255,204,204)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,153,153);stroke-width:3;stroke:rgb(255,153,153)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,102,102);stroke-width:3;stroke:rgb(255,102,102)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,51,51);stroke-width:3;stroke:rgb(255,51,51)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(153,0,0);stroke-width:3;stroke:rgb(153,0,0)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
+
+                        div.innerHTML = labels.join('<br>');
+                        return div;
+                    };
+
+                    legend.addTo(map);
+                    map.scrollWheelZoom.disable();
+
+                    $('.leaflet-top').addClass('noprint');
+                }
+        }
+
+
+
+
+        function objectToArray(obj) {
+            return Object.keys(obj).map(function (prop) {
+                return [prop, obj[prop]];
+            });
+        }
+
+        function Comparator(a, b) {
+            if (a[1] < b[1]) return 1;
+            if (a[1] > b[1]) return -1;
+            return 0;
+        }
+
+        function addDatatoTable(tabledata) {
+            var k = 1;
+            console.log(k);
+
+            for (var idx in tabledata) {
+                $('#dtext_' + k).text(tabledata[idx][0])
+                $('#dvalue_' + k).text(parseFloat(Math.round(tabledata[idx][1] * 100) / 100).toFixed(1));
+                k = k + 1;
+            }
+
+            $('#diswisemap').show();
+        }
+
+         function getColor(s) {
+            d = rdata[s];
+            if (d > range_list[0] && d <= range_list[1] ) {
+                return '#FFCCCC';
+            } else if (d >= range_list[2] && d <= range_list[3] ) {
+                return '#FF9999';
+            } else if (d >= range_list[4] && d <= range_list[5] ) {
+                return '#FF6666';
+            } else if (d >= range_list[6] && d <= range_list[7] ) {
+                return '#FF3333';
+            } else if (d >= range_list[8] && d <= range_list[9] ) {
+                return '#990000';
+            }
+        }
+
+        var needsUpdate = true;
+
+        $("#make_schedule").click(function () {
+            if (needsUpdate) {
+                $("#ok").append('<br><div class="col-md-3" style="margin-left: 5px"><div class="form-group"><label>Schedule Date: </label> <div class=\'input-group date\' id=\'datetimepicker1\'><input type=\'text\' class="form-control" /><span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div> </div></div> <div class="col-md-3" style="margin-left: 5px"><div class="form-group"><label>Repeat: </label><select class="form-control" name="repeat" id="repeat"><option value="%">Select One</option> <option value="1">Weekly</option><option value="2">Fortnightly</option><option value="3">Monthly</option></select></div></div> <div class="col-md-2" style="margin-left: 5px"><div class="form-group"><label>Repeat Cycle: </label> <div><input id="repeat_cycle" type="number" class="form-control" min="0" /></div> </div></div> <div class="col-md-3" style="margin-left: 5px; margin-top: 22px"> <button class="btn btn-danger" id="schedule_submit" name="schedule_submit" onclick="submit_schedule_data()"  data-original-title="" title="">Submit</button> <button onclick="window.location.reload()" style="margin-left:5px;"id="cancel" name="cancel" type="button" class="btn btn-info" data-original-title="" title="">Cancel </button></div>');
+                $("#submit").remove();
+                $("#cancel").remove();
+                needsUpdate = false;
+
+            }
+
+            $('#datetimepicker1').datetimepicker().data("DateTimePicker").options({format: "YYYY-MM-DD HH:mm"})
+        });
+
+        function submit_schedule_data() {
+            schedule_date_value = $("#datetimepicker1").find("input").val();
+            repeat_value = document.getElementById("repeat").value ;
+            repeat_cycle =  $("#repeat_cycle").val();
+            country = $('#country option:selected').val();
+            division = $('#division option:selected').val();
+            district = $('#district option:selected').val();
+            upazilla = $('#upazilla option:selected').val();
+            union = $('#union option:selected').val();
+            organization = $('#organization option:selected').val();
+            program = $('#program option:selected').val();
+            crop = $('#crop option:selected').val();
+            crop_variety = $('#crop_variety option:selected').val();
+            season = $('#season option:selected').val();
+            group = $('#group option:selected').val();
+            category = $('#category option:selected').val();
+
+            content_id = document.getElementById("content_id").value ;
+            sms_description = document.getElementById("sms_description").value ;
+            voice_sms = document.getElementById("voice_sms").value ;
+
+            console.log('-----------');
+            console.log(repeat_cycle);
+
+            $.ajax({
+                url: '/ifcmodule/insert_promotional_sms_form_with_schedule/',
+                type: 'POST',
+                data:{
+                    'schedule_date_value':schedule_date_value,
+                    'repeat_value':repeat_value,
+                    'country':country,
+                    'division':division,
+                    'district':district,
+                    'upazilla':upazilla,
+                    'union':union,
+                    'program':program,
+                    'crop':crop,
+                    'crop_variety':crop_variety,
+                    'season':season,
+                    'organization':organization,
+                    'group':group,
+                    'category':category,
+                    'content_id':content_id,
+                    'sms_description':sms_description,
+                    'voice_sms':voice_sms,
+                    'repeat_cycle':repeat_cycle
+                 },
+            })
+            .done(function (response) {
+                console.log('------response--------');
+                console.log(response);
+                if(response=='ok'){
+                    alert('success');
+                    window.location.reload()
+                }else{
+                    alert('not success');
+                     window.location.reload()
+                }
+            })
+            .fail(function () {
+                console.log("error");
+            });
+
+
+        }
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+        function load_stage(object) {
+            ajaxcall();
+            season_id = parseInt(object.value);
+            crop_id = $('#crop option:selected').val();
+            var_id = $('#crop_variety option:selected').val();
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getStage/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'season_id': season_id,
+                        'crop_id':crop_id,
+                        'var_id':var_id,
+                           },
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].stage_name + "</option>";
+                        }
+                        $('#crop_stage').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function load_program(object) {
+            ajaxcall();
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#program').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getProgram/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
+                        }
+                        $('#program').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function load_division(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#division').html("<option value=\"%\">Select One</option>");
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDivisions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#division').html(html_code);
+                         $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_district(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#district').html("<option value=\"%\">Select One</option>");
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getDistricts/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#district').html(html_code);
+                        $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_upazilla(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#upazilla').html("<option value=\"%\">Select One</option>");
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUpazillas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazilla').html(html_code);
+                        $('#union').html("<option value=\"%\">Select One</option>");
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_union(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUnions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#union').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+               if ($('.alert-block').is(':visible')) {
+            window.setTimeout(function () {
+                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+
+
+        $('#wea').on('click',function () {
+            var sms_description = $('#sms_description').val();
+            var voice_sms = $('#voice_sms').val();
+            if(!sms_description.length && !voice_sms.length)
+            {
+                $('#empty_check_dialog').modal('toggle');
+               return false;
+            }
+
+        });
+
+
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/alertify.min.css" media="all"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/themes/semantic.min.css" media="all"/>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" media="all"/>
+
+    <style>
+        .e:hover{
+             background-color:#FF6666;
+             color: white;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Content</div>
+        </div>
+        <div class="portlet-body" >
+            <div class="row">
+                <div class="col-md-12" style="margin-bottom: 20px">
+                    <div class="col-md-12 col-xs-12" style="margin-bottom: 20px">
+
+                        <div class="col-md-4 col-xs-6 col-md-offset-4 col-xs-offset-3" style="border: 1px solid #e02222;padding: 0px">
+                              <div class="btn e col-md-6 col-xs-6 " style="font-weight: bold;" onclick="location.href='/ifcmodule/content_library';">Content Library</div>
+                              <div class="btn col-md-6 col-xs-6 active" style="background: #e02222;color: white;font-weight: bold"  onclick="location.href='';" >Create Content</div>
+
+
+                        </div>
+                 </div>
+                 </div>
+
+            </div>
+
+             <form class="horizontal-form" id="" method="post" action="/ifcmodule/update_content_form/{{id}}/" id="form" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Input type: </label>
+                                <select class="form-control" name="input_type" id="input_type">
+                                    <option value="">Select One</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Season: </label>
+                                <select class="form-control" name="season" id="season" required>
+                                    <option value="%">Select One</option>
+                                    {% for x,y in season %}
+                                        <option value="{{ x }}"  {% if x == season_id %} selected {% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                          <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Crop: </label>
+                                <select class="form-control" name="crop" id="crop" onclick="load_variety(this);" required>
+                                    <option value="%">Select One</option>
+                                    {% for m,n in crop %}
+                                        <option value="{{ m }}" {% if m == crop_id %} selected {% endif %}>{{ n }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Variety of the Crop: </label>
+                                <select class="form-control" name="crop_variety" id="crop_variety" required>
+                                    <option value="%">Select One</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>SMS type: </label>
+                                <select class="form-control" name="sms_type" id="sms_type" required>
+                                    <option value="text">Text</option>
+                                    <option value="audio">Audio</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Organization: </label>
+                                <select class="form-control" name="organization" id="organization"  required>
+                                    <option value="%">Select One</option>
+                                    {% for org_id,org_name in organization %}
+                                        <option value="{{ org_id }}" {% if org_id_ == org_id %} selected {% endif %}>{{ org_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>SMS:</label>
+                                <textarea class="form-control" style="height: 100px" name="sms_description" id="sms_description"> {{sms}}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Voice SMS:</label>
+                                <input id="voice_sms" name="voice_sms"  accept="audio/*" type="file">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12" style="margin-left: 5px">
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;"id="cancel" name="cancel" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+                        </div>
+                    </div>
+
+
+
+            </form>
+            </div>
+
+        </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
+
+
+    <script type="text/javascript">
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+        function load_variety(object,selectValue) {
+            console.log("---selet value----");
+            console.log(selectValue);
+            ajaxcall();
+            obj = parseInt(object.value);
+
+            if (isNaN(parseFloat(obj))) {
+                console.log("ops");
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+                console.log("yes");
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    success: function (result) {
+                        console.log(result);
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+        function checkSelect(id,selectValue){
+            if (id == selectValue) return "selected";
+            else return 1 ;
+        }
+
+        $(document).ready(function(){
+             crop_id = {{crop_id| safe}};
+             variety_id = {{crop_variety_id| safe}};
+
+             console.log(crop_id);
+             if ( crop_id != '%'){
+                 var obj = {value:crop_id};
+                 load_variety(obj,variety_id);
+             }
+
+        });
+    </script>
+
+{% endblock %}

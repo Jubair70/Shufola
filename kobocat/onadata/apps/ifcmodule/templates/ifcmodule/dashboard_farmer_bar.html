@@ -1,0 +1,297 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/alertify.min.css" media="all"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/themes/semantic.min.css" media="all"/>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" media="all"/>
+
+    <style>
+        .e:hover{
+             background-color:#FF6666;
+             color: white;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Farmers</div>
+        </div>
+        <div class="portlet-body" >
+            <div class="row">
+                <div class="col-md-12" style="margin-bottom: 20px">
+                    <div class="col-md-4 col-md-offset-4" style="border: 1px solid #e02222;padding: 0px">
+                          <div class="btn e col-md-4 " style="font-weight: bold;" onclick="location.href='/ifcmodule/dashboard/farmer/map';">Map View</div>
+                          <div class="btn col-md-4 active" style="background: #e02222;color: white;font-weight: bold" onclick="location.href='';" >Bar Chart</div>
+                          <div class="btn e col-md-4" style="font-weight: bold;" onclick="location.href='/ifcmodule/dashboard/farmer/table';" > Farmer Table</div>
+                    </div>
+                 </div>
+                <form class="" method="POST">
+                {% csrf_token %}
+                <div class="col-md-12">
+
+                    <div class="col-md-3 col-md-offset-3">
+                        <label>From Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="from_date" name="from_date" value="{{start_date}}" class="form-control"  readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>To Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="to_date" name="to_date" value="{{end_date}}" class="form-control" readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label >Country:</label>
+                            <select type="select" name="country_id" id="country_id" class="form-control " required>
+                                <option value="1">Bangladesh</option>
+                            </select>
+                        </div>
+                    </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Organization: </label>
+                        <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
+                            <option value="%">Select One</option>
+                            {% for org_id,org_name in organization %}
+                                <option value="{{ org_id }}" {% if org_id == org_for_template %} selected {% endif %}>{{ org_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Program: </label>
+                        <select class="form-control" name="program" id="program" required>
+                            <option value="%">Select One</option>
+                        </select>
+
+                    </div>
+                </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label >Crop:</label>
+                            <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" >
+                                <option value="%">Select One</option>
+                                {% for crop_id,crop_name in crop_list %}
+                                    <option value="{{ crop_id }}">{{ crop_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Variety of the Crop: </label>
+                            <select class="form-control" name="crop_variety" id="crop_variety"  required>
+                                <option value="%">Select One</option>
+
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Season: </label>
+                            <select class="form-control" name="season" id="season" required>
+                                <option value="%">Select One</option>
+                                {% for x,y in season %}
+                                    <option value="{{ x }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Group: </label>
+                            <select class="form-control" name="group_id" id="group_id" required>
+                                <option value="%">Select One</option>
+                                {% for x,y in group %}
+                                <option value="{{ x }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Land Size: </label>
+                            <select class="form-control" name="land" id="land" required>
+                                <option value="%">All</option>
+                                <option value="1">Small (0-20 decimal)</option>
+                                <option value="2">Medium (21-100 decimal)</option>
+                                <option value="3">Large (1 acre+)</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>District Status: </label>
+                            <select class="form-control" name="dis_status" id="dis_status" required>
+                                <option value="%" {% if district_status == 0 %} selected {% endif %}>All</option>
+                                <option value="1" {% if district_status == 1 %} selected {% endif %}>Top</option>
+                                <option value="2" {% if district_status == 2 %} selected {% endif %}>Bottom</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>District Range: </label> <br>
+                            <input class="form-control" type="number" min="1" max="64" id="dis_range" name="dis_range" value="{{district_range}}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                            <div class="form-group">
+                                <button style="margin-top:25px;" type="submit" class="btn red" id="default_search">Filter</button>
+                            </div>
+                        </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <a style="margin-top:25px;" class="btn blue pull-right hidden-print" onclick="javascript:window.print();">Print <i class="fa fa-print"></i></a>
+                        </div>
+                    </div>
+
+                </div>
+                </form>
+
+                <div class="col-md-12" style="margin-top: 50px; margin-bottom: 20px">
+                    <div class="card" style="height: auto;  margin: 5px">
+                        <div class="card-body">
+                            <div id="container_1" style="max-width: 600px; margin: 0 auto;"></div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            bar_data = {{bar_data|safe}}
+            drilldown_data = {{drilldown_data | safe}}
+            console.log(drilldown_data);
+            dashboardBarChart('container_1', 'Total Registered Farmers', bar_data, drilldown_data);
+
+        });
+
+        function dashboardBarChart(div, title, data , drilldown_data) {
+           Highcharts.chart(div, {
+              chart: {
+                  type: 'column'
+              },
+              title: {
+                  text: title
+              },
+              xAxis: {
+                  type: 'category'
+              },
+              series: [{
+                  name: 'Farmers',
+                  colorByPoint: true,
+                  data: data
+                }],
+              drilldown: {
+                    series: drilldown_data
+                }
+            });
+       }
+
+       function load_variety(object) {
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+                function load_program(object) {
+            obj = parseInt(object.value)
+
+            if (isNaN(parseFloat(obj))) {
+                $('#program').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getProgram/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
+                        }
+                        $('#program').html(html_code);
+                    }
+                });
+            }
+
+        }
+
+    </script>
+
+{% endblock %}
