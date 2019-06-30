@@ -242,7 +242,7 @@
 
                 <div class="col-md-12">
                     <div class="col-md-3 col-md-offset-3">
-                        <label>From Date: </label>
+                        <label>From Date (Reg.): </label>
                         <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
                             <input type="text" id="start_date" name="start_date" class="form-control" value="{{start_date}}"  readonly>
                             <div class="input-group-addon">
@@ -251,7 +251,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <label>To Date: </label>
+                        <label>To Date (Reg.): </label>
                         <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
                             <input type="text" id="end_date" name="end_date" value="{{end_date}}" class="form-control" readonly>
                             <div class="input-group-addon">
@@ -313,6 +313,31 @@
             <div class="span8">
                 <div id="map" style="height: 600px;margin: 0px auto"></div>
             </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+
+              <!-- Modal content-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Modal Header</h4>
+                </div>
+                <div class="modal-body">
+                  <p>Some text in the modal.</p>
+                  <div class="span8" id="a">
+                    <div id="map_upazila" style="height: 400px;margin: 0px auto"></div>
+                </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+
+            </div>
+            </div>
+
         </div>
      </div>
 
@@ -335,6 +360,7 @@
     <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
     <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/Barisal.js"></script>
 
 
 
@@ -414,7 +440,38 @@
             }
 
             function zoomToFeature(e) {
-                console.log(e);
+            //     var layer = e.target;
+            //     var dist_name = layer.feature.properties.NAME_3 ;
+            //     $('#myModal').modal('show');
+            //
+            //     document.getElementById('a').innerHTML = "<div id=\"map_upazila\" style=\"height: 450px; width: 450px;margin: 0px auto\"></div>";
+            //     $.ajax({
+            //     url: '/ifcmodule/getMapData/',
+            //     type: 'POST',
+            //     dataType: 'json',
+            //     data: {
+            //         'crop': '%',
+            //         'program':'%',
+            //         'crop_variety':'%',
+            //         'season':'%',
+            //         'division':'%',
+            //         'district':'%',
+            //         'upazilla':'%',
+            //         'union':'%',
+            //     },
+            //     beforeSend: function () {
+            //
+            //     },
+            // success: function (result) {
+            //         console.log(result);
+            //         rdata = JSON.parse(result.dist_dict);
+            //         range_list =  JSON.parse(result.processed_range_list);
+            //         total_no_of_farmer = JSON.parse(result.total_farmer_no);
+            //         generateMap(rdata,range_list,total_no_of_farmer);
+            //     }
+            //
+            //  });
+
                 map.fitBounds(e.target.getBounds());
             }
 
@@ -492,6 +549,119 @@
             } else if (d >= range_list[8] && d <= range_list[9] ) {
                 return '#990000';
             }
+        }
+
+
+        function generateMap(rdata,range_list,total_no_of_farmer){
+             if (JSON.stringify(rdata) != '{}') {
+
+                    myArray = objectToArray(rdata).sort(Comparator);
+                    addDatatoTable(myArray);
+
+                    console.log(myArray);
+
+                    var map = L.map('map_upazila').setView([23.946096, 90.128173], 6.3);
+
+                    var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
+                    {
+
+                        key: 'BC9A493B41014CAABB98F0471D759707',
+                        styleId: 22677
+                    }).addTo(map);
+
+
+                    // control that shows state info on hover
+                    var info = L.control();
+
+                    info.onAdd = function (map) {
+                        this._div = L.DomUtil.create('div', 'info');
+                        this.update();
+                        return this._div;
+                    };
+
+                    info.update = function (props) {
+                        this._div.innerHTML = '<p>District wise Map</p>' + (props ?
+                                '<br /><b>' + props.NAME_3 + ' </b> ' + rdata[props.NAME_3]
+                                : 'Hover over a district');
+                    };
+
+                    info.addTo(map);
+
+
+                    function style(feature) {
+                        return {
+                            weight: 1,
+                            opacity: 1,
+                            color: 'white',
+                            dashArray: '3',
+                            fillOpacity: 0.7,
+                            fillColor: getColor(feature.properties.NAME_3)
+                        };
+                    }
+
+                    function highlightFeature(e) {
+                        var layer = e.target;
+
+                        layer.setStyle({
+                            weight: 1,
+                            color: '#666',
+                            dashArray: '',
+                            fillOpacity: 0.7,
+                        });
+
+                        if (!L.Browser.ie && !L.Browser.opera) {
+                            layer.bringToFront();
+                        }
+
+                        info.update(layer.feature.properties);
+                    }
+
+                    var geojson;
+
+                    function resetHighlight(e) {
+                        geojson.resetStyle(e.target);
+                        info.update();
+                    }
+
+                    function zoomToFeature(e) {
+                        map.fitBounds(e.target.getBounds());
+                    }
+
+                    function onEachFeature(feature, layer) {
+                        layer.on({
+                            mouseover: highlightFeature,
+                            mouseout: resetHighlight,
+                            click: zoomToFeature
+                        });
+                    }
+
+                    geojson = L.geoJson(statesData, {
+                        style: style,
+                        onEachFeature: onEachFeature
+                    }).addTo(map);
+
+
+                    var legend = L.control({position: 'bottomleft'});
+
+                    legend.onAdd = function (map) {
+                        var div = L.DomUtil.create('div', 'info legend'),
+                        labels = ['<b>Total Farmer: ' + total_no_of_farmer + '</b>'];
+
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,204,204);stroke-width:3;stroke:rgb(255,204,204)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,153,153);stroke-width:3;stroke:rgb(255,153,153)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,102,102);stroke-width:3;stroke:rgb(255,102,102)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,51,51);stroke-width:3;stroke:rgb(255,51,51)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
+                        labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(153,0,0);stroke-width:3;stroke:rgb(153,0,0)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
+
+                        div.innerHTML = labels.join('<br>');
+                        return div;
+                    };
+
+                    legend.addTo(map);
+                    map.scrollWheelZoom.disable();
+
+                    $('.leaflet-top').addClass('noprint');
+                }
         }
 
     </script>

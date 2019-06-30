@@ -37,7 +37,7 @@
                 <div class="col-md-12">
 
                     <div class="col-md-3 col-md-offset-3">
-                        <label>From Date: </label>
+                        <label>From Date (Reg.): </label>
                         <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
                             <input type="text" id="from_date" name="from_date" value="{{start_date}}" class="form-control"  readonly>
                             <div class="input-group-addon">
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <label>To Date: </label>
+                        <label>To Date (Reg.): </label>
                         <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
                             <input type="text" id="to_date" name="to_date" value="{{end_date}}" class="form-control" readonly>
                             <div class="input-group-addon">
@@ -229,7 +229,7 @@
                   type: 'category'
               },
               series: [{
-                  name: 'Farmers',
+                  name: 'District',
                   colorByPoint: true,
                   data: data
                 }],

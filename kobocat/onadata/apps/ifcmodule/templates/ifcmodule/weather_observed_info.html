@@ -485,6 +485,7 @@
 
             html_daily =
                '            <div id="add_div">\n'+
+               '            <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">\n'+
                '              <div class="row" style="margin-top: 50px; margin-bottom: 20px">\n'+
                '                    <div class="card" style="height: auto;  margin: 5px">\n'+
                '                        <div class="card-body">\n'+
@@ -518,10 +519,10 @@
                         'station_name': station_id
                     },
                     beforeSend: function () {
-
+                         $('#container').show();
                     },
                     success: function (result) {
-
+                        $('#container').hide();
                         dashboardBarChart('container_a', 'Temperature', 'Temperature (°C)' , result.category_list, result.series_list_temp);
                         dashboardBarChart('container_b', 'Humidity', 'Humidity(Rh)' ,result.category_list, result.series_list_hum);
                         dashboardBarChart('container_c', 'Solar Radiation', ' Sum Solar Radiation(Srad)' ,result.category_list, result.series_list_solar_rad);

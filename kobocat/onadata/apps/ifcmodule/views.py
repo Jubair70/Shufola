@@ -643,6 +643,8 @@ def promotional_sms_form(request):
 
 
 def getMapData(request):
+
+    print '--------map data------------'
     org_list = getOrgList(request)
     processed_dist_dict = {}
     range_list = []
@@ -818,8 +820,8 @@ def promotional_sms_form_for_content(request,content_id):
 @login_required
 def promotional_sms_list(request):
     org_list = getOrgList(request)
-    query = "select 'Promotional/Broadcast' category_name,coalesce((select organization from usermodule_organizations where id::text = organization_id limit 1),'All') organization_name, coalesce((select program_name from usermodule_programs where id::text = program_id limit 1),'All') program_name, coalesce((select crop_name from crop where id::text = crop_id limit 1),'All') crop_name, coalesce((select variety_name from crop_variety where id::text = variety_id limit 1),'All') variety_name, coalesce((select season_name from cropping_season where id::text = season_id limit 1),'All') season_name, coalesce((select name from geo_country where id::text = country_id limit 1),'All') country_name, coalesce((select name from geo_zone where id::text = division_id limit 1),'All') division_name, coalesce((select name from geo_district where id::text = district_id limit 1),'All') district_name, coalesce((select name from geo_upazilla where id::text = upazilla_id limit 1),'All') upazilla_name, coalesce((select name from geo_union where id::text = union_id limit 1),'All') union_name,sms_description,mobile_number,farmer_name,substring(voice_sms_file_path from 8)voice_sms_file_path,content_type from promotional_sms where organization_id::int = any('{"+str(org_list).strip('[]')+" }')"
-    promotional_sms_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    # query = "select 'Promotional/Broadcast' category_name,coalesce((select organization from usermodule_organizations where id::text = organization_id limit 1),'All') organization_name, coalesce((select program_name from usermodule_programs where id::text = program_id limit 1),'All') program_name, coalesce((select crop_name from crop where id::text = crop_id limit 1),'All') crop_name, coalesce((select variety_name from crop_variety where id::text = variety_id limit 1),'All') variety_name, coalesce((select season_name from cropping_season where id::text = season_id limit 1),'All') season_name, coalesce((select name from geo_country where id::text = country_id limit 1),'All') country_name, coalesce((select name from geo_zone where id::text = division_id limit 1),'All') division_name, coalesce((select name from geo_district where id::text = district_id limit 1),'All') district_name, coalesce((select name from geo_upazilla where id::text = upazilla_id limit 1),'All') upazilla_name, coalesce((select name from geo_union where id::text = union_id limit 1),'All') union_name,sms_description,mobile_number,farmer_name,substring(voice_sms_file_path from 8)voice_sms_file_path,content_type from promotional_sms where organization_id::int = any('{"+str(org_list).strip('[]')+" }')"
+    # promotional_sms_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return render(request, 'ifcmodule/promotional_sms_list.html', {
         'promotional_sms_list': promotional_sms_list
     })
@@ -2071,7 +2073,7 @@ def getWeatherForecastGraphData(request):
     series_list_hum.append({'name': 'Max', 'data': hum_max_list})
     series_list_hum.append({'name': 'Avg', 'data': hum_avg_list})
 
-    series_list_rainfall.append({'name': 'Sum Rainfall', 'data': rainfall_list})
+    series_list_rainfall.append({'name': 'Daily Rainfall', 'data': rainfall_list})
 
     print categories
     print series_list_temp
@@ -3173,14 +3175,14 @@ def get_program_graph(request):
 
         acre_data.append(float(total_acre_weather_sms))
 
-    total_crop_management_sms = __db_fetch_single_value_excption("select count(*) OVER () from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by crop_id limit 1")
+    total_crop_management_sms = __db_fetch_single_value_excption("select count(*) OVER () from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1")
     crop_data.append(int(total_crop_management_sms))
 
-    total_crop_promotional_sms = __db_fetch_single_value_excption("select count(*) OVER () from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent' ) and program_id::text LIKE '"+str(graph_program_id)+"' and organization_id in ("+str(org_list_text).strip('[]')+") and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by crop_id limit 1 ")
+    total_crop_promotional_sms = __db_fetch_single_value_excption("select count(*) OVER () from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent' ) and program_id::text LIKE '"+str(graph_program_id)+"' and organization_id in ("+str(org_list_text).strip('[]')+") and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1 ")
     crop_data.append(int(total_crop_promotional_sms))
 
     if request.user.is_superuser:
-        total_crop_weather_sms = __db_fetch_single_value_excption("select count(*) OVER () from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by crop_id limit 1")
+        total_crop_weather_sms = __db_fetch_single_value_excption("select count(*) OVER () from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1")
         crop_data.append(int(total_crop_weather_sms))
 
     print farmer_data
@@ -3614,7 +3616,8 @@ def get_farmer_table(request):
 
 
 def get_farmer_table_activity_history(request):
-    activity_history = __db_fetch_values_dict("select string_agg(id::text,'_') as ids, updated_at::timestamp::date activity_date, count(id) as t_farmer, count(distinct organization_id) as t_org, count(distinct country_id) as t_country,count(distinct zone_id) as t_zone,count(distinct district_id) as t_district,count(distinct upazila_id) as t_upazila, count(distinct union_id) as t_union , count(distinct union_id) as t_union from farmer where status = 0 group by activity_date")
+    org_list = getOrgList(request)
+    activity_history = __db_fetch_values_dict("select string_agg(id::text,'_') as ids, updated_at::timestamp::date activity_date, count(id) as t_farmer, count(distinct organization_id) as t_org, count(distinct country_id) as t_country,count(distinct zone_id) as t_zone,count(distinct district_id) as t_district,count(distinct upazila_id) as t_upazila, count(distinct union_id) as t_union , count(distinct union_id) as t_union from farmer where organization_id =  any('{" + str(org_list).strip('[]') + " }') and status = 0 group by activity_date")
 
     return render(request, 'ifcmodule/dashboard_farmer_table_activity_history.html',{
         'activity_history':activity_history
