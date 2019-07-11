@@ -2903,6 +2903,17 @@ def check_farmer_already_exists(country_id, zone_id, district_id, upazilla_id, u
 
 
 
+def get_farmer_already_exists(country_id, zone_id, district_id, upazilla_id, union_id, organization_id, program_id,
+                                farmer_name, mobile_no):
+    return __db_fetch_single_value(
+        "select id from farmer where farmer_name = '" + str(farmer_name) + "' and district_id = " + str(
+            district_id) + " and upazila_id = " + str(upazilla_id) + " and union_id = " + str(
+            union_id) + " and mobile_number = '" + str(mobile_no) + "' and zone_id = " + str(
+            zone_id) + " and country_id = " + str(country_id) + " and organization_id = " + str(
+            organization_id) + " and program_id = " + str(program_id)+" limit 1")
+
+
+
 def process_bulk_data(file_url):
     df = pandas.read_excel('onadata/media/' + str(file_url),
                        sheet_name=0, index_col=None,
@@ -3019,13 +3030,45 @@ def process_bulk_data(file_url):
                                                                                 crop_upazila_id) + ", " + str(
                                                                                 crop_union_id) + ") returning id")
                                                                     else:
-                                                                        row[
-                                                                            'Problem Field'] = 'Crop Combination Already Exists'
+                                                                        row['Problem Field'] = 'Crop Combination Already Exists'
                                                                         invalid_df = invalid_df.append(row,
                                                                                                        ignore_index=True)
                                                             else:
-                                                                row['Problem Field'] = 'Farmer Already Exists'
-                                                                invalid_df = invalid_df.append(row, ignore_index=True)
+                                                                fid = get_farmer_already_exists(country_id, zone_id,
+                                                                                             district_id,
+                                                                                             upazilla_id, union_id,
+                                                                                             organization_id,
+                                                                                             program_id,
+                                                                                             row['Farmer Name'].strip(),
+                                                                                             row['Mobile No'].strip())
+                                                                if fid:
+                                                                    cc = check_crop_combination_exists(zone_id,
+                                                                                                       crop_district_id,
+                                                                                                       crop_upazila_id,
+                                                                                                       crop_union_id,
+                                                                                                       fid,
+                                                                                                       crop_id,
+                                                                                                       season_id,
+                                                                                                       variety_id,
+                                                                                                       sowing_date, row[
+                                                                                                           'Land Size'].strip())
+                                                                    if cc == 0:
+                                                                        cid = __db_run_query(
+                                                                            "INSERT INTO public.farmer_crop_info (farmer_id, crop_id, season_id, crop_variety_id, sowing_date, unit_id, land_size, created_at, created_by, updated_at, updated_by, zone_id, district_id, upazila_id, union_id) VALUES(" + str(
+                                                                                fid) + ", " + str(crop_id) + ", " + str(
+                                                                                season_id) + ", " + str(
+                                                                                variety_id) + ", '" + str(
+                                                                                sowing_date) + "', " + str(
+                                                                                land_unit) + ", '" + str(
+                                                                                row[
+                                                                                    'Land Size']) + "', now(), 84, now(), 84, " + str(
+                                                                                zone_id) + ", " + str(
+                                                                                crop_district_id) + ", " + str(
+                                                                                crop_upazila_id) + ", " + str(
+                                                                                crop_union_id) + ") returning id")
+                                                                    else:
+                                                                        row['Problem Field'] = 'Crop Combination already exists'
+                                                                        invalid_df = invalid_df.append(row, ignore_index=True)
                                                     else:
                                                         row['Problem Field'] = 'Invalid Crop Geolocations'
                                                         invalid_df = invalid_df.append(row, ignore_index=True)
