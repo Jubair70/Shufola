@@ -1120,6 +1120,11 @@ def export_farmer(request):
         elif not df_gr.empty:
             farmer_list = df_gr.farmer_id.tolist()
 
+    if from_date !='' and to_date !='' :
+        date_query = " and sowing_date::date  between symmetric '" + str(from_date) + "' and '" + str(to_date) + "'"
+    else :
+        date_query = ""
+
     df = pandas.DataFrame()
     if stat_crop or stat_grp:
         farmer_list = str(farmer_list).replace('[', '{').replace(']', '}')
@@ -1127,7 +1132,7 @@ def export_farmer(request):
             organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
             district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
-            union) + "' ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
+            union) + "' ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id where farmer_crop_info.crop_id::text like '"+str(crop)+"' and farmer_crop_info.crop_variety_id::text like '"+str(crop_variety)+"' and farmer_crop_info.season_id::text like '"+str(season)+"'"+date_query
         df = pandas.read_sql(query, connection)
 
     else:
@@ -1135,7 +1140,7 @@ def export_farmer(request):
             organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
             district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
-            union) + "' ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
+            union) + "' ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id where farmer_crop_info.crop_id::text like '"+str(crop)+"' and farmer_crop_info.crop_variety_id::text like '"+str(crop_variety)+"' and farmer_crop_info.season_id::text like '"+str(season)+"'"+date_query
         df = pandas.read_sql(query, connection)
 
     writer = pandas.ExcelWriter("onadata/media/uploaded_files/output.xls")
