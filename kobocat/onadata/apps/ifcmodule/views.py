@@ -57,7 +57,7 @@ import decimal
 import os
 import shutil
 import os
-import datetime
+#import datetime
 import xlsxwriter
 
 def multipleValuedQuryExecution(query):
@@ -880,8 +880,8 @@ def promotional_sms_history_map(request):
     _district = '%'
     _upazilla = '%'
 
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    start_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    start_date = datetime.now().strftime("%Y-%m-%d")
     #start_date = '2017-01-01'
     sub_query = " and organization_id in ("+str(org_list_text).strip('[]')+")"
 
@@ -1972,8 +1972,8 @@ def export_sms_log(request):
     status = request.POST.get('status','%')
     sms_source = request.POST.get('sms_source','%')
 
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    start_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    start_date = datetime.now().strftime("%Y-%m-%d")
 
     if request.method == 'POST':
         if request.POST.get('from_date') != '':
@@ -3167,11 +3167,10 @@ def get_program_graph(request):
     program_list = __db_fetch_values_dict("select id,program_name from usermodule_programs where org_id = any('{"+str(org_list).strip('[]')+" }')")
     org_list_data = __db_fetch_values_dict("select id,organization from usermodule_organizations where id = any('{"+str(org_list).strip('[]')+" }')")
 
-    # end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    # start_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    current_date = datetime.datetime.now().replace(day=1)
+
+    current_date = datetime.now().replace(day=1)
     start_date = current_date.strftime("%Y-%m-%d")
-    end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - datetime.timedelta(days=1)
+    end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
 
     graph_program_id = '%'
@@ -3333,9 +3332,9 @@ def get_farmer_map(request):
     sub_query = ''
     # end_date = datetime.datetime.now().strftime("%Y-%m-%d")
     # start_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    current_date = datetime.datetime.now().replace(day=1)
+    current_date = datetime.now().replace(day=1)
     start_date = current_date.strftime("%Y-%m-%d")
-    end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - datetime.timedelta(days=1)
+    end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
 
     if request.method == 'POST':
@@ -3445,9 +3444,9 @@ def get_farmer_bar(request):
 
     # end_date = datetime.datetime.now().strftime("%Y-%m-%d")
     # start_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    current_date = datetime.datetime.now().replace(day=1)
+    current_date = datetime.now().replace(day=1)
     start_date = current_date.strftime("%Y-%m-%d")
-    end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - datetime.timedelta(days=1)
+    end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
 
     sub_query = "DESC"
@@ -3684,9 +3683,9 @@ def get_crop(request):
 
     # end_date = datetime.datetime.now().strftime("%Y-%m-%d")
     # start_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    current_date = datetime.datetime.now().replace(day=1)
+    current_date = datetime.now().replace(day=1)
     start_date = current_date.strftime("%Y-%m-%d")
-    end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - datetime.timedelta(days=1)
+    end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
 
     crop_id = '%'
@@ -3811,8 +3810,8 @@ def get_sms_map(request):
     _district = '%'
     _upazilla = '%'
     _advisory_type = '%'
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    start_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    start_date = datetime.now().strftime("%Y-%m-%d")
     # current_date = datetime.datetime.now().replace(day=1)
     # start_date = current_date.strftime("%Y-%m-%d")
     # end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,
@@ -3964,8 +3963,8 @@ def get_sms_bar(request):
     _district = '%'
     _upazilla = '%'
     _advisory_type = '%'
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    start_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    start_date = datetime.now().strftime("%Y-%m-%d")
     # current_date = datetime.datetime.now().replace(day=1)
     # start_date = current_date.strftime("%Y-%m-%d")
     # end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,
@@ -4075,10 +4074,10 @@ def get_voice_sms_map(request):
     _advisory_type = '%'
     # end_date = datetime.datetime.now().strftime("%Y-%m-%d")
     # start_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    current_date = datetime.datetime.now().replace(day=1)
+    current_date = datetime.now().replace(day=1)
     start_date = current_date.strftime("%Y-%m-%d")
-    end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,
-                                 1) - datetime.timedelta(days=1)
+    end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,
+                                 1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
 
     if request.method == 'POST':
@@ -4227,9 +4226,9 @@ def get_voice_sms_bar(request):
     _advisory_type = '%'
     # end_date = datetime.datetime.now().strftime("%Y-%m-%d")
     # start_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    current_date = datetime.datetime.now().replace(day=1)
+    current_date = datetime.now().replace(day=1)
     start_date = current_date.strftime("%Y-%m-%d")
-    end_date = datetime.datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - datetime.timedelta(days=1)
+    end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
 
 
@@ -4533,7 +4532,7 @@ def insert_content_form(request):
             url = "onadata/media/uploaded_files/"
             userName = request.user
             fs = FileSystemStorage(location=url)
-            myfile.name = str(datetime.datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
             sms_type = "audio"
@@ -4563,7 +4562,7 @@ def update_content_form(request,id):
             url = "onadata/media/uploaded_files/"
             userName = request.user
             fs = FileSystemStorage(location=url)
-            myfile.name = str(datetime.datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
             filename = fs.save(myfile.name, myfile)
             voice_sms_file_path = "onadata/media/uploaded_files/" + myfile.name
             sms_type = "audio"
