@@ -659,7 +659,7 @@ def user_login(request):
            # redirect_url = '/'
 
            #Presently USed Redirect URL
-            redirect_url = '/ifcmodule/management_sms_que_list/'
+            redirect_url = '/'
         # No context variables to pass to the template system, hence the
         # blank dictionary object...
         return render_to_response('usermodule/login.html', {'redirect_url':redirect_url}, context)
