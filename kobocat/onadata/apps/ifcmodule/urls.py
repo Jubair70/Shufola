@@ -146,5 +146,6 @@ urlpatterns = patterns('',
                        url(r'^weather_forecast_info/$', views.weather_forecast_info, name='weather_forecast_info'),
 
                        url(r'^getMapData/$', views.getMapData, name='getMapData'),
+                       url(r'^compare_aws_forecast/$', views.compare_aws_forecast, name='compare_aws_forecast'),
 
                        )

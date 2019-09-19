@@ -453,10 +453,10 @@
                                   '                    <td>'+sms_log[idx].date_info+'</td>\n'+
                                   '                    <td>'+sms_log[idx].temp_min+'</td>\n'+
                                   '                    <td>'+sms_log[idx].temp_max+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].temp_avg+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].temp_avg)).toFixed(2)+'</td>\n'+
                                   '                    <td>'+sms_log[idx].humidity_min+'</td>\n'+
                                   '                    <td>'+sms_log[idx].humidity_max+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].humidity_avg+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].humidity_avg)).toFixed(2)+'</td>\n'+
                                   '                    <td>'+sms_log[idx].sum_solar_radiation+'</td>\n'+
                                   '                    <td>'+sms_log[idx].max_wind_speed+'</td>\n'+
                                   '                    <td>'+sms_log[idx].sum_rainfall+'</td>\n'+

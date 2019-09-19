@@ -59,6 +59,7 @@ import shutil
 import os
 #import datetime
 import xlsxwriter
+import math
 
 def multipleValuedQuryExecution(query):
     cursor = connection.cursor()
@@ -89,6 +90,16 @@ def __db_fetch_values_dict(query):
     fetchVal = dictfetchall(cursor)
     cursor.close()
     return fetchVal
+
+def __db_fetch_values_dict_exception(query):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query)
+        fetchVal = dictfetchall(cursor)
+        cursor.close()
+        return fetchVal
+    except :
+        return {}
 
 
 def __db_commit_query(query):
@@ -1949,7 +1960,7 @@ def getSMSLogDataNew(request):
     status = request.POST.get('status')
     sms_source = request.POST.get('sms_source')
 
-    data_query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type, mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type,tx_id response FROM sms_que WHERE status like '"+str(status)+"' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source like '"+str(sms_source)+"' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id,organization_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path,response FROM t, farmer WHERE t.mobile_number = farmer.mobile_number and farmer.organization_id = any('{"+str(org_list).strip('[]')+" }')) SELECT farmer_name ,mobile_number, case when content_type = 'audio' then '<audio preload=\"metadata\" controls><source src="'||voice_sms_file_path||'" type=\"audio/mp4;\" codecs=\"mp4a.40.2\"/> <source src="'||voice_sms_file_path||'" type=\"audio/mpeg;\" codecs=\"vorbis\"/> <source src=\"'||voice_sms_file_path||'\" type=\"audio/ogg;\" codecs=\"vorbis\"/></audio>' else sms_text end, sms_type , schedule_time, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,response,t1.organization_id FROM t1 limit "+str(length)+" offset "+str(start)
+    data_query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type,(SELECT case when sms_source = 'management_sms_que' then (select (select crop_name from crop where id = crop_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select crop_name from crop where id::text = crop_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then (select (select crop_name from crop where id::text = crop_id limit 1) from promotional_sms where id = alertlog_id limit 1) end crop_type), mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type,tx_id response FROM sms_que WHERE status like '"+str(status)+"' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source like '"+str(sms_source)+"' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id,organization_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path,response,crop_type FROM t, farmer WHERE t.mobile_number = farmer.mobile_number and farmer.organization_id = any('{"+str(org_list).strip('[]')+" }')) SELECT farmer_name ,mobile_number, case when content_type = 'audio' then '<audio preload=\"metadata\" controls><source src="'||voice_sms_file_path||'" type=\"audio/mp4;\" codecs=\"mp4a.40.2\"/> <source src="'||voice_sms_file_path||'" type=\"audio/mpeg;\" codecs=\"vorbis\"/> <source src=\"'||voice_sms_file_path||'\" type=\"audio/ogg;\" codecs=\"vorbis\"/></audio>' else sms_text end, sms_type , schedule_time, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,response,crop_type FROM t1 limit "+str(length)+" offset "+str(start)
 
     data = multipleValuedQuryExecution(data_query)
 
@@ -2017,13 +2028,12 @@ def getWeatherForecastList(request):
     return HttpResponse(data)
 
 
-
 def getDailyWeatherForecastList(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
     place_name = request.POST.get('place_name')
 
-    query = "with t1 as (select place_name,TO_CHAR(date_time::timestamp,'YYYY-MM-DD HH24:MM:SS') as date_time,coalesce(temperature,'0') temperature, coalesce(humidity,'0') humidity, coalesce(wind_speed,'0') wind_speed, coalesce(wind_direction,'0') wind_direction, coalesce(rainfall,'0') rainfall from weather_forecast  where place_name like '" + str(place_name) + "' AND date_time::timestamp BETWEEN '" + str(from_date) + " 00:00:00'::timestamp and '" + str(to_date) + " 23:59:59'::timestamp order by date_time::timestamp) select place_name, date_time,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg, min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg, sum(cast(rainfall as double precision)) sum_rainfall,max(cast(wind_speed as double precision)) max_wind_speed, max(cast(wind_direction as double precision)) max_wind_direction  from t1 group by date_time,place_name"
+    query = "with t1 as (select place_name,TO_CHAR(date_time::timestamp::date,'YYYY-MM-DD') as date_time,coalesce(temperature,'0') temperature, coalesce(humidity,'0') humidity, coalesce(wind_speed,'0') wind_speed, coalesce(wind_direction,'0') wind_direction, coalesce(rainfall,'0') rainfall from weather_forecast  where place_name like '" + str(place_name) + "' AND date_time::timestamp BETWEEN '" + str(from_date) + " 00:00:00'::timestamp and '" + str(to_date) + " 23:59:59'::timestamp order by date_time::timestamp) select place_name, date_time,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg, min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg, sum(cast(rainfall as double precision)) sum_rainfall,max(cast(wind_speed as double precision)) max_wind_speed, max(cast(wind_direction as double precision)) max_wind_direction  from t1 group by date_time,place_name order by date_time"
 
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
@@ -2034,9 +2044,7 @@ def getWeatherForecastGraphData(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
     place_name = request.POST.get('place_name')
-    temp_dict = __db_fetch_values_dict("with t1 as (select place_name,TO_CHAR(date_time::timestamp,'YYYY-MM-DD') as date_time,coalesce(temperature,'0') temperature, coalesce(humidity,'0') humidity, coalesce(wind_speed,'0') wind_speed, coalesce(wind_direction,'0') wind_direction, coalesce(rainfall,'0') rainfall from weather_forecast  where place_name like '" + str(place_name) + "' AND date_time::timestamp BETWEEN '" + str(from_date) + " 00:00:00'::timestamp and '" + str(to_date) + " 23:59:59'::timestamp order by date_time::timestamp) select place_name, date_time,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg, min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg, sum(cast(rainfall as double precision)) sum_rainfall,max(cast(wind_speed as double precision)) max_wind_speed, max(cast(wind_direction as double precision)) max_wind_direction  from t1 group by date_time,place_name")
-
-    print temp_dict
+    temp_dict = __db_fetch_values_dict_exception("with t1 as (select place_name,TO_CHAR(date_time::timestamp,'YYYY-MM-DD') as date_time,coalesce(temperature,'0') temperature, coalesce(humidity,'0') humidity, coalesce(wind_speed,'0') wind_speed, coalesce(wind_direction,'0') wind_direction, coalesce(rainfall,'0') rainfall from weather_forecast  where place_name like '" + str(place_name) + "' AND date_time::timestamp BETWEEN '" + str(from_date) + " 00:00:00'::timestamp and '" + str(to_date) + " 23:59:59'::timestamp order by date_time::timestamp) select place_name, date_time,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg, min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg, sum(cast(rainfall as double precision)) sum_rainfall,max(cast(wind_speed as double precision)) max_wind_speed, max(cast(wind_direction as double precision)) max_wind_direction  from t1 group by date_time,place_name order by date_time::timestamp")
 
     categories = []
     series_list_temp = []
@@ -2114,7 +2122,7 @@ def getDailyWeatherObservedList(request):
     station_id = request.POST.get('station_name')
     print '-----processing---------'
 
-    query = "with t1 as (select case when station_id = '1' then 'Khulna' when station_id = '2' then 'Biratnagar' when station_id = '3' then 'Barisal' end station_name,substring(date_time from 1 for  20) as date_time, date_time::timestamp::date as date_info,coalesce(temperature,'') temperature,coalesce(dew_point_temperature,'') dew_point_temperature, coalesce(humidity,'') humidity,coalesce(solar_radiation,'') solar_radiation, coalesce(wind_speed,'') wind_speed, coalesce(wind_direction,'') wind_direction, coalesce(soil_moisture,'') soil_moisture, coalesce(rainfall,'') rainfall, coalesce(qfe,'') qfe,coalesce(qff,'') qff from weather_observed where station_id like '"+str(station_id)+"' AND date_time::timestamp BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by date_time::timestamp) select station_name, date_info,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg, min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg, sum(cast(solar_radiation as double precision)) sum_solar_radiation, SUM(NULLIF(rainfall, '')::numeric) sum_rainfall,max(cast(wind_speed as double precision)) max_wind_speed from t1 group by date_info,station_name"
+    query = "with t1 as (select case when station_id = '1' then 'Khulna' when station_id = '2' then 'Biratnagar' when station_id = '3' then 'Barisal' end station_name,substring(date_time from 1 for  20) as date_time, date_time::timestamp::date as date_info,coalesce(temperature,'') temperature,coalesce(dew_point_temperature,'') dew_point_temperature, coalesce(humidity,'') humidity,coalesce(solar_radiation,'') solar_radiation, coalesce(wind_speed,'') wind_speed, coalesce(wind_direction,'') wind_direction, coalesce(soil_moisture,'') soil_moisture, coalesce(rainfall,'') rainfall, coalesce(qfe,'') qfe,coalesce(qff,'') qff from weather_observed where station_id like '"+str(station_id)+"' AND date_time::timestamp BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by date_time::timestamp) select station_name, date_info,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg, min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg, sum(cast(solar_radiation as double precision)) sum_solar_radiation, SUM(NULLIF(rainfall, '')::numeric) sum_rainfall,max(cast(wind_speed as double precision)) max_wind_speed from t1 group by date_info,station_name order by date_info"
 
     data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return HttpResponse(data)
@@ -2125,7 +2133,7 @@ def getWeatherObservedGraphData(request):
     from_date = request.POST.get('from_date')
     to_date = request.POST.get('to_date')
     station_id = request.POST.get('station_name')
-    temp_dict = __db_fetch_values_dict("with t1 as (select case when station_id::int = 1 then 'Khulna' when station_id::int = 2 then 'Biratnagar' when station_id::int = 3 then 'Barisal' end station_name,substring(date_time from 1 for  20) as date_time, date_time::timestamp::date as date_info,coalesce(temperature,'') temperature,coalesce(dew_point_temperature,'') dew_point_temperature, coalesce(humidity,'') humidity,coalesce(solar_radiation,'') solar_radiation, coalesce(wind_speed,'') wind_speed, coalesce(wind_direction,'') wind_direction, coalesce(soil_moisture,'') soil_moisture, coalesce(rainfall,'') rainfall, coalesce(qfe,'') qfe,coalesce(qff,'') qff from weather_observed where station_id like '"+str(station_id)+"' AND date_time::timestamp BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by date_time::timestamp) select station_name, date_info::text,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg,min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg,sum(cast(solar_radiation as double precision)) sum_solar_radiation,SUM(NULLIF(rainfall, '')::numeric) sum_rainfall from t1 group by date_info,station_name order by date_info")
+    temp_dict = __db_fetch_values_dict_exception("with t1 as (select case when station_id::int = 1 then 'Khulna' when station_id::int = 2 then 'Biratnagar' when station_id::int = 3 then 'Barisal' end station_name,substring(date_time from 1 for  20) as date_time, date_time::timestamp::date as date_info,coalesce(temperature,'') temperature,coalesce(dew_point_temperature,'') dew_point_temperature, coalesce(humidity,'') humidity,coalesce(solar_radiation,'') solar_radiation, coalesce(wind_speed,'') wind_speed, coalesce(wind_direction,'') wind_direction, coalesce(soil_moisture,'') soil_moisture, coalesce(rainfall,'') rainfall, coalesce(qfe,'') qfe,coalesce(qff,'') qff from weather_observed where station_id like '"+str(station_id)+"' AND date_time::timestamp BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp order by date_time::timestamp) select station_name, date_info::text,min(cast(temperature as double precision)) temp_min, max(cast(temperature as double precision)) temp_max, avg(cast(temperature as double precision)) temp_avg,min(cast(humidity as double precision)) humidity_min, max(cast(humidity as double precision)) humidity_max, avg(cast(humidity as double precision)) humidity_avg,sum(cast(solar_radiation as double precision)) sum_solar_radiation,SUM(NULLIF(rainfall, '')::numeric) sum_rainfall from t1 group by date_info,station_name order by date_info")
 
     categories = []
     series_list_temp = []
@@ -3131,7 +3139,7 @@ def get_dashboard(request):
 
     sent_voice_sms_count = __db_fetch_single_value_excption("with t1 as (select id from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and management_sms_que.status = 'Sent' and management_sms_que.content_type = 'audio' union select id from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and weather_sms_rule_queue.status = 'Sent' and weather_sms_rule_queue.content_type = 'audio' union select  promotional_sms.id from promotional_sms inner join sms_que on sms_que.alertlog_id = promotional_sms.id where sms_que.sms_source = 'promotional_sms' and sms_que.status = 'Sent' and  promotional_sms.content_type = 'audio' and organization_id in ("+str(org_list_text).strip('[]')+")) select count(*) over() from t1 limit 1")
 
-    farmer_count = __db_fetch_single_value_excption("select count (*) from farmer where organization_id = any('{"+str(org_list).strip('[]')+" }')")
+    farmer_count = __db_fetch_single_value_excption("select count (*) from farmer where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 1")
 
     program_count = __db_fetch_single_value_excption("select count (*) from usermodule_programs where org_id = any('{"+str(org_list).strip('[]')+" }')")
 
@@ -3324,6 +3332,7 @@ def get_program_table(request):
 def get_farmer_map(request):
     org_list = getOrgList(request)
     processed_dist_dict = {}
+    processed_upz_dict = {}
     range_list = []
     store_range_list = []
     farmer_crop_list = []
@@ -3359,10 +3368,15 @@ def get_farmer_map(request):
 
     sub_query_date = " and created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "'"
 
-    dist_list = __db_fetch_values_dict("select (select name from vwdistrict where id = district_id ) dist_name, count(district_id) as total_no_of_farmer from farmer where organization_id = any('{"+str(org_list).strip('[]')+" }') and country_id = 1 "+sub_query + sub_query_date+"  group by district_id")
+    dist_list = __db_fetch_values_dict("select (select name from vwdistrict where id = district_id ) dist_name, count(district_id) as total_no_of_farmer from farmer where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 1 and country_id = 1 "+sub_query + sub_query_date+"  group by district_id")
 
     print '----dist list----'
     print dist_list
+
+    upz_list = __db_fetch_values_dict("select (select name from vwupazila where id = upazila_id ) upazila_name, count(upazila_id) as total_no_of_farmer_upazila from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and status = 1 and country_id = 1 " + sub_query + sub_query_date + "  group by upazila_id")
+
+    print '----upz list----'
+    print upz_list
 
     if not dist_list:
         processed_dist_dict.update({str("Dhaka"): 0})
@@ -3372,10 +3386,20 @@ def get_farmer_map(request):
             processed_dist_dict.update({str(dist['dist_name']): int(dist['total_no_of_farmer'])})
             store_range_list.append(int(dist['total_no_of_farmer']))
 
-        total_no_of_farmer = __db_fetch_single_value("select count(*) from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and country_id = 1 " + sub_query + sub_query_date + " ")
+        total_no_of_farmer = __db_fetch_single_value("select count(*) from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and status = 1 and country_id = 1 " + sub_query + sub_query_date + " ")
 
     print '------processed_dist_dict---------'
     print processed_dist_dict
+
+    if not upz_list:
+        processed_upz_dict.update({str("Dohar"): 0})
+    else:
+        for upz in upz_list:
+            processed_upz_dict.update({str(upz['upazila_name']): int(upz['total_no_of_farmer_upazila'])})
+
+    print '------processed_upz_dict---------'
+    print processed_upz_dict
+
 
     print '------total farmer-------------'
     print total_no_of_farmer
@@ -3411,6 +3435,8 @@ def get_farmer_map(request):
     processed_range_list = json.dumps(range_list)
 
     b = json.dumps(processed_dist_dict)
+    c = json.dumps(processed_upz_dict)
+
 
     if crop is None or crop == '%':
         crop_id_for_template = 0
@@ -3419,6 +3445,7 @@ def get_farmer_map(request):
 
     return render(request, 'ifcmodule/dashboard_farmer_map.html', {
         'dist_dict':b,
+        'upz_dict':c,
         'processed_range_list':processed_range_list,
         'crop_list': crop_list,
         'total_farmer_no': total_no_of_farmer,
@@ -3521,7 +3548,7 @@ def get_farmer_bar(request):
 
     #upazila_list = __db_fetch_values_dict("with t1 as ( select count(upazila_id) as total_no_of_farmer_upazila,district_id,upazila_id,(select name from vwupazila where id = upazila_id ) upazila_name,(select name from vwdistrict where id = district_id ) dist_name from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') group by upazila_id,district_id) select * from t1 ")
 
-    upazila_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.upazila_id upazila_id,farmer.organization_id organization_id, farmer.program_id program_id, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text like '"+str(_crop)+"' and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text LIKE '" + str(_program) + "' and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, (select name from vwupazila where id = t1.upazila_id ) as upazila_name, count(t1.upazila_id) as total_no_of_farmer_upazila from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') group by t1.upazila_id, t1.district_id order by total_no_of_farmer_upazila ")
+    upazila_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.upazila_id upazila_id,farmer.organization_id organization_id,farmer.status status, farmer.program_id program_id, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text like '"+str(_crop)+"' and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text LIKE '" + str(_program) + "' and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, (select name from vwupazila where id = t1.upazila_id ) as upazila_name, count(t1.upazila_id) as total_no_of_farmer_upazila from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.upazila_id, t1.district_id order by total_no_of_farmer_upazila ")
 
     print upazila_list
 
@@ -3533,7 +3560,7 @@ def get_farmer_bar(request):
 
     # dist_list = __db_fetch_values_dict("select (select name from vwdistrict where id = district_id ) dist_name, count(district_id) as total_no_of_farmer from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and program_id::text LIKE '"+str(_program)+"' group by district_id order by total_no_of_farmer DESC")
 
-    dist_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.organization_id organization_id, farmer.program_id program_id, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text like '"+str(_crop)+"' and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text LIKE '" + str(_program) + "' and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, count(t1.district_id) as total_no_of_farmer from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') group by t1.district_id order by total_no_of_farmer "+sub_query)
+    dist_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.organization_id organization_id, farmer.program_id program_id,farmer.status status, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text like '"+str(_crop)+"' and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text LIKE '" + str(_program) + "' and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, count(t1.district_id) as total_no_of_farmer from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.district_id order by total_no_of_farmer "+sub_query)
 
     print dist_list
 
@@ -4337,9 +4364,14 @@ def get_area(request):
         total_no_of_farmer = 0
     else:
         for dist in dist_list:
-            processed_dist_dict.update({str(dist['district_name']): int(dist['total_land'])})
-            store_range_list.append(int(dist['total_land']))
-            total_no_of_farmer += int(dist['total_land'])
+            if math.isnan(dist['total_land']):
+                processed_dist_dict.update({str(dist['district_name']): 0})
+                store_range_list.append(0)
+                total_no_of_farmer += 0
+            else:
+                processed_dist_dict.update({str(dist['district_name']): int(dist['total_land'])})
+                store_range_list.append(int(dist['total_land']))
+                total_no_of_farmer += int(dist['total_land'])
 
     print '------processed_dist_dict---------'
     print processed_dist_dict
@@ -4372,10 +4404,17 @@ def get_area(request):
 
     b = json.dumps(processed_dist_dict)
 
+    filter_id = request.POST.get('filter_id')
+    if filter_id is None or filter_id == '%':
+        filter_id_for_template = 0
+    else:
+        filter_id_for_template = int(filter_id)
+
     return render(request, 'ifcmodule/dashboard_area.html', {
         'dist_dict': b,
         'processed_range_list': processed_range_list,
         'total_farmer_no': total_no_of_farmer,
+        'filter_id_for_template': filter_id_for_template,
     })
 
 
@@ -4592,6 +4631,14 @@ def weather_forecast_info(request):
 
     return render(request, 'ifcmodule/weather_forecast_info.html', {
         'place_name':place_name
+    })
+
+
+@login_required
+def compare_aws_forecast(request):
+
+    return render(request, 'ifcmodule/compare_aws_forecast.html', {
+
     })
 
 

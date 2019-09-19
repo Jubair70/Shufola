@@ -1,0 +1,268 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <style>
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+     <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Compare AWS vs Forecast data</div>
+        </div>
+        <div class="portlet-body" >
+            <div class="row">
+               {% csrf_token %}
+                <div class="col-md-12">
+
+                     <div class="col-md-3">
+                        <div class="form-group">
+                            <label> Query:</label>
+                            <select type="select" name="query_id" id="query_id" class="form-control " required>
+                                <option value="2">Climate Daily Extremes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                     <div class="col-md-3">
+                        <div class="form-group">
+                            <label> Station Id:</label>
+                            <select type="select" name="station_id" id="station_id" class="form-control " required>
+                                <option value="%">All</option>
+                                <option value="1">Khulna</option>
+                                <option value="2">Biratnagar</option>
+                                <option value="3">Barisal</option>
+
+                            </select>
+                        </div>
+                    </div>
+                     <div class="col-md-3">
+                         <div class="form-group">
+                             <label>Time: </label>
+                             <div class='input-group time' id='datetimepicker2'>
+                             <input class="form-control time_pick" type="text" name="time" id="time">
+                             <span class="input-group-addon">
+                               <span class="glyphicon glyphicon-time"></span>
+                             </span>
+                           </div>
+
+                         </div>
+                     </div>
+
+                    <div class="col-md-3">
+                        <label>From Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="start_date" name="start_date" class="form-control" value="{{start_date}}"  readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>End Date: </label>
+                        <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                            <input type="text" id="end_date" name="end_date" value="{{end_date}}" class="form-control" readonly>
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <button style="margin-top:25px;" type="submit" class="btn red" id="default_search" onclick="fetchData()">Fetch</button>
+                        </div>
+                    </div>
+
+                    </div>
+            </div>
+
+            <div id="container_1" style="margin: 15px">
+                <div id="add_div">Select options and fetch data</div>
+            </div>
+
+            <input type="hidden" id="selected_category_id" name="selected_category_id" value="1">
+
+        </div>
+
+     </div>
+
+{% endblock %}
+
+
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
+
+
+    <script>
+
+        $(function () {
+            $('#start_date').datepicker({
+                format: "yyyy-mm-dd",
+            });
+
+            $('#end_date').datepicker({
+                format: "yyyy-mm-dd",
+
+            });
+
+            $(function() {
+                $('.time_pick').datetimepicker().data("DateTimePicker").options({format: "HH:mm"});
+            });
+
+        });
+
+        function fetchData() {
+            cat_id = document.getElementById("selected_category_id").value ;
+            station_id = $('#station_id option:selected').val();
+            query_id = $('#query_id option:selected').val();
+            time = document.getElementById("time").value;
+            start_date = document.getElementById("start_date").value;
+            end_date = document.getElementById("end_date").value;
+
+            console.log(station_id);
+            console.log(query_id);
+            console.log(time);
+            console.log(start_date);
+            console.log(end_date);
+
+            if (time != "" && start_date != "" && end_date != ""){
+                generateCompareGraph(query_id, station_id, time, start_date, end_date);
+            }else{
+                alert("Please Fill all the fields");
+            }
+
+        }
+
+
+        function generateCompareGraph(q_id , s_id , t , s_d , e_d) {
+            query_id = q_id;
+            station_id = s_id;
+            time = t;
+            start_date = s_d;
+            end_date = e_d;
+
+            html_daily =
+               '            <div id="add_div">\n'+
+               '            <img style="display:none; margin-left: 444px; height:70px;width:70px" id="container" src="{{ STATIC_URL }}images/Spinner.gif">\n'+
+               '              <div class="row" style="margin-top: 50px; margin-bottom: 20px">\n'+
+               '                    <div class="card" style="height: auto;  margin: 5px">\n'+
+               '                        <div class="card-body">\n'+
+               '                            <div id="container_a" style=" margin: 0 auto;"></div>\n'+
+               '                            <div id="container_b" style=" margin: 0 auto;"></div>\n'+
+                '                            <div id="container_c" style=" margin: 0 auto;"></div>\n'+
+                '                            <div id="container_d" style=" margin: 0 auto;"></div>\n'+
+               '\n'+
+               '                        </div>\n'+
+               '                    </div>\n'+
+               '                </div>'+
+               '            </div>';
+
+
+            $(function(){
+                if(query_id == '2'){
+                   $('#container_1').append(html_daily);
+                }
+            });
+
+
+            if(query_id == '2'){
+
+                $.ajax({
+                    url : '/ifcmodule/getWeatherObservedGraphData/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'from_date': start_date,
+                        'to_date': end_date,
+                        'station_name': station_id
+                    },
+                    beforeSend: function () {
+                         $('#container').show();
+                    },
+                    success: function (result) {
+                        $('#container').hide();
+                        dashboardBarChart('container_a', 'Temperature', 'Temperature (°C)' , result.category_list, result.series_list_temp);
+                        dashboardBarChart('container_b', 'Humidity', 'Humidity(Rh)' ,result.category_list, result.series_list_hum);
+                        dashboardBarChart('container_c', 'Solar Radiation', ' Sum Solar Radiation(Srad)' ,result.category_list, result.series_list_solar_rad);
+                        dashboardBarChart('container_d', 'Rainfall', ' Sum Rainfall' ,result.category_list, result.series_list_rainfall);
+
+                    }
+                });
+
+
+            }
+
+       }
+
+       function dashboardBarChart(div, title, text, categories, series) {
+           Highcharts.chart(div, {
+                chart: {
+                    type: 'line',
+                    height:300
+                },
+                title: {
+                    text: title
+                },
+
+                xAxis: {
+                    categories: categories
+                },
+                yAxis: {
+                    title: {
+                        text: text
+                    }
+                },
+                // plotOptions: {
+                //     line: {
+                //         dataLabels: {
+                //             enabled: true
+                //         },
+                //         enableMouseTracking: false
+                //     }
+                // },
+                series: series
+            });
+       }
+
+    </script>
+
+{% endblock %}

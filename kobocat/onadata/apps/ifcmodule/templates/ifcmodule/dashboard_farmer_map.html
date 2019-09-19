@@ -11,8 +11,8 @@
 
     <style>
         #map {
-            width: 780px;
-            height: 650px;
+            width: 650px;
+            height: 500px;
         }
 
         .info {
@@ -311,7 +311,7 @@
 
 
             <div class="span8">
-                <div id="map" style="height: 600px;margin: 0px auto"></div>
+                <div id="map" style="margin: 0px auto"></div>
             </div>
 
             <!-- Modal -->
@@ -359,14 +359,13 @@
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
     <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/Barisal.js"></script>
-
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_4.js"></script>
 
 
     <script type="text/javascript">
         var indicator_type = '';
         var rdata = {{ dist_dict|safe }};
+        var udata = {{ upz_dict|safe }};
         var range_list = {{ processed_range_list|safe }};
         total_no_of_farmer = {{ total_farmer_no|safe }};
         console.log(rdata);
@@ -397,7 +396,8 @@
 
             info.update = function (props) {
                 this._div.innerHTML = '<h4>District wise Map</h4>' + (props ?
-                        '<br /><b>' + props.NAME_3 + ' </b> ' + rdata[props.NAME_3]
+                        '<br /><b>' + props.NAME_3 + ' </b> ' + rdata[props.NAME_3]+
+                        '<br /><b>' + props.NAME_4 + ' </b> ' + udata[props.NAME_4]
                         : 'Hover over a district');
             };
 

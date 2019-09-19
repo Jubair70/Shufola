@@ -70,7 +70,7 @@
                     <div class="form-group">
                         <label>Organization: </label>
                         <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
-                            <option value="%">Select One</option>
+                            <option value="%">All</option>
                             {% for org_id,org_name in organization %}
                                 <option value="{{ org_id }}" {% if org_id == org_for_template %} selected {% endif %}>{{ org_name }}</option>
                             {% endfor %}
@@ -82,7 +82,7 @@
                     <div class="form-group">
                         <label>Program: </label>
                         <select class="form-control" name="program" id="program" required>
-                            <option value="%">Select One</option>
+                            <option value="%">All</option>
                         </select>
 
                     </div>
@@ -91,7 +91,7 @@
                         <div class="form-group">
                             <label >Crop:</label>
                             <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" >
-                                <option value="%">Select One</option>
+                                <option value="%">All</option>
                                 {% for crop_id,crop_name in crop_list %}
                                     <option value="{{ crop_id }}">{{ crop_name}}</option>
                                 {% endfor %}
@@ -102,7 +102,7 @@
                         <div class="form-group">
                             <label>Variety of the Crop: </label>
                             <select class="form-control" name="crop_variety" id="crop_variety"  required>
-                                <option value="%">Select One</option>
+                                <option value="%">All</option>
 
                             </select>
 
@@ -112,7 +112,7 @@
                         <div class="form-group">
                             <label>Season: </label>
                             <select class="form-control" name="season" id="season" required>
-                                <option value="%">Select One</option>
+                                <option value="%">All</option>
                                 {% for x,y in season %}
                                     <option value="{{ x }}">{{ y }}</option>
                                 {% endfor %}
@@ -123,7 +123,7 @@
                         <div class="form-group">
                             <label>Group: </label>
                             <select class="form-control" name="group_id" id="group_id" required>
-                                <option value="%">Select One</option>
+                                <option value="%">All</option>
                                 {% for x,y in group %}
                                 <option value="{{ x }}">{{ y }}</option>
                                 {% endfor %}
@@ -242,8 +242,8 @@
        function load_variety(object) {
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#crop_variety').html("<option value=\"%\">Select One</option>");
-                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+                $('#crop_variety').html("<option value=\"%\">All</option>");
+                $('#crop_stage').html("<option value=\"%\">All</option>");
             }
 
             else {
@@ -256,7 +256,7 @@
 
                     success: function (result) {
 
-                        var html_code = "<option value=\"%\">Select One</option>";
+                        var html_code = "<option value=\"%\">All</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
                         }
@@ -271,7 +271,7 @@
             obj = parseInt(object.value)
 
             if (isNaN(parseFloat(obj))) {
-                $('#program').html("<option value=\"%\">Select One</option>");
+                $('#program').html("<option value=\"%\">All</option>");
             }
             else {
 
@@ -281,7 +281,7 @@
                     dataType: 'json',
                     data: {'obj': obj},
                     success: function (result) {
-                        var html_code = "<option value=\"%\">Select One</option>";
+                        var html_code = "<option value=\"%\">All</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
                         }

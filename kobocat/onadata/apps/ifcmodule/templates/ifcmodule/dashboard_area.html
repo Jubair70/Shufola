@@ -238,11 +238,11 @@
                             <label> Sort by:</label>
                             <select type="select" name="filter_id" id="filter_id" class="form-control " required>
                                 <option value="%">--Select One--</option>
-                                <option value="1">Farmer</option>
-                                <option value="2">Crop</option>
-                                <option value="3">Program</option>
-                                <option value="4">SMS</option>
-                                <option value="5">Voice SMS</option>
+                                <option value="1" {% if filter_id_for_template == 1 %} selected {% endif %}>Farmer</option>
+                                <option value="2" {% if filter_id_for_template == 2 %} selected {% endif %}>Crop</option>
+                                <option value="3" {% if filter_id_for_template == 3 %} selected {% endif %}>Program</option>
+                                <option value="4" {% if filter_id_for_template == 4 %} selected {% endif %}>SMS</option>
+                                <option value="5" {% if filter_id_for_template == 5 %} selected {% endif %}>Voice SMS</option>
                             </select>
                         </div>
                     </div>

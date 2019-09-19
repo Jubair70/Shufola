@@ -448,15 +448,15 @@
                                   '                  <tr>\n'+
                                   '                    <th scope="row">'+sms_log[idx].place_name+'</th>\n'+
                                   '                    <td>'+sms_log[idx].date_time+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].temp_min+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].temp_max+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].temp_avg+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].humidity_min+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].humidity_max+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].humidity_avg+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].max_wind_direction+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].max_wind_speed+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].sum_rainfall+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].temp_min)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].temp_max)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].temp_avg)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].humidity_min)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].humidity_max)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].humidity_avg)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].max_wind_direction)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].max_wind_speed)).toFixed(2)+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].sum_rainfall)).toFixed(2)+'</td>\n'+
                                   '                  </tr>\n';
 
                     }
