@@ -345,7 +345,7 @@
             <input type="hidden" id="data-upazilla" value="{{upazilla}}">
 
             <div class="span8">
-                <div id="map" style="height: 600px;margin: 0px auto"></div>
+                <div id="map" style="height: 550px; width:450px;margin: 0px auto"></div>
             </div>
 
         </div>
@@ -387,11 +387,11 @@
             myArray = objectToArray(rdata).sort(Comparator);
             addDatatoTable(myArray);
 
-            var map = L.map('map').setView([23.946096, 90.128173], 6.9);
+            var map = L.map('map').setView([23.946096, 90.128173], 6.6);
 
             var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
             {
-                attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+                attribution: '',
                 key: 'BC9A493B41014CAABB98F0471D759707',
                 styleId: 22677
             }).addTo(map);

@@ -25,6 +25,26 @@
         </div>
         <div class="portlet-body" >
             <div class="row">
+                <div class="col-md-2" style="margin-top: 2px">
+                    <form action="/maxmodule/cais_module/add_farmer/">
+                     <button type="submit" id ="add_btn" class="btn btn-labeled green"> <span class="btn-label" ><i class="glyphicon glyphicon-plus-sign"></i> </span>Add New Farmer</button>
+                   </form>
+                </div>
+
+
+                <div class="form-group col-md-2" style="margin-bottom: 0px">
+                    <span class="control-label btn btn-primary"><b>Farmer Group List</b></span>
+                </div>
+
+                <div class="form-group col-md-2" style="margin-bottom: 0px;margin-right: 10px">
+                 <a href="/ifcmodule/bulk_upload/" class="control-label btn btn-primary"><b>Farmer Bulk Upload</b></a>
+                </div>
+                <div class="col-md-2">
+                    <div class="btn btn-primary col-md-12" style="color: white;font-weight: bold;margin-top: 2px" onclick="location.href='/ifcmodule/dashboard/farmer/table/activity_history/';" > Activity History</div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
                 <div class="col-md-12" style="margin-bottom: 20px">
                     <div class="col-md-4 col-md-offset-4" style="border: 1px solid #e02222;padding: 0px">
                           <div class="btn e col-md-4" style="font-weight: bold;" onclick="location.href='/ifcmodule/dashboard/farmer/map';">Map View</div>
@@ -56,9 +76,29 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label>Filter By: </label>
+                        <select class="form-control" name="filter_id" id="filter_id" required>
+                            <option value="1">Sowing Date</option>
+                            <option value="2">Reg. Date</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Status: </label>
+                        <select class="form-control" name="status" id="status" required>
+                            <option value="%">all</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label>Country: </label>
                         <select class="form-control" name="country" id="country" onclick="load_division(this)">
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                             {% for country_id,country_name in country %}
                                 <option value="{{ country_id }}">{{ country_name }}</option>
                             {% endfor %}
@@ -69,7 +109,7 @@
                     <div class="form-group">
                         <label>Division: </label>
                         <select class="form-control" name="division" id="division" onclick="load_district(this)">
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                         </select>
                     </div>
                 </div>
@@ -77,7 +117,7 @@
                     <div class="form-group">
                         <label>District: </label>
                         <select class="form-control" name="district" id="district" onclick="load_upazilla(this)">
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                         </select>
                     </div>
                 </div>
@@ -85,7 +125,7 @@
                     <div class="form-group">
                         <label>Upazilla: </label>
                         <select class="form-control" name="upazilla" id="upazilla" onclick="load_union(this)">
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                         </select>
                     </div>
                 </div>
@@ -93,7 +133,7 @@
                     <div class="form-group">
                         <label>Union: </label>
                         <select class="form-control" name="union" id="union">
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                         </select>
                     </div>
                 </div>
@@ -101,7 +141,7 @@
                     <div class="form-group">
                         <label>Organization: </label>
                         <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                             {% for org_id,org_name in organization %}
                                 <option value="{{ org_id }}">{{ org_name }}</option>
                             {% endfor %}
@@ -113,7 +153,7 @@
                     <div class="form-group">
                         <label>Program: </label>
                         <select class="form-control" name="program" id="program" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                         </select>
 
                     </div>
@@ -122,7 +162,7 @@
                     <div class="form-group">
                         <label>Crop:</label>
                         <select class="form-control" name="crop" id="crop" onclick="load_variety(this)">
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                             {% for crop_id,crop_name in crop_list %}
                                 <option value="{{ crop_id }}">{{ crop_name }}</option>
                             {% endfor %}
@@ -133,7 +173,7 @@
                     <div class="form-group">
                         <label>Variety of the Crop: </label>
                         <select class="form-control" name="crop_variety" id="crop_variety" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
 
                         </select>
 
@@ -143,7 +183,7 @@
                     <div class="form-group">
                         <label>Season: </label>
                         <select class="form-control" name="season" id="season" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                             {% for x,y in season %}
                                 <option value="{{ x }}">{{ y }}</option>
                             {% endfor %}
@@ -154,30 +194,10 @@
                     <div class="form-group">
                         <label>Group: </label>
                         <select class="form-control" name="group" id="group" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                             {% for x,y in group %}
                                 <option value="{{ x }}">{{ y }}</option>
                             {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>Status: </label>
-                        <select class="form-control" name="status" id="status" required>
-                            <option value="%">All</option>
-                            <option value="1">Activate</option>
-                            <option value="0">Decactivate</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>Filter By: </label>
-                        <select class="form-control" name="filter_id" id="filter_id" required>
-                            <option value="1">Sowing Date</option>
-                            <option value="2">Reg. Date</option>
                         </select>
                     </div>
                 </div>
@@ -212,9 +232,6 @@
                     </div>
                 </div>
 
-                <div class="col-md-3">
-                    <div class="btn col-md-12" style="background: #e02222;color: white;font-weight: bold;margin-top: 23px" onclick="location.href='/ifcmodule/dashboard/farmer/table/activity_history/';" > Activity History</div>
-                </div>
                 <div class="col-md-3" style="margin-top: 24px;">
                     <div class="form-group">
                         <a>
@@ -524,8 +541,8 @@
         function load_variety(object) {
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#crop_variety').html("<option value=\"%\">All</option>");
-                $('#crop_stage').html("<option value=\"%\">All</option>");
+                $('#crop_variety').html("<option value=\"%\">all</option>");
+                $('#crop_stage').html("<option value=\"%\">all</option>");
             }
 
             else {
@@ -538,7 +555,7 @@
 
                     success: function (result) {
 
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
                         }
@@ -592,10 +609,13 @@
                 // "aaSorting": [[0, 'desc', 0]],
                 "scrollX": true,
                 "bLengthChange": true,
-                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "all"]],
                 "pageLength": 10,
                 "processing": true,
                 "serverSide": true,
+                "language": {
+                    searchPlaceholder: 'Farmer Name / Mobile No.'
+                },
                 "ajax": {
                     "url": "/maxmodule/cais_module/get_farmer_list_by_status/",
                     "type": "POST",
@@ -781,10 +801,10 @@
 
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#division').html("<option value=\"%\">All</option>");
-                $('#district').html("<option value=\"%\">All</option>");
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#division').html("<option value=\"%\">all</option>");
+                $('#district').html("<option value=\"%\">all</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -797,15 +817,15 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#division').html(html_code);
-                         $('#district').html("<option value=\"%\">All</option>");
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                         $('#district').html("<option value=\"%\">all</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
 
 
                     }
@@ -819,9 +839,9 @@
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
 
-                $('#district').html("<option value=\"%\">All</option>");
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#district').html("<option value=\"%\">all</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -834,14 +854,14 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#district').html(html_code);
-                        $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                        $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
 
 
                     }
@@ -853,8 +873,8 @@
         function load_upazilla(object) {
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -867,13 +887,13 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
                         }
                         $('#upazilla').html(html_code);
-                        $('#union').html("<option value=\"%\">All</option>");
+                        $('#union').html("<option value=\"%\">all</option>");
 
 
                     }
@@ -887,7 +907,7 @@
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
 
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -900,7 +920,7 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
@@ -918,7 +938,7 @@
             obj = parseInt(object.value)
 
             if (isNaN(parseFloat(obj))) {
-                $('#program').html("<option value=\"%\">All</option>");
+                $('#program').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -931,7 +951,7 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
                         }

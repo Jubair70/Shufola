@@ -70,7 +70,7 @@
                     <div class="form-group">
                         <label>Organization: </label>
                         <select class="form-control" name="organization" id="organization" onclick="load_program(this)" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                             {% for org_id,org_name in organization %}
                                 <option value="{{ org_id }}" {% if org_id == org_for_template %} selected {% endif %}>{{ org_name }}</option>
                             {% endfor %}
@@ -82,7 +82,7 @@
                     <div class="form-group">
                         <label>Program: </label>
                         <select class="form-control" name="program" id="program" required>
-                            <option value="%">All</option>
+                            <option value="%">all</option>
                         </select>
 
                     </div>
@@ -91,7 +91,7 @@
                         <div class="form-group">
                             <label >Crop:</label>
                             <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" >
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 {% for crop_id,crop_name in crop_list %}
                                     <option value="{{ crop_id }}">{{ crop_name}}</option>
                                 {% endfor %}
@@ -102,7 +102,7 @@
                         <div class="form-group">
                             <label>Variety of the Crop: </label>
                             <select class="form-control" name="crop_variety" id="crop_variety"  required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
 
                             </select>
 
@@ -112,7 +112,7 @@
                         <div class="form-group">
                             <label>Season: </label>
                             <select class="form-control" name="season" id="season" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 {% for x,y in season %}
                                     <option value="{{ x }}">{{ y }}</option>
                                 {% endfor %}
@@ -123,18 +123,19 @@
                         <div class="form-group">
                             <label>Group: </label>
                             <select class="form-control" name="group_id" id="group_id" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 {% for x,y in group %}
                                 <option value="{{ x }}">{{ y }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                     </div>
+                    <!--
                     <div class="col-md-3">
                         <div class="form-group">
                             <label>Land Size: </label>
                             <select class="form-control" name="land" id="land" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 <option value="1">Small (0-20 decimal)</option>
                                 <option value="2">Medium (21-100 decimal)</option>
                                 <option value="3">Large (1 acre+)</option>
@@ -142,11 +143,12 @@
                             </select>
                         </div>
                     </div>
+                    -->
                     <div class="col-md-3">
                         <div class="form-group">
                             <label>District Status: </label>
                             <select class="form-control" name="dis_status" id="dis_status" required>
-                                <option value="%" {% if district_status == 0 %} selected {% endif %}>All</option>
+                                <option value="%" {% if district_status == 0 %} selected {% endif %}>all</option>
                                 <option value="1" {% if district_status == 1 %} selected {% endif %}>Top</option>
                                 <option value="2" {% if district_status == 2 %} selected {% endif %}>Bottom</option>
 
@@ -242,8 +244,8 @@
        function load_variety(object) {
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#crop_variety').html("<option value=\"%\">All</option>");
-                $('#crop_stage').html("<option value=\"%\">All</option>");
+                $('#crop_variety').html("<option value=\"%\">all</option>");
+                $('#crop_stage').html("<option value=\"%\">all</option>");
             }
 
             else {
@@ -256,7 +258,7 @@
 
                     success: function (result) {
 
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
                         }
@@ -271,7 +273,7 @@
             obj = parseInt(object.value)
 
             if (isNaN(parseFloat(obj))) {
-                $('#program').html("<option value=\"%\">All</option>");
+                $('#program').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -281,7 +283,7 @@
                     dataType: 'json',
                     data: {'obj': obj},
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].program_name + "</option>";
                         }

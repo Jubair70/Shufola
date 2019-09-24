@@ -189,10 +189,14 @@ def getOrgList(request):
 @login_required
 def program_list(request):
     org_list = getOrgList(request)
+    user_tag = 0
+    if request.user.is_superuser:
+        user_tag = 1
     query = "select id,program_name,(select organization from usermodule_organizations where id = org_id limit 1) org_name  from usermodule_programs where org_id = any('{"+str(org_list).strip('[]')+" }')"
     program_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
     return render(request, 'ifcmodule/program_list.html', {
-        'program_list': program_list
+        'program_list': program_list,
+        'user_tag':user_tag
     })
 
 
@@ -682,8 +686,6 @@ def getMapData(request):
         upazilla = request.POST.get('upazilla')
         union = request.POST.get('union')
 
-        print season
-
         if crop != '%':
             crop_result_list = __db_fetch_values_dict("select id from farmer where id in (select distinct farmer_id from farmer_crop_info where crop_id ="+str(crop)+") and organization_id = any('{"+str(org_list).strip('[]')+" }') ")
 
@@ -723,7 +725,7 @@ def getMapData(request):
             processed_dist_dict.update({str(dist['dist_name']): int(dist['total_no_of_farmer'])})
             store_range_list.append(int(dist['total_no_of_farmer']))
 
-        total_no_of_farmer = __db_fetch_single_value("select count(*) from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }')" + sub_query)
+        total_no_of_farmer = __db_fetch_single_value("select count(*) from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"'  and union_id::text like '"+str(union)+"' and upazila_id::text like '"+str(upazilla)+"' and program_id::text like'"+str(program)+"'" + sub_query)
 
     print '------processed_dist_dict---------'
     print processed_dist_dict
@@ -1960,7 +1962,7 @@ def getSMSLogDataNew(request):
     status = request.POST.get('status')
     sms_source = request.POST.get('sms_source')
 
-    data_query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type,(SELECT case when sms_source = 'management_sms_que' then (select (select crop_name from crop where id = crop_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select crop_name from crop where id::text = crop_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then (select (select crop_name from crop where id::text = crop_id limit 1) from promotional_sms where id = alertlog_id limit 1) end crop_type), mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type,tx_id response FROM sms_que WHERE status like '"+str(status)+"' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source like '"+str(sms_source)+"' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id,organization_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path,response,crop_type FROM t, farmer WHERE t.mobile_number = farmer.mobile_number and farmer.organization_id = any('{"+str(org_list).strip('[]')+" }')) SELECT farmer_name ,mobile_number, case when content_type = 'audio' then '<audio preload=\"metadata\" controls><source src="'||voice_sms_file_path||'" type=\"audio/mp4;\" codecs=\"mp4a.40.2\"/> <source src="'||voice_sms_file_path||'" type=\"audio/mpeg;\" codecs=\"vorbis\"/> <source src=\"'||voice_sms_file_path||'\" type=\"audio/ogg;\" codecs=\"vorbis\"/></audio>' else sms_text end, sms_type , schedule_time, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,response,crop_type FROM t1 limit "+str(length)+" offset "+str(start)
+    data_query = "WITH t AS( SELECT case when sms_source = 'management_sms_que' then (select (select sms_type from management_sms_rule where id = sms_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select sms_type from weather_sms_rule where id = weather_sms_rule_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then '' end sms_type,(SELECT case when sms_source = 'management_sms_que' then (select (select crop_name from crop where id = crop_id limit 1) from management_sms_que where id = alertlog_id limit 1) when sms_source = 'weather_sms_rule_queue' then (select (select crop_name from crop where id::text = crop_id limit 1) from weather_sms_rule_queue where id = alertlog_id limit 1) when sms_source = 'promotional_sms' then (select (select crop_name from crop where id::text = crop_id limit 1) from promotional_sms where id = alertlog_id limit 1) end crop_type), mobile_number, sms_text, voice_sms_file_path, schedule_time, sent_time, content_type,tx_id response FROM sms_que WHERE status like '"+str(status)+"' AND schedule_time BETWEEN '"+str(from_date)+" 00:00:00'::timestamp and '"+str(to_date)+" 23:59:59'::timestamp and sms_source like '"+str(sms_source)+"' ORDER BY schedule_time::date desc), t1 AS ( SELECT t.mobile_number, farmer_name, sms_text, sms_type, to_char(schedule_time, 'YYYY-MM-DD HH24:MI:SS') schedule_time, COALESCE( to_char(sent_time, 'YYYY-MM-DD HH24:MI:SS'),'') sent_time, district_id, upazila_id, union_id,organization_id, content_type,substring(voice_sms_file_path FROM 8) voice_sms_file_path,response,crop_type FROM t, farmer WHERE t.mobile_number = farmer.mobile_number and farmer.organization_id = any('{"+str(org_list).strip('[]')+" }')) SELECT farmer_name ,mobile_number,crop_type, case when content_type = 'audio' then '<audio preload=\"metadata\" controls><source src="'||voice_sms_file_path||'" type=\"audio/mp4;\" codecs=\"mp4a.40.2\"/> <source src="'||voice_sms_file_path||'" type=\"audio/mpeg;\" codecs=\"vorbis\"/> <source src=\"'||voice_sms_file_path||'\" type=\"audio/ogg;\" codecs=\"vorbis\"/></audio>' else sms_text end, sms_type , schedule_time, sent_time, ( SELECT NAME FROM geo_district WHERE id = district_id limit 1)district_name, ( SELECT NAME FROM geo_upazilla WHERE id = upazila_id limit 1)upazilla_name, ( SELECT NAME FROM geo_union WHERE id = union_id limit 1)union_name, content_type,response FROM t1 limit "+str(length)+" offset "+str(start)
 
     data = multipleValuedQuryExecution(data_query)
 
@@ -3352,18 +3354,20 @@ def get_farmer_map(request):
                 start_date = request.POST.get('start_date')
                 end_date = request.POST.get('end_date')
 
-        crop = request.POST.get('crop')
+        processed_crop = []
+        crop = request.POST.getlist('crop[]')
+        for item in crop:
+            processed_crop.append(int(item))
 
-        if crop != '%':
-            crop_result_list = __db_fetch_values_dict("select id from farmer where id in (select distinct farmer_id from farmer_crop_info where crop_id ="+str(crop)+") and organization_id = any('{"+str(org_list).strip('[]')+" }') ")
-
-            print crop_result_list
+        if len(processed_crop) != 0:
+            print 'HHHHHHHHHHHHHHH'
+            query = "select id from farmer where id in (select distinct farmer_id from farmer_crop_info where crop_id = any('{" + str(processed_crop).strip('[]') + "}')) and organization_id = any('{"+str(org_list).strip('[]')+" }') "
+            print query
+            crop_result_list = __db_fetch_values_dict(query)
 
             for row in crop_result_list:
                 farmer_crop_list.append(int(row['id']))
 
-            print '-----farmer crop list ------'
-            print farmer_crop_list
             sub_query = "and id = any('{" + str(farmer_crop_list).strip('[]') + " }')"
 
     sub_query_date = " and created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "'"
@@ -3439,9 +3443,9 @@ def get_farmer_map(request):
 
 
     if crop is None or crop == '%':
-        crop_id_for_template = 0
+        crop_list_for_template = None
     else:
-        crop_id_for_template = int(crop)
+        crop_list_for_template = processed_crop
 
     return render(request, 'ifcmodule/dashboard_farmer_map.html', {
         'dist_dict':b,
@@ -3449,7 +3453,7 @@ def get_farmer_map(request):
         'processed_range_list':processed_range_list,
         'crop_list': crop_list,
         'total_farmer_no': total_no_of_farmer,
-        'crop_id_for_template': crop_id_for_template,
+        'crop_list_for_template': crop_list_for_template,
         'end_date':end_date,
         'start_date':start_date
     })
@@ -3927,6 +3931,11 @@ def get_sms_map(request):
     else:
         season_id_for_template = int(_season)
 
+    if _crop is None or _crop == '%':
+        crop_id_for_template = 0
+    else:
+        crop_id_for_template = int(_crop)
+
     if _advisory_type is None or _advisory_type == '%':
         advisory_id_for_template = 0
     else:
@@ -3953,6 +3962,8 @@ def get_sms_map(request):
         'division':_division,
         'district':_district,
         'upazilla':_upazilla,
+        'crop_id_for_template':crop_id_for_template,
+        'variety_crop':_variety_crop,
         'total_sms_sent':sent_sms_count
     })
 
@@ -4053,6 +4064,11 @@ def get_sms_bar(request):
     else:
         season_id_for_template = int(_season)
 
+    if _crop is None or _crop == '%':
+        crop_id_for_template = 0
+    else:
+        crop_id_for_template = int(_crop)
+
     if _advisory_type is None or _advisory_type == '%':
         advisory_id_for_template = 0
     else:
@@ -4074,7 +4090,9 @@ def get_sms_bar(request):
         'country': _country,
         'division': _division,
         'district': _district,
-        'upazilla': _upazilla
+        'upazilla': _upazilla,
+        'crop_list':crop_list,
+        'crop_id_for_template':crop_id_for_template
     })
 
 
@@ -4312,6 +4330,11 @@ def get_voice_sms_bar(request):
     else:
         season_id_for_template = int(_season)
 
+    if _crop is None or _crop == '%':
+        crop_id_for_template = 0
+    else:
+        crop_id_for_template = int(_crop)
+
     if _advisory_type is None or _advisory_type == '%':
         advisory_id_for_template = 0
     else:
@@ -4333,7 +4356,9 @@ def get_voice_sms_bar(request):
         'country': _country,
         'division': _division,
         'district': _district,
-        'upazilla': _upazilla
+        'upazilla': _upazilla,
+        'crop_list': crop_list,
+        'crop_id_for_template': crop_id_for_template
     })
 
 @login_required

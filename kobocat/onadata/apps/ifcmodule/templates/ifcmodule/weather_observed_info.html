@@ -356,13 +356,13 @@
                           '              <colgroup span="2"></colgroup>\n'+
                           '                <thead class="flip-content">\n'+
                           '              <tr>\n'+
-                          '                <td rowspan="2">Station Name</td>\n'+
-                          '                <td rowspan="2">Date</td>\n'+
+                          '                <td rowspan="2"><strong>Station Name</strong></td>\n'+
+                          '                <td rowspan="2"><strong>Date</strong></td>\n'+
                           '                <th colspan="3" scope="colgroup">Temperature</th>\n'+
                           '                <th colspan="3" scope="colgroup">Humidity</th>\n'+
-                          '                <td rowspan="2">Solar Radiation</td>\n'+
-                          '                <td rowspan="2">Max Wind Speed</td>\n'+
-                          '                <td rowspan="2">Rainfall</td>\n'+
+                          '                <td rowspan="2"><strong>Solar Radiation</strong></td>\n'+
+                          '                <td rowspan="2"><strong>Max Wind Speed</strong></td>\n'+
+                          '                <td rowspan="2"><strong>Rainfall</strong></td>\n'+
                           '              </tr>\n'+
                           '              <tr>\n'+
                           '                <th scope="col">T. Max</th>\n'+
@@ -457,7 +457,7 @@
                                   '                    <td>'+sms_log[idx].humidity_min+'</td>\n'+
                                   '                    <td>'+sms_log[idx].humidity_max+'</td>\n'+
                                   '                    <td>'+(parseFloat(sms_log[idx].humidity_avg)).toFixed(2)+'</td>\n'+
-                                  '                    <td>'+sms_log[idx].sum_solar_radiation+'</td>\n'+
+                                  '                    <td>'+(parseFloat(sms_log[idx].sum_solar_radiation)).toFixed(2)+'</td>\n'+
                                   '                    <td>'+sms_log[idx].max_wind_speed+'</td>\n'+
                                   '                    <td>'+sms_log[idx].sum_rainfall+'</td>\n'+
                                   '                  </tr>\n';

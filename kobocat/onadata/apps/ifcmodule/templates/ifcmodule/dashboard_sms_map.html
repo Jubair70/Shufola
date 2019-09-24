@@ -11,8 +11,8 @@
 
     <style>
         #map {
-            width: 780px;
-            height: 650px;
+            width: 580px;
+            height: 500px;
         }
 
         .info {
@@ -266,7 +266,7 @@
                         <div class="form-group">
                             <label >Country:</label>
                             <select type="select" name="country_id" id="country_id" class="form-control" onclick="load_division(this,0)" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 <option value="1">Bangladesh</option>
                             </select>
                         </div>
@@ -275,7 +275,7 @@
                         <div class="form-group">
                             <label>Division: </label>
                             <select class="form-control" data-division = "{{division}}" name="division" id="division" onclick="load_district(this,0)">
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                             </select>
                         </div>
                     </div>
@@ -283,7 +283,7 @@
                         <div class="form-group">
                             <label>District: </label>
                             <select class="form-control" name="district" id="district" onclick="load_upazilla(this,0)">
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                             </select>
                         </div>
                     </div>
@@ -291,7 +291,7 @@
                         <div class="form-group">
                             <label>Upazilla: </label>
                             <select class="form-control" name="upazilla" id="upazilla">
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                             </select>
                         </div>
                     </div>
@@ -299,10 +299,10 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label>Crop:</label>
-                            <select class="form-control" name="crop" id="crop" onclick="load_variety(this)">
-                                <option value="%">All</option>
+                            <select class="form-control" name="crop" id="crop"  onclick="load_variety(this)">
+                                <option value="%">all</option>
                                 {% for crop_id,crop_name in crop_list %}
-                                    <option value="{{ crop_id }}">{{ crop_name }}</option>
+                                    <option value="{{ crop_id }}" {% if crop_id == crop_id_for_template %} selected {% endif %}>{{ crop_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -311,7 +311,7 @@
                         <div class="form-group">
                             <label>Variety of the Crop: </label>
                             <select class="form-control" name="crop_variety" id="crop_variety" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
 
                             </select>
 
@@ -321,7 +321,7 @@
                         <div class="form-group">
                             <label>Season: </label>
                             <select class="form-control" name="season" id="season" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 {% for x,y in season %}
                                     <option value="{{ x }}" {% if x == season_id_for_template %} selected {% endif %}>{{ y }}</option>
                                 {% endfor %}
@@ -333,7 +333,7 @@
                         <div class="form-group">
                             <label>Advisory Type: </label>
                             <select class="form-control" name="advisory_type" id="advisory_type" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 <option value="management" {% if advisory_id_for_template == 1 %} selected {% endif %}>Management</option>
                                 <option value="promotional" {% if advisory_id_for_template == 2 %} selected {% endif %}>Promotional</option>
                                 <option value="weather" {% if advisory_id_for_template == 3 %} selected {% endif %}>Weather</option>
@@ -345,7 +345,7 @@
                         <div class="form-group">
                             <label>SMS Range: </label>
                             <select class="form-control" name="sms_range" id="sms_range" required>
-                                <option value="%">All</option>
+                                <option value="%">all</option>
                                 <option value="1">1-5</option>
                                 <option value="2">6-10</option>
                                 <option value="3">11-15</option>
@@ -412,7 +412,7 @@
             myArray = objectToArray(rdata).sort(Comparator);
             addDatatoTable(myArray);
 
-            var map = L.map('map').setView([23.946096, 90.128173], 6.9);
+            var map = L.map('map').setView([23.946096, 90.128173], 6.7);
 
             var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
             {
@@ -499,11 +499,11 @@
                 var div = L.DomUtil.create('div', 'info legend'),
                 labels = ['<b>Number of SMS Sent: ' + total_no_of_farmer + '</b>'];
 
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,204,204);stroke-width:3;stroke:rgb(255,204,204)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,153,153);stroke-width:3;stroke:rgb(255,153,153)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,102,102);stroke-width:3;stroke:rgb(255,102,102)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,51,51);stroke-width:3;stroke:rgb(255,51,51)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(153,0,0);stroke-width:3;stroke:rgb(153,0,0)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(197,218,255);stroke-width:3;stroke:rgb(197,218,255)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(95,74,255);stroke-width:3;stroke:rgb(95,74,255)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(15,7,218);stroke-width:3;stroke:rgb(15,7,218)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(15,7,131);stroke-width:3;stroke:rgb(15,7,131)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(13,7,90);stroke-width:3;stroke:rgb(13,7,90)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
 
                 div.innerHTML = labels.join('<br>');
                 return div;
@@ -543,15 +543,15 @@
          function getColor(s) {
             d = rdata[s];
             if (d > range_list[0] && d <= range_list[1] ) {
-                return '#FFCCCC';
+                return '#c6d9ff';
             } else if (d >= range_list[2] && d <= range_list[3] ) {
-                return '#FF9999';
+                return '#5F4AFF';
             } else if (d >= range_list[4] && d <= range_list[5] ) {
-                return '#FF6666';
+                return '#0f07da';
             } else if (d >= range_list[6] && d <= range_list[7] ) {
-                return '#FF3333';
+                return '#0f0783';
             } else if (d >= range_list[8] && d <= range_list[9] ) {
-                return '#990000';
+                return '#0d074f';
             }
         }
 
@@ -589,10 +589,10 @@
             obj = parseInt(object.value);
 
             if (isNaN(parseFloat(obj))) {
-                $('#division').html("<option value=\"%\">All</option>");
-                $('#district').html("<option value=\"%\">All</option>");
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#division').html("<option value=\"%\">all</option>");
+                $('#district').html("<option value=\"%\">all</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -603,15 +603,15 @@
                     data: {'obj': obj},
 
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > " + result[i].field_name + "</option>";
                         }
                         $('#division').html(html_code);
-                         $('#district').html("<option value=\"%\">All</option>");
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                         $('#district').html("<option value=\"%\">all</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
 
 
                     }
@@ -624,9 +624,9 @@
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
 
-                $('#district').html("<option value=\"%\">All</option>");
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#district').html("<option value=\"%\">all</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -639,14 +639,14 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +" > " + result[i].field_name + "</option>";
                         }
                         $('#district').html(html_code);
-                        $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                        $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
 
 
                     }
@@ -658,8 +658,8 @@
         function load_upazilla(object,selectValue) {
             obj = parseInt(object.value);
             if (isNaN(parseFloat(obj))) {
-                $('#upazilla').html("<option value=\"%\">All</option>");
-                $('#union').html("<option value=\"%\">All</option>");
+                $('#upazilla').html("<option value=\"%\">all</option>");
+                $('#union').html("<option value=\"%\">all</option>");
             }
             else {
 
@@ -672,13 +672,13 @@
                     {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
                     {#                    },#}
                     success: function (result) {
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
 
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\""+ checkSelect(result[i].id,selectValue) +"> " + result[i].field_name + "</option>";
                         }
                         $('#upazilla').html(html_code);
-                        $('#union').html("<option value=\"%\">All</option>");
+                        $('#union').html("<option value=\"%\">all</option>");
 
 
                     }
@@ -689,22 +689,23 @@
 
         function load_variety(object) {
             obj = parseInt(object.value);
+            console.log(obj);
             if (isNaN(parseFloat(obj))) {
-                $('#crop_variety').html("<option value=\"%\">All</option>");
-                $('#crop_stage').html("<option value=\"%\">All</option>");
+                $('#crop_variety').html("<option value=\"%\">all</option>");
+                $('#crop_stage').html("<option value=\"%\">all</option>");
             }
 
             else {
 
                 $.ajax({
+
                     url: '/ifcmodule/getVariety/',
                     type: 'POST',
                     dataType: 'json',
                     data: {'obj': obj},
 
                     success: function (result) {
-
-                        var html_code = "<option value=\"%\">All</option>";
+                        var html_code = "<option value=\"%\">all</option>";
                         for (i = 0; i < result.length; i++) {
                             html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
                         }
@@ -721,6 +722,8 @@
              division_id = document.getElementById("data-division").value;
              district_id = document.getElementById("data-district").value;
              upazilla_id = document.getElementById("data-upazilla").value;
+
+             crop_id = {{crop_id_for_template|safe}};
 
              if (country_id != '%'){
                  $("#country_id").val(country_id);
@@ -740,6 +743,11 @@
 
                  }
 
+             }
+
+             if (crop_id != "0"){
+                 var obj = {value:crop_id};
+                 load_variety(obj)
              }
 
         });

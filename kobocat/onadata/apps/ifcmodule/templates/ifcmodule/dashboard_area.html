@@ -393,11 +393,11 @@
                 var div = L.DomUtil.create('div', 'info legend'),
                 labels = ['<b>Total Area(Decimal): ' + total_no_of_farmer + '</b>'];
 
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,204,204);stroke-width:3;stroke:rgb(255,204,204)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,153,153);stroke-width:3;stroke:rgb(255,153,153)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,102,102);stroke-width:3;stroke:rgb(255,102,102)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(255,51,51);stroke-width:3;stroke:rgb(255,51,51)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
-                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(153,0,0);stroke-width:3;stroke:rgb(153,0,0)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(76,250,27);stroke-width:3;stroke:rgb(76,250,27)" /></svg> ' + range_list[0] +' - '+ range_list[1]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(57,191,3);stroke-width:3;stroke:rgb(57,191,3)" /></svg> ' + range_list[2] +' - '+ range_list[3]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(44,141,3);stroke-width:3;stroke:rgb(44,141,3)" /></svg> ' + range_list[4] +' - '+ range_list[5]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(31,98,3);stroke-width:3;stroke:rgb(31,98,3)" /></svg> ' + range_list[6] +' - '+ range_list[7]);
+                labels.push('<svg width="30" height="18"><rect width="30" height="18" style="fill:rgb(25,69,3);stroke-width:3;stroke:rgb(25,69,3)" /></svg> ' + range_list[8] +' - '+ range_list[9]);
 
                 div.innerHTML = labels.join('<br>');
                 return div;
@@ -437,15 +437,15 @@
          function getColor(s) {
             d = rdata[s];
             if (d > range_list[0] && d <= range_list[1] ) {
-                return '#FFCCCC';
+                return '#4cfa1b';
             } else if (d >= range_list[2] && d <= range_list[3] ) {
-                return '#FF9999';
+                return '#39bf03';
             } else if (d >= range_list[4] && d <= range_list[5] ) {
-                return '#FF6666';
+                return '#2c8d03';
             } else if (d >= range_list[6] && d <= range_list[7] ) {
-                return '#FF3333';
+                return '#1f6203';
             } else if (d >= range_list[8] && d <= range_list[9] ) {
-                return '#990000';
+                return '#194603';
             }
         }
 

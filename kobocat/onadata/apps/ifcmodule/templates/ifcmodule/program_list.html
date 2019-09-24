@@ -14,6 +14,7 @@
             <div class="caption"><i class="fa fa-adn"></i>Program List</div>
         </div>
         <div class="portlet-body">
+            {% if user_tag == 1 %}
             <div class="row">
                 <div class="col-md-12">
                     <a href="/ifcmodule/add_program_form/">
@@ -23,6 +24,7 @@
                     </a>
                 </div>
             </div>
+            {%endif%}
             <br>
             <table id="all_info_table" class="table table-bordered table-striped table-condensed flip-content nowrap">
                 <thead class="flip-content">
