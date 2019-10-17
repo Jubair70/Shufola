@@ -318,6 +318,7 @@
 {#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
 {#    <script type="text/javascript" src="/static/js/calendar.min.js"></script>#}
     <script>
+    var stage_i = 0;
    var count = 1;
     var clone_element="";
     function set_element(count) {
@@ -538,15 +539,26 @@ function load_variety(object) {
             }
 
         }
+
+
+
         function load_stage(object) {
             ajaxcall();
             season_id = parseInt(object.value);
             crop_id = $('#crop option:selected').val();
-            var_id = $('#crop_variety option:selected').val();
-            if(typeof var_id != 'undefined')
-                var_id = variety_id
+            var_id = $('#crop_variety').val();
+            console.log("Prev")
+            console.log(stage_i,season_id,crop_id,var_id,typeof var_id);
 
-{#            console.log(season_id,crop_id,var_id);#}
+            if(stage_i == 0)
+            {
+
+                var_id = variety_id
+                stage_i = stage_i + 1;
+            }
+
+            console.log("After")
+            console.log(stage_i,season_id,crop_id,var_id,typeof var_id);
 {#            return false;#}
             if (isNaN(parseFloat(season_id))) {
                 $('#crop_stage').html("<option value=\"\">Select One</option>");

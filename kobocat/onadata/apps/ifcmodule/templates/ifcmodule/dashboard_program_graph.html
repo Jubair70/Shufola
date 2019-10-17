@@ -58,7 +58,7 @@
                                     <div class="form-group">
                                         <label class="control-label">Program Name</label>
                                         <select name="graph_prog_id" id="graph_prog_id" class="form-control userlist">
-                                            <option value="%">All</option>
+                                            <option value="%">all</option>
                                                 {% for item in program_list %}
                                                     <option value="{{ item.id }}" {% if item.id == graph_program_id %} selected {% endif %}> {{ item.program_name }}</option>
                                                 {% endfor %}

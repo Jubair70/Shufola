@@ -466,6 +466,13 @@ def crop_Stage_Edit(request):
                                            default=decimal_date_default)
     return HttpResponse(jsonFetchSelecteCropStage)
 
+@login_required
+def delete_crop_stage(request,crop_stage_id):
+    del_qry = "delete from crop_stage where id = "+str(crop_stage_id)
+    __db_commit_query(del_qry)
+    messages.success(request, '<i class="fa fa-check-circle"></i> Data has been deleted successfully!',extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect('/maxmodule/cais_module/crop_Stage/')
+
 
 """
 @@ **************  Crop Stage (End) ***********@@
@@ -523,6 +530,12 @@ def crop_variety_Edit(request):
                                              default=decimal_date_default)
     return HttpResponse(jsonFetchSelecteCropVariety)
 
+@login_required
+def delete_crop_variety(request,crop_variety_id):
+    del_qry = "delete from crop_variety where id = "+str(crop_variety_id)
+    __db_commit_query(del_qry)
+    messages.success(request, '<i class="fa fa-check-circle"></i> Data has been deleted successfully!',extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect('/maxmodule/cais_module/crop_variety/')
 
 """
 @@ **************  Crop Variety (End) ***********@@

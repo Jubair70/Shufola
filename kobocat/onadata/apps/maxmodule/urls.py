@@ -47,10 +47,12 @@ urlpatterns = patterns('',
                        url(r'^cais_module/crop_Stage/$', views_cais.crop_Stage, name="crop_Stage"),
                        url(r'^cais_module/cropStageCreate/$', views_cais.cropStageCreate, name="cropStageCreate"),
                        url(r'^cais_module/crop_Stage_Edit/$', views_cais.crop_Stage_Edit, name="crop_Stage_Edit"),
+                       url(r'^cais_module/delete_crop_stage/(?P<crop_stage_id>\d+)/$', views_cais.delete_crop_stage, name="delete_crop_stage"),
 
                        url(r'^cais_module/crop_variety/$', views_cais.crop_variety, name="crop_variety"),
                        url(r'^cais_module/cropVarietyCreate/$', views_cais.cropVarietyCreate, name="cropVarietyCreate"),
                        url(r'^cais_module/crop_variety_Edit/$', views_cais.crop_variety_Edit, name="crop_variety_Edit"),
+                       url(r'^cais_module/delete_crop_variety/(?P<crop_variety_id>\d+)/$', views_cais.delete_crop_variety, name="delete_crop_variety"),
 
                        url(r'^cais_module/crop_stage_alert/$', views_cais.crop_stage_alert, name="crop_stage_alert"),
                        url(r'^cais_module/cropStageAlertCreate/$', views_cais.cropStageAlertCreate,
