@@ -283,6 +283,19 @@
                             </select>
                         </div>
                     </div>
+                <div class="col-md-3">
+                        <div class="form-group">
+                            <label>SMS Range: </label>
+                            <select class="form-control" name="sms_range" id="sms_range" required="">
+
+                                 {% for range in sms_range_list %}
+                                <option value="{{ range.id }}" {% if range.id = preset_sms_range %} selected {% endif %} >{{ range.range_name }}</option>
+                            {% endfor %}
+
+
+                            </select>
+                        </div>
+                    </div>
                                         <!--
                     <div class="col-md-3">
                         <div class="form-group">

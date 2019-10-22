@@ -5,6 +5,7 @@
     <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
     <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
     <style>
         .e:hover{
              background-color:#FF6666;
@@ -46,9 +47,9 @@
                                     <div class="form-group">
                                         <label class="control-label">Organization Name</label>
                                         <select name="graph_org_id" id="graph_org_id" class="form-control userlist">
-                                            <option value="%">Select an organization</option>
+                                            <option value="%">all</option>
                                             {% for item in org_list %}
-                                                    <option value="{{ item.id }}">{{ item.organization }}</option>
+                                                    <option value="{{ item.id }}" {% if item.id == org_for_template %} selected {% endif %}>{{ item.organization }}</option>
                                                 {% endfor %}
                                         </select>
                                     </div>
@@ -57,10 +58,10 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">Program Name</label>
-                                        <select name="graph_prog_id" id="graph_prog_id" class="form-control userlist">
-                                            <option value="%">all</option>
+                                        <select name="graph_prog_id[]" id="graph_prog_id" class="form-control userlist" multiple>
+
                                                 {% for item in program_list %}
-                                                    <option value="{{ item.id }}" {% if item.id == graph_program_id %} selected {% endif %}> {{ item.program_name }}</option>
+                                                    <option value="{{ item.id }}" {% if item.id in graph_program_id_for_template %} selected {% endif %}> {{ item.program_name }}</option>
                                                 {% endfor %}
                                         </select>
                                     </div>
@@ -141,10 +142,13 @@
     <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
     <script>
-
+        $('#graph_prog_id').select2({
+            width: '100%',
+            placeholder: 'all'
+        });
         document.addEventListener('DOMContentLoaded', function () {
             var farmer_data = {{farmer_data|safe}};
             var acre_data = {{acre_data|safe}};

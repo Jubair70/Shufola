@@ -3173,6 +3173,7 @@ def get_program_graph(request):
         org_list_text.append(str(row))
 
     print org_list
+    _org = '%'
 
     program_list = __db_fetch_values_dict("select id,program_name from usermodule_programs where org_id = any('{"+str(org_list).strip('[]')+" }')")
     org_list_data = __db_fetch_values_dict("select id,organization from usermodule_organizations where id = any('{"+str(org_list).strip('[]')+" }')")
@@ -3184,10 +3185,17 @@ def get_program_graph(request):
     end_date = end_date.strftime("%Y-%m-%d")
 
     graph_program_id = '%'
+    processed_graph_program = []
+    sub_query_for_multiple_graph_program = " like '%'"
     if request.method == 'POST':
-        graph_program_id = request.POST.get('graph_prog_id')
-        if graph_program_id is None:
-            graph_program_id = '%'
+        _org = request.POST.get('graph_org_id')
+        graph_program_id = request.POST.getlist('graph_prog_id[]')
+        print("GRAPH")
+        print(graph_program_id)
+        for item in graph_program_id:
+            processed_graph_program.append(int(item))
+        if len(processed_graph_program) != 0:
+            sub_query_for_multiple_graph_program = " = any('{" + str(processed_graph_program).strip('[]') + "}')"
 
         if request.POST.get('start_date') != '':
             if request.POST.get('start_date'):
@@ -3199,43 +3207,37 @@ def get_program_graph(request):
                 end_date = request.POST.get('end_date')
                 print end_date
 
-    total_management_sms = __db_fetch_single_value_excption("select count(*) OVER () from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id limit 1")
+    total_management_sms = __db_fetch_single_value_excption("select count(*) OVER () from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 'Sent' and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id limit 1")
     farmer_data.append(int(total_management_sms))
 
     print '-------total management sms--------'
     print total_management_sms
 
-    total_promotional_sms = __db_fetch_single_value_excption("select count(*) OVER () from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent' ) and program_id::text LIKE '"+str(graph_program_id)+"' and organization_id in ("+str(org_list_text).strip('[]')+") and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id limit 1 ")
+    total_promotional_sms = __db_fetch_single_value_excption("select count(*) OVER () from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent' ) and program_id::text "+str(sub_query_for_multiple_graph_program)+" and organization_id in ("+str(org_list_text).strip('[]')+") and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id limit 1 ")
     farmer_data.append(int(total_promotional_sms))
 
     if request.user.is_superuser:
-        total_weather_sms = __db_fetch_single_value_excption("select count(*) OVER () from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id limit 1")
+        total_weather_sms = __db_fetch_single_value_excption("select count(*) OVER () from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and status = 'Sent' and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id limit 1")
 
         farmer_data.append(int(total_weather_sms))
 
-    total_acre_management_sms = __db_fetch_single_value_excption("select sum(case when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end) processed_land_size from farmer_crop_info where farmer_id in (select farmer_id from management_sms_que where status = 'Sent' and organization_id = any('{"+str(org_list).strip('[]')+" }') and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
+    total_acre_management_sms = __db_fetch_single_value_excption("select round(sum(case when land_size = 'nan' or land_size is null or land_size = ''  then 0 when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end)) processed_land_size from farmer_crop_info where farmer_id in (select distinct farmer_id from management_sms_que where status = 'Sent' and organization_id = any('{"+str(org_list).strip('[]')+" }') and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
     acre_data.append(float(total_acre_management_sms))
 
-    print '-------total_acre_management_sms---------'
-    print total_acre_management_sms
 
-    total_acre_promotional_sms = __db_fetch_single_value_excption("select sum(case when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end) processed_land_size from farmer_crop_info where farmer_id in (select farmer_id::int from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent') and organization_id in ("+str(org_list_text).strip('[]')+") and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
+    total_acre_promotional_sms = __db_fetch_single_value_excption("select round(sum(case when land_size = 'nan' or land_size is null or land_size = ''  then 0 when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end)) processed_land_size from farmer_crop_info where farmer_id in (select distinct farmer_id::int from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent') and organization_id in ("+str(org_list_text).strip('[]')+") and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
     acre_data.append(float(total_acre_promotional_sms))
-    #acre_data.append(float(10))
 
     if request.user.is_superuser:
-        total_acre_weather_sms = __db_fetch_single_value_excption("select sum(case when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end) processed_land_size from farmer_crop_info where farmer_id in (select farmer_id::int from weather_sms_rule_queue where status = 'Sent' and org_id in ("+str(org_list_text).strip('[]')+") and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
-
+        total_acre_weather_sms = __db_fetch_single_value_excption("select round(sum(case when land_size = 'nan' or land_size is null or land_size = ''  then 0 when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end)) processed_land_size from farmer_crop_info where farmer_id in (select distinct farmer_id::int from weather_sms_rule_queue where status = 'Sent' and org_id in ("+str(org_list_text).strip('[]')+") and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
         acre_data.append(float(total_acre_weather_sms))
 
-    total_crop_management_sms = __db_fetch_single_value_excption("select count(*) OVER () from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1")
+    total_crop_management_sms = __db_fetch_single_value_excption("select count(distinct crop_id) from management_sms_que where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 'Sent' and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1")
     crop_data.append(int(total_crop_management_sms))
-
-    total_crop_promotional_sms = __db_fetch_single_value_excption("select count(*) OVER () from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent' ) and program_id::text LIKE '"+str(graph_program_id)+"' and organization_id in ("+str(org_list_text).strip('[]')+") and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1 ")
+    total_crop_promotional_sms = __db_fetch_single_value_excption("select count(distinct crop_id) from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent' ) and program_id::text "+str(sub_query_for_multiple_graph_program)+" and organization_id in ("+str(org_list_text).strip('[]')+") and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1 ")
     crop_data.append(int(total_crop_promotional_sms))
-
     if request.user.is_superuser:
-        total_crop_weather_sms = __db_fetch_single_value_excption("select count(*) OVER () from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and status = 'Sent' and program_id::text LIKE '"+str(graph_program_id)+"' and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1")
+        total_crop_weather_sms = __db_fetch_single_value_excption("select count(distinct crop_id) from weather_sms_rule_queue where org_id in ("+str(org_list_text).strip('[]')+") and status = 'Sent' and program_id::text "+str(sub_query_for_multiple_graph_program)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' limit 1")
         crop_data.append(int(total_crop_weather_sms))
 
     print farmer_data
@@ -3243,9 +3245,13 @@ def get_program_graph(request):
     print crop_data
 
     if graph_program_id is None or graph_program_id == '%':
-        graph_program_id_for_template = 0
+        graph_program_id_for_template = None
     else:
-        graph_program_id_for_template = int(graph_program_id)
+        graph_program_id_for_template = processed_graph_program
+    if _org is None or _org == '%':
+        org_for_template = 0
+    else:
+        org_for_template = int(_org)
 
     if request.user.is_superuser:
         super_user = 1
@@ -3260,11 +3266,12 @@ def get_program_graph(request):
         'crop_data': json.dumps(crop_data),
         'program_list':program_list,
         'org_list':org_list_data,
-        'graph_program_id': graph_program_id_for_template,
+        'graph_program_id_for_template': graph_program_id_for_template,
         'start_date':start_date,
         'end_date':end_date,
         'super_user':super_user,
-        'categories':categories
+        'categories':categories,
+        'org_for_template': org_for_template,
     })
 
 
@@ -3347,13 +3354,14 @@ def get_farmer_map(request):
     start_date = current_date.strftime("%Y-%m-%d")
     end_date = datetime(current_date.year, (current_date + relativedelta(months=1)).month,1) - timedelta(days=1)
     end_date = end_date.strftime("%Y-%m-%d")
-
+    sms_range = 1
     if request.method == 'POST':
         if request.POST.get('start_date') != '' and request.POST.get('end_date') != '':
             if request.POST.get('start_date') and request.POST.get('end_date'):
                 start_date = request.POST.get('start_date')
                 end_date = request.POST.get('end_date')
 
+        sms_range = request.POST.get('sms_range')
         processed_crop = []
         crop = request.POST.getlist('crop[]')
         for item in crop:
@@ -3372,25 +3380,25 @@ def get_farmer_map(request):
 
     sub_query_date = " and created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "'"
 
-    dist_list = __db_fetch_values_dict("select (select name from vwdistrict where id = district_id ) dist_name, count(district_id) as total_no_of_farmer from farmer where organization_id = any('{"+str(org_list).strip('[]')+" }') and status = 1 and country_id = 1 "+sub_query + sub_query_date+"  group by district_id")
+    dist_list = __db_fetch_values_dict("select( select name from vwdistrict where id = district_id) dist_name, count(district_id) as total_no_of_farmer from farmer where organization_id = any('{" + str(org_list).strip('[]') + "}') and status = 1 and country_id = 1 " + sub_query + sub_query_date + " and id = any( with t as ( select farmer_id::bigint,count(*) from management_sms_que where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and status = 'Sent' and farmer_id is not null group by farmer_id union select farmer_id::bigint,count(*) from weather_sms_rule_queue where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and status = 'Sent' and farmer_id is not null group by farmer_id union select farmer_id::bigint,count(*) from promotional_sms where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and farmer_id is not null group by farmer_id ), t1 as ( select farmer_id,(select from_range from sms_range where id = "+str(sms_range)+"),(select to_range from sms_range where id = "+str(sms_range)+"),sum(count) sm from t group by farmer_id )select farmer_id from t1 where case when to_range is null then sm > from_range else sm between from_range and to_range end ) group by district_id")
 
     print '----dist list----'
     print dist_list
 
-    upz_list = __db_fetch_values_dict("select (select name from vwupazila where id = upazila_id ) upazila_name, count(upazila_id) as total_no_of_farmer_upazila from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and status = 1 and country_id = 1 " + sub_query + sub_query_date + "  group by upazila_id")
-
+    upz_list = __db_fetch_values_dict("SELECT( SELECT NAME FROM vwupazila WHERE id = upazila_id) upazila_name, Count(upazila_id) AS total_no_of_farmer_upazila, ( SELECT from_range FROM sms_range WHERE id = "+str(sms_range)+"), ( SELECT to_range FROM sms_range WHERE id = "+str(sms_range)+") FROM farmer WHERE organization_id = ANY('{" + str(org_list).strip('[]') + " }') AND status = 1 AND country_id = 1 " + sub_query + sub_query_date + " and id = any( with t as ( select farmer_id::bigint,count(*) from management_sms_que where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and status = 'Sent' and farmer_id is not null group by farmer_id union select farmer_id::bigint,count(*) from weather_sms_rule_queue where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and status = 'Sent' and farmer_id is not null group by farmer_id union select farmer_id::bigint,count(*) from promotional_sms where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and farmer_id is not null group by farmer_id), t1 as ( select farmer_id,(select from_range from sms_range where id = "+str(sms_range)+"),(select to_range from sms_range where id = "+str(sms_range)+"),sum(count) sm from t group by farmer_id )select farmer_id from t1 where case when to_range is null then sm > from_range else sm between from_range and to_range end ) GROUP BY upazila_id")
+    print(
+        "SELECT( SELECT NAME FROM vwupazila WHERE id = upazila_id) upazila_name, Count(upazila_id) AS total_no_of_farmer_upazila, ( SELECT from_range FROM sms_range WHERE id = "+str(sms_range)+"), ( SELECT to_range FROM sms_range WHERE id = "+str(sms_range)+") FROM farmer WHERE organization_id = ANY('{" + str(org_list).strip('[]') + " }') AND status = 1 AND country_id = 1 " + sub_query + sub_query_date + " and id = any( with t as ( select farmer_id::bigint,count(*) from management_sms_que where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and status = 'Sent' and farmer_id is not null group by farmer_id union select farmer_id::bigint,count(*) from weather_sms_rule_queue where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and status = 'Sent' and farmer_id is not null group by farmer_id union select farmer_id::bigint,count(*) from promotional_sms where schedule_time::date between symmetric '"+str(start_date)+"' and '"+str(end_date)+"' and farmer_id is not null group by farmer_id), t1 as ( select farmer_id,(select from_range from sms_range where id = "+str(sms_range)+"),(select to_range from sms_range where id = "+str(sms_range)+"),sum(count) sm from t group by farmer_id )select farmer_id from t1 where case when to_range is null then sm > from_range else sm between from_range and to_range end ) GROUP BY upazila_id")
     print '----upz list----'
     print upz_list
 
+    total_no_of_farmer = 0
     if not dist_list:
         processed_dist_dict.update({str("Dhaka"): 0})
-        total_no_of_farmer = 0
     else:
         for dist in dist_list:
             processed_dist_dict.update({str(dist['dist_name']): int(dist['total_no_of_farmer'])})
             store_range_list.append(int(dist['total_no_of_farmer']))
-
-        total_no_of_farmer = __db_fetch_single_value("select count(*) from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and status = 1 and country_id = 1 " + sub_query + sub_query_date + " ")
+            total_no_of_farmer = total_no_of_farmer + int(dist['total_no_of_farmer'])
 
     print '------processed_dist_dict---------'
     print processed_dist_dict
@@ -3419,6 +3427,8 @@ def get_farmer_map(request):
     crop_id = df.id.tolist()
     crop_name = df.crop_name.tolist()
     crop_list = zip(crop_id, crop_name)
+
+    sms_range_list = __db_fetch_values_dict("select id,case when to_range is null then from_range || '+' when id = 1 then 'all' else from_range || '-' || to_range  end range_name  from sms_range order by id")
 
     p1 = (range_value * 10)/100
     p2 = (range_value * 25)/100
@@ -3455,7 +3465,9 @@ def get_farmer_map(request):
         'total_farmer_no': total_no_of_farmer,
         'crop_list_for_template': crop_list_for_template,
         'end_date':end_date,
-        'start_date':start_date
+        'start_date':start_date,
+        'sms_range_list':sms_range_list,
+        'preset_sms_range': int(sms_range)
     })
 
 @login_required
@@ -3482,18 +3494,23 @@ def get_farmer_bar(request):
 
     sub_query = "DESC"
     processed_crop = []
+    processed_program = []
     sub_query_for_multiple_crop = " like '%'"
+    sub_query_for_multiple_program = " like '%'"
 
     if request.method == 'POST':
         _org = request.POST.get('organization')
-        _program = request.POST.get('program')
+        _program = request.POST.getlist('program[]')
+        for item in _program:
+            processed_program.append(int(item))
+        if len(processed_program) != 0:
+            sub_query_for_multiple_program = " = any('{" + str(processed_program).strip('[]') + "}')"
         _crop = request.POST.getlist('crop[]')
         for item in _crop:
             processed_crop.append(int(item))
-        print("Processed Crop")
-        print(processed_crop)
         if len(processed_crop) != 0:
             sub_query_for_multiple_crop = " = any('{" + str(processed_crop).strip('[]') + "}')"
+
         # _variety_crop = request.POST.get('crop_variety')
         # _season = request.POST.get('season')
         _district_status = request.POST.get('dis_status')
@@ -3561,9 +3578,9 @@ def get_farmer_bar(request):
 
     #upazila_list = __db_fetch_values_dict("with t1 as ( select count(upazila_id) as total_no_of_farmer_upazila,district_id,upazila_id,(select name from vwupazila where id = upazila_id ) upazila_name,(select name from vwdistrict where id = district_id ) dist_name from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') group by upazila_id,district_id) select * from t1 ")
 
-    upazila_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.upazila_id upazila_id,farmer.organization_id organization_id,farmer.status status, farmer.program_id program_id, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text "+str(sub_query_for_multiple_crop)+" and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text LIKE '" + str(_program) + "' and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, (select name from vwupazila where id = t1.upazila_id ) as upazila_name, count(t1.upazila_id) as total_no_of_farmer_upazila from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.upazila_id, t1.district_id order by total_no_of_farmer_upazila ")
+    upazila_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.upazila_id upazila_id,farmer.organization_id organization_id,farmer.status status, farmer.program_id program_id, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text "+str(sub_query_for_multiple_crop)+" and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text " + str(sub_query_for_multiple_program) + " and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, (select name from vwupazila where id = t1.upazila_id ) as upazila_name, count(t1.upazila_id) as total_no_of_farmer_upazila from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.upazila_id, t1.district_id order by total_no_of_farmer_upazila ")
 
-    print upazila_list
+    print "with t1 as(select farmer.district_id district_id, farmer.upazila_id upazila_id,farmer.organization_id organization_id,farmer.status status, farmer.program_id program_id, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text "+str(sub_query_for_multiple_crop)+" and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text " + str(sub_query_for_multiple_program) + " and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, (select name from vwupazila where id = t1.upazila_id ) as upazila_name, count(t1.upazila_id) as total_no_of_farmer_upazila from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.upazila_id, t1.district_id order by total_no_of_farmer_upazila "
 
     for row in upazila_list:
         dist_upazila_dict.update({str(row['dist_name']) : []})
@@ -3573,7 +3590,7 @@ def get_farmer_bar(request):
 
     # dist_list = __db_fetch_values_dict("select (select name from vwdistrict where id = district_id ) dist_name, count(district_id) as total_no_of_farmer from farmer where organization_id = any('{" + str(org_list).strip('[]') + " }') and program_id::text LIKE '"+str(_program)+"' group by district_id order by total_no_of_farmer DESC")
 
-    dist_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.organization_id organization_id, farmer.program_id program_id,farmer.status status, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text "+str(sub_query_for_multiple_crop)+" and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text LIKE '" + str(_program) + "' and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, count(t1.district_id) as total_no_of_farmer from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.district_id order by total_no_of_farmer "+sub_query)
+    dist_list = __db_fetch_values_dict("with t1 as(select farmer.district_id district_id, farmer.organization_id organization_id, farmer.program_id program_id,farmer.status status, farmer.created_at created_at from farmer,farmer_crop_info where farmer.id = farmer_crop_info.farmer_id and farmer_crop_info.crop_id::text "+str(sub_query_for_multiple_crop)+" and farmer_crop_info.season_id::text like '"+str(_season)+"' and farmer_crop_info.crop_variety_id::text like '"+str(_variety_crop)+"' and farmer.program_id::text " + str(sub_query_for_multiple_program) + " and farmer.created_at::timestamp::date BETWEEN SYMMETRIC '" + str(start_date) + "' AND '" + str(end_date) + "' group by farmer.id) select (select name from vwdistrict where id = t1.district_id ) as dist_name, count(t1.district_id) as total_no_of_farmer from t1 where t1.organization_id = any('{" + str(org_list).strip('[]') + " }') and t1.status = 1 group by t1.district_id order by total_no_of_farmer "+sub_query)
 
     print dist_list
 
@@ -3590,10 +3607,9 @@ def get_farmer_bar(request):
         org_for_template = int(_org)
 
     if _program is None or _program == '%':
-        program_for_template = 0
+        program_for_template = None
     else:
-        program_for_template = int(_program)
-
+        program_for_template = processed_program
     if _crop is None or _crop == '%':
         crop_for_template = None
     else:
@@ -3770,7 +3786,7 @@ def get_crop(request):
 
         farmer_data.append(int(total_weather_sms))
 
-    total_acre_management_sms = __db_fetch_single_value_excption("select sum(case when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end) processed_land_size from farmer_crop_info where farmer_id in (select farmer_id from management_sms_que where status = 'Sent' and organization_id = any('{" + str(
+    total_acre_management_sms = __db_fetch_single_value_excption("select round(sum(case when land_size = 'nan' or land_size is null or land_size = ''  then 0 when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end)) processed_land_size from farmer_crop_info where farmer_id in (select distinct farmer_id from management_sms_que where status = 'Sent' and organization_id = any('{" + str(
             org_list).strip('[]') + " }') and crop_id::text "+str(sub_query_for_multiple_crop)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(
             start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
     acre_data.append(float(total_acre_management_sms))
@@ -3779,13 +3795,13 @@ def get_crop(request):
     print total_acre_management_sms
 
     # this query slows down
-    total_acre_promotional_sms = __db_fetch_single_value_excption("select sum(case when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end) processed_land_size from farmer_crop_info where farmer_id in (select farmer_id::int from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent') and organization_id in ("+str(org_list_text).strip('[]')+") and crop_id::text "+str(sub_query_for_multiple_crop)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(
+    total_acre_promotional_sms = __db_fetch_single_value_excption("select round(sum(case when land_size = 'nan' or land_size is null or land_size = ''  then 0 when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end)) processed_land_size from farmer_crop_info where farmer_id in (select distinct farmer_id::int from promotional_sms where id in (select alertlog_id from sms_que where sms_que.sms_source = 'promotional_sms' and status = 'Sent') and organization_id in ("+str(org_list_text).strip('[]')+") and crop_id::text "+str(sub_query_for_multiple_crop)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(
             start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
     acre_data.append(float(total_acre_promotional_sms))
     # acre_data.append(float(10))
 
     if request.user.is_superuser:
-        total_acre_weather_sms = __db_fetch_single_value_excption("select sum(case when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end) processed_land_size from farmer_crop_info where farmer_id in (select farmer_id::int from weather_sms_rule_queue where status = 'Sent' and org_id in ("+str(org_list_text).strip('[]')+") and crop_id::text "+str(sub_query_for_multiple_crop)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(
+        total_acre_weather_sms = __db_fetch_single_value_excption("select round(sum(case when land_size = 'nan' or land_size is null or land_size = ''  then 0 when unit_id = 4 then (land_size::decimal) when unit_id = 3 then (land_size::decimal * 33.058) when unit_id = 2 then (land_size::decimal * 100) when unit_id = 1 then (land_size::decimal * 247.105) end)) processed_land_size from farmer_crop_info where farmer_id in (select distinct farmer_id::int from weather_sms_rule_queue where status = 'Sent' and org_id in ("+str(org_list_text).strip('[]')+") and crop_id::text "+str(sub_query_for_multiple_crop)+" and schedule_time::timestamp::date BETWEEN SYMMETRIC '" + str(
             start_date) + "' AND '" + str(end_date) + "' group by farmer_id )")
 
         acre_data.append(float(total_acre_weather_sms))
@@ -4482,17 +4498,20 @@ def content_library(request):
     crop_id = df.id.tolist()
     crop_name = df.crop_name.tolist()
     crop = zip(crop_id, crop_name)
-
+    input_type_list = __db_fetch_values_dict("select id,input_type from content_input_type")
     crop_id = '%'
     variety_id = '%'
     season_id = '%'
+    input_type = '%'
 
     if request.POST:
         crop_id = request.POST.get('crop')
         variety_id = request.POST.get('crop_variety')
         season_id = request.POST.get('season')
+        input_type = request.POST.get('input_type')
 
-    content_list = __db_fetch_values_dict("with t1 as (select *,(select crop_name from crop where id::text = crop limit 1) crop_name, (select variety_name from crop_variety where id::text = crop_variety limit 1) variety_name, (select season_name from cropping_season where id::text = season limit 1) season_name from content where crop LIKE '"+str(crop_id)+"' and season LIKE '"+str(season_id)+"' and crop_variety LIKE '"+str(variety_id)+"' ) select *,case when content_type = 'audio' then voice_sms_file_path else sms_description end info from t1")
+    content_list = __db_fetch_values_dict("with t1 as (select *,(select input_type from content_input_type where id::text = content.input_type limit 1) input_type_name,(select crop_name from crop where id::text = crop limit 1) crop_name, (select variety_name from crop_variety where id::text = crop_variety limit 1) variety_name, (select season_name from cropping_season where id::text = season limit 1) season_name from content where crop LIKE '"+str(crop_id)+"' and season LIKE '"+str(season_id)+"' and crop_variety LIKE '"+str(variety_id)+"' and input_type like '"+str(input_type)+"' ) select *,case when content_type = 'audio' then voice_sms_file_path else sms_description end info from t1")
+
 
     if season_id is None or season_id == '%':
         season_id_for_template = 0
@@ -4509,7 +4528,8 @@ def content_library(request):
         'season': season,
         'content_list':content_list,
         'season_id_for_template':season_id_for_template,
-        'crop_id_for_template':crop_id_for_template
+        'crop_id_for_template':crop_id_for_template,
+        'input_type_list':input_type_list
     })
 
 
@@ -4538,11 +4558,13 @@ def create_content(request):
     crop_id = df.id.tolist()
     crop_name = df.crop_name.tolist()
     crop = zip(crop_id, crop_name)
+    input_type_list = __db_fetch_values_dict("select id,input_type from content_input_type")
 
     return render(request, 'ifcmodule/content_create.html', {
         'crop': crop,
         'season': season,
         'organization': organization,
+        'input_type_list':input_type_list
     })
 
 
@@ -4571,6 +4593,7 @@ def edit_content_library(request,id):
     crop_id = df.id.tolist()
     crop_name = df.crop_name.tolist()
     crop = zip(crop_id, crop_name)
+    input_type_list = __db_fetch_values_dict("select id,input_type from content_input_type")
 
     data = __db_fetch_values_dict("select * from content where id = "+str(id))
     season_id = data[0]['season']
@@ -4579,8 +4602,11 @@ def edit_content_library(request,id):
     sms_type = data[0]['content_type']
     sms = data[0]['sms_description']
     org_id = data[0]['org_id']
+    input_type = data[0]['input_type']
+    content_type = data[0]['content_type']
 
-    print season_id
+
+    print input_type
     print crop_id
 
     if crop_variety_id is None or crop_variety_id == '%':
@@ -4598,7 +4624,10 @@ def edit_content_library(request,id):
         'sms_type':sms_type,
         'sms':sms,
         'org_id_':int (org_id),
-        'id':id
+        'id':id,
+        'input_type_list':input_type_list,
+        'preset_input_type':int(input_type),
+        'preset_content_type':content_type
 
     })
 

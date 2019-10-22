@@ -47,8 +47,11 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label>Input type: </label>
-                                <select class="form-control" name="input_type" id="input_type">
+                                <select class="form-control" name="input_type" id="input_type" required>
                                     <option value="">Select One</option>
+                                    {% for inp in input_type_list %}
+                                        <option value="{{ inp.id }}" {% if inp.id == preset_input_type %} selected {% endif %}>{{ inp.input_type }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -87,8 +90,8 @@
                             <div class="form-group">
                                 <label>SMS type: </label>
                                 <select class="form-control" name="sms_type" id="sms_type" required>
-                                    <option value="text">Text</option>
-                                    <option value="audio">Audio</option>
+                                    <option value="text" {% if preset_content_type == "text" %} selected {% endif %}>Text</option>
+                                    <option value="audio" {% if preset_content_type == "audio" %} selected {% endif %}>Audio</option>
                                 </select>
                             </div>
                         </div>

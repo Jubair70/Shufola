@@ -44,11 +44,14 @@
 
                 <div class="form-body">
                     <div class="row">
-                        <div class="col-md-3" hidden>
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>Input type: </label>
-                                <select class="form-control" name="input_type" id="input_type">
+                                <select class="form-control" name="input_type" id="input_type" required>
                                     <option value="">Select One</option>
+                                    {% for inp in input_type_list %}
+                                        <option value="{{ inp.id }}">{{ inp.input_type }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
