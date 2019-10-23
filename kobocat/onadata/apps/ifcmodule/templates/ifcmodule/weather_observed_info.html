@@ -8,7 +8,11 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
     <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
     <style>
-
+@media print {
+        .portlet-body {
+            zoom: 44.8%;
+        }
+    }
     </style>
 
 {% endblock %}
@@ -501,7 +505,7 @@
                '              <div class="row" style="margin-top: 50px; margin-bottom: 20px">\n'+
                '                    <div class="card" style="height: auto;  margin: 5px">\n'+
                '                        <div class="card-body">\n'+
-               '                            <div id="container_a" style=" margin: 0 auto;"></div>\n'+
+               '                            <div id="container_a" ></div>\n'+
                '                            <div id="container_b" style=" margin: 0 auto;"></div>\n'+
                 '                            <div id="container_c" style=" margin: 0 auto;"></div>\n'+
                 '                            <div id="container_d" style=" margin: 0 auto;"></div>\n'+

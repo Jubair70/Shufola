@@ -8,12 +8,18 @@
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/alertify.min.css" media="all"/>
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/css/themes/semantic.min.css" media="all"/>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" media="all"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 
     <style>
         .e:hover{
              background-color:#FF6666;
              color: white;
         }
+     @media print {
+        .portlet-body {
+            zoom: 70%;
+        }
+    }
     </style>
 
 {% endblock %}
@@ -59,12 +65,12 @@
 
                 <div class="col-md-12" style="margin-bottom: 20px">
 
-                    <div class="col-md-3">
+                    <div class="col-md-3" hidden>
                         <div class="form-group">
                             <label >Country:</label>
                             <select type="select" name="country_id" id="country_id" class="form-control" onclick="load_division(this,0)" required>
                                 <option value="%">all</option>
-                                <option value="1">Bangladesh</option>
+                                <option value="1" selected>Bangladesh</option>
                             </select>
                         </div>
                     </div>
@@ -92,41 +98,7 @@
                             </select>
                         </div>
                     </div>
-
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Crop:</label>
-                            <select class="form-control" name="crop" id="crop" onclick="load_variety(this)">
-                                <option value="%">all</option>
-                                {% for crop_id,crop_name in crop_list %}
-                                    <option value="{{ crop_id }}" {% if crop_id == crop_id_for_template %} selected {% endif %}>{{ crop_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Variety of the Crop: </label>
-                            <select class="form-control" name="crop_variety" id="crop_variety" required>
-                                <option value="%">all</option>
-
-                            </select>
-
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Season: </label>
-                            <select class="form-control" name="season" id="season" required>
-                                <option value="%">all</option>
-                                {% for x,y in season %}
-                                    <option value="{{ x }}" {% if x == season_id_for_template %} selected {% endif %}>{{ y }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
+                <div class="col-md-3">
                         <div class="form-group">
                             <label>Advisory Type: </label>
                             <select class="form-control" name="advisory_type" id="advisory_type" required>
@@ -138,7 +110,42 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Crop:</label>
+                            <select class="form-control" name="crop[]" id="crop" multiple>
+                                <option value="%">all</option>
+                                {% for crop_id,crop_name in crop_list %}
+                                    <option value="{{ crop_id }}" {% if crop_id in crop_id_for_template %} selected {% endif %}>{{ crop_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3" hidden>
+                        <div class="form-group">
+                            <label>Variety of the Crop: </label>
+                            <select class="form-control" name="crop_variety" id="crop_variety" required>
+                                <option value="%">all</option>
+
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="col-md-3" hidden>
+                        <div class="form-group">
+                            <label>Season: </label>
+                            <select class="form-control" name="season" id="season" required>
+                                <option value="%">all</option>
+                                {% for x,y in season %}
+                                    <option value="{{ x }}" {% if x == season_id_for_template %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3" hidden>
                         <div class="form-group">
                             <label>SMS Range: </label>
                             <select class="form-control" name="sms_range" id="sms_range" required>
@@ -208,9 +215,13 @@
     <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
     <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
     <script type="text/javascript">
+    $('#crop').select2({
+            width: '100%',
+            placeholder: 'all'
+        });
 
         $(document).on("change", "#district_id", function () {
             district = $(this).val()
@@ -440,6 +451,17 @@
                 }
             });
        }
+       $('#country_id').trigger('click');
+        country_id = document.getElementById("data-country").value;
+        division_id = document.getElementById("data-division").value;
+        district_id = document.getElementById("data-district").value;
+        upazilla_id = document.getElementById("data-upazilla").value;
+        var obj = {value: country_id};
+        load_division(obj, division_id);
+        var obj = {value: division_id};
+        load_district(obj, district_id);
+        var obj = {value: district_id};
+        load_upazilla(obj, upazilla_id);
 
     </script>
 
