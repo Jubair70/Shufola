@@ -136,11 +136,6 @@
 {% block additional-javascript %}
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
-    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.css"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.css"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -200,6 +195,10 @@
             $(function() {
                 $('.time_pick').datetimepicker().data("DateTimePicker").options({format: "HH:mm"});
             });
+            var dateObj = moment().format('YYYY-MM-DD');
+            var prevDateObj = moment().subtract(30, 'd').format('YYYY-MM-DD');
+            $('#start_date').val(prevDateObj);
+            $('#end_date').val(dateObj);
 
         });
 
@@ -211,21 +210,22 @@
             $('#add_div').remove();
             $("#query_id").val(1);
 
-            var date = new Date();
-            var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-            var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            var modified_firstDay = firstDay.toLocaleDateString('km-KH');
-            var modified_lastDay = lastDay.toLocaleDateString('km-KH');
-
-            var startdatepicker = $('#start_date');
-            var enddatepicker = $('#end_date');
-
-            startdatepicker.datepicker();
-            startdatepicker.datepicker('setDate', modified_firstDay);
-            enddatepicker.datepicker();
-            enddatepicker.datepicker('setDate', modified_lastDay);
-
-            generateWeatherObserveTable('1', '%', "", modified_firstDay, modified_lastDay);
+{#            var date = new Date();#}
+{#            var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);#}
+{#            var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);#}
+{#            var modified_firstDay = firstDay.toLocaleDateString('km-KH');#}
+{#            var modified_lastDay = lastDay.toLocaleDateString('km-KH');#}
+{#            var startdatepicker = $('#start_date');#}
+{#            var enddatepicker = $('#end_date');#}
+{#            startdatepicker.datepicker();#}
+{#            startdatepicker.datepicker('setDate', modified_firstDay);#}
+{#            enddatepicker.datepicker();#}
+{#            enddatepicker.datepicker('setDate', modified_lastDay);#}
+            var dateObj = moment().format('YYYY-MM-DD');
+            var prevDateObj = moment().subtract(30, 'd').format('YYYY-MM-DD');
+            $('#start_date').val(prevDateObj);
+            $('#end_date').val(dateObj);
+            generateWeatherObserveTable('1', '%', "", dateObj, prevDateObj);
 
         });
 
@@ -238,21 +238,22 @@
 
             $("#query_id").val(2);
 
-            var date = new Date();
-            var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-            var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            var modified_firstDay = firstDay.toLocaleDateString('km-KH');
-            var modified_lastDay = lastDay.toLocaleDateString('km-KH');
-
-            var startdatepicker = $('#start_date');
-            var enddatepicker = $('#end_date');
-
-            startdatepicker.datepicker();
-            startdatepicker.datepicker('setDate', modified_firstDay);
-            enddatepicker.datepicker();
-            enddatepicker.datepicker('setDate', modified_lastDay);
-
-            generateWeatherObserveGraph('2', '%', "", modified_firstDay, modified_lastDay);
+{#            var date = new Date();#}
+{#            var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);#}
+{#            var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);#}
+{#            var modified_firstDay = firstDay.toLocaleDateString('km-KH');#}
+{#            var modified_lastDay = lastDay.toLocaleDateString('km-KH');#}
+{#            var startdatepicker = $('#start_date');#}
+{#            var enddatepicker = $('#end_date');#}
+{#            startdatepicker.datepicker();#}
+{#            startdatepicker.datepicker('setDate', modified_firstDay);#}
+{#            enddatepicker.datepicker();#}
+{#            enddatepicker.datepicker('setDate', modified_lastDay);#}
+            var dateObj = moment().format('YYYY-MM-DD');
+            var prevDateObj = moment().subtract(30, 'd').format('YYYY-MM-DD');
+            $('#start_date').val(prevDateObj);
+            $('#end_date').val(dateObj);
+            generateWeatherForecastGraph('2', '%', "", dateObj, prevDateObj);
 
         });
 

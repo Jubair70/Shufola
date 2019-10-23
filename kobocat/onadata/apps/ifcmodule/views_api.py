@@ -175,3 +175,78 @@ def get_hourly_weather_information(request, type, from_date,to_date, location):
             return HttpResponse(json.dumps(final_data, default=default))
         else:
             return HttpResponse(json.dumps({'message': 'Wrong type parameter'}))
+
+import time
+@csrf_exempt
+def get_farmers_info(request):
+    start = datetime.datetime.now()
+    if 'user_id' in request.GET:
+        print(request.GET.get('user_id'))
+        user_id = request.GET.get('user_id')
+        farmer_tbl_qry = """ select id farmer_id,farmer_name "name",mobile_number mobile,
+        (select "name" from vwdistrict where id = district_id limit 1) district,
+        (select "name" from vwupazila where id = upazila_id limit 1) upazilla,
+        (select "name" from vwunion where id = union_id limit 1) "union"
+        from farmer where organization_id =any (select organisation_name_id from usermodule_usermoduleprofile where user_id =  """+str(user_id)+""") """
+        farmer_tbl_df = pandas.read_sql(farmer_tbl_qry, connection)
+        # print(farmer_tbl_df)
+
+        # crop_tbl_qry = """ select farmer_id , (
+        # select (json_agg(row_to_json(t))) crop
+        # from (select
+        # (select crop_name from crop where id  = crop_id limit 1) "name"
+        # ,(select season_name from cropping_season where id  = season_id limit 1) season
+        # ,(select variety_name FROM public.crop_variety x WHERE x.id = crop_variety_id limit 1) variety
+        # ,sowing_date
+        # ,land_size || ' ' || (SELECT unit_name FROM public.land_units x WHERE x.id = unit_id limit 1 ) land_size
+        # from farmer_crop_info s where s.farmer_id = h.farmer_id and s.farmer_id = any(select id from farmer where organization_id =any (select organisation_name_id from usermodule_usermoduleprofile where user_id =  """+str(user_id)+"""))
+        # ) as t
+        # ) from farmer_crop_info h """
+        crop_tbl_qry = """ select farmer_id,
+        (select crop_name from crop where id  = crop_id limit 1)  "name"
+        ,(select season_name from cropping_season where id  = season_id limit 1) season
+        ,(select variety_name FROM public.crop_variety x WHERE x.id = crop_variety_id limit 1) variety
+        ,to_char(sowing_date,'YYYY-MM-DD') sowing_date
+        ,land_size || ' ' || (SELECT unit_name FROM public.land_units x WHERE x.id = unit_id limit 1 ) land_size
+        from farmer_crop_info where farmer_id = any(select id from farmer where organization_id =any (select organisation_name_id from usermodule_usermoduleprofile where user_id =  """+str(user_id)+""" )) """
+        crop_tbl_df = pandas.read_sql(crop_tbl_qry, connection)
+        # print(crop_tbl_df)
+        col = ['name','season','variety','sowing_date','land_size']
+        crop_tbl_df = crop_tbl_df.groupby("farmer_id").apply(lambda x: x.to_dict(orient='records')).reset_index(name="crop")
+        # [[' name', 'season', 'variety', 'sowing_date', 'land_size']]
+
+        result_df = farmer_tbl_df.merge(crop_tbl_df, on=['farmer_id'], how='left')
+        # print(result_df)
+        data = {}
+        if not result_df.empty:
+            data = result_df.to_json(orient='records')
+        print(datetime.datetime.now()-start)
+        return HttpResponse(data)
+
+    elif 'farmer_id' in request.GET:
+        print(request.GET.get('farmer_id'))
+        farmer_id = request.GET.get('farmer_id')
+        farmer_tbl_qry = """ select id farmer_id,farmer_name "name",mobile_number mobile,
+        (select "name" from vwdistrict where id = district_id limit 1) district,
+        (select "name" from vwupazila where id = upazila_id limit 1) upazilla,
+        (select "name" from vwunion where id = union_id limit 1) "union"
+        from farmer where id =  """+str(farmer_id)
+        farmer_tbl_df = pandas.read_sql(farmer_tbl_qry,connection)
+        crop_tbl_qry = """ select """ + str(farmer_id) + """ farmer_id,json_agg(row_to_json(t)) crop
+                from (select 
+                (select crop_name from crop where id  = crop_id limit 1) "name" 
+                ,(select season_name from cropping_season where id  = season_id limit 1) season
+                ,(select variety_name FROM public.crop_variety x WHERE x.id = crop_variety_id limit 1) variety
+                ,sowing_date
+                ,land_size || ' ' || (SELECT unit_name FROM public.land_units x WHERE x.id = unit_id limit 1 ) land_size
+                from farmer_crop_info where farmer_id = """ + str(farmer_id) + """
+                ) as t """
+        crop_tbl_df = pandas.read_sql(crop_tbl_qry,connection)
+        result_df = farmer_tbl_df.merge(crop_tbl_df,on=['farmer_id'],how='left')
+        data = {}
+        if not result_df.empty:
+            data = json.loads(result_df.to_json(orient='records'))[0]
+        print(datetime.datetime.now() - start)
+        return HttpResponse(json.dumps(data))
+    else:
+        return HttpResponse(json.dumps({'message': 'Wrong type parameter'}))

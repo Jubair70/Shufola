@@ -116,6 +116,7 @@ urlpatterns = patterns('',
                            r'^get_hourly_weather_information/(?P<type>[^/]+)/(?P<location>[^/]+)/(?P<from_date>[^/]+)/(?P<to_date>[^/]+)/$',
                            views_api.get_hourly_weather_information),
                        url(r'^get_load_offset_max/$', views.get_load_offset_max, name='get_load_offset_max'),
+            url(r'^get_farmers_info/$', views_api.get_farmers_info, name='get_farmers_info'),
 
                        #Dashboard
                        url(r'^get_dashboard/$', views.get_dashboard, name='get_dashboard'),
