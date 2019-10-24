@@ -950,10 +950,18 @@ def get_farmer_list_by_status(request):
     else:
         reg_query = ""
 
+    del_html = ""
+    user_id= request.user.id
+
+    if user_id == 1:
+        print(user_id)
+        del_html = """ <a class="btn btn-danger delete-item tooltips" onclick="load_href('|| farmer.id ||')" style="margin-left:10px" data-placement="top" data-toggle="modal"  data-target="#confirm-delete" data-original-title="Delete" href="#" data-href="/maxmodule/cais_module/delete_farmer/'|| farmer.id ||'/"><i class="fa fa-2x fa-trash"></i>Delete</a> """
+
+
     data = []
     if stat_crop or stat_grp:
         farmer_list = str(farmer_list).replace('[', '{').replace(']', '}')
-        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">' ,farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where ( LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and farmer.id = any('"+str(farmer_list)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">' ,farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>"+del_html+"' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where ( LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and farmer.id = any('"+str(farmer_list)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
         data = multipleValuedQuryExecution(data_query)
         print data_query
         print data
@@ -962,7 +970,7 @@ def get_farmer_list_by_status(request):
         df = pandas.read_sql(total_count_query, connection)
         total_count = df.total_farmer.tolist()[0]
     else:
-        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">', farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number,farmer.created_at::timestamp::date::text reg_date,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id  where (LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">', farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number,farmer.created_at::timestamp::date::text reg_date,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>"+del_html+"' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id  where (LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
         data = multipleValuedQuryExecution(data_query)
         print data_query
         print data
@@ -982,6 +990,39 @@ def get_farmer_list_by_status(request):
         "recordsFiltered": total_count,
         "data": data,
             }, default=decimal_date_default))
+
+@login_required
+def delete_farmer(request, farmer_id):
+    qry = "delete from farmer_crop_info where farmer_id = "+str(farmer_id)
+    __db_commit_query(qry)
+    qry = "delete from farmer where id = " + str(farmer_id)
+    __db_commit_query(qry)
+    print("In farmer")
+    print(farmer_id)
+    messages.success(request, '<i class="fa fa-check-circle"></i> Data has been deleted successfully!',extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect('/ifcmodule/dashboard/farmer/table/')
+
+def check_for_delete_farmer(request):
+    farmer_id = request.POST.get('farmer_id')
+    query = """
+            select id farmer_id from farmer
+            except
+            select id from farmer 
+            where id = any(with t as (
+            select distinct farmer_id::int from management_sms_que
+            union
+            select distinct farmer_id::int from weather_sms_rule_queue
+            union
+            select distinct farmer_id::int from promotional_sms
+            )select distinct farmer_id from t where farmer_id is not null)
+                        
+    """
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    farmer_id_list = df.farmer_id.tolist()
+    if int(farmer_id) in farmer_id_list:
+        return HttpResponse(json.dumps({'dependency':0}))
+    else: return HttpResponse(json.dumps({'dependency':1}))
 
 
 def export_farmer_by_status(request):
@@ -1399,15 +1440,15 @@ def farmerAndCropCreate(request):
             else:
                 messages.success(request, '<i class="fa fa-check-circle"></i> Field is empty or an Error occurred!',
                                  extra_tags='alert-danger crop-both-side')
-                return HttpResponseRedirect('/maxmodule/cais_module/add_farmer/')
+                return HttpResponseRedirect('/ifcmodule/dashboard/farmer/table/')
 
         messages.success(request, '<i class="fa fa-check-circle"></i> Successfully Added Farmer and crop!',
                              extra_tags='alert-success crop-both-side')
-        return HttpResponseRedirect('/maxmodule/cais_module/farmer/')
+        return HttpResponseRedirect('/ifcmodule/dashboard/farmer/table/')
     else:
         messages.success(request, '<i class="fa fa-check-circle"></i> Field is empty or an Error occurred!',
                          extra_tags='alert-danger crop-both-side')
-        return HttpResponseRedirect('/maxmodule/cais_module/add_farmer/')
+        return HttpResponseRedirect('/ifcmodule/dashboard/farmer/table/')
 
 
 @login_required

@@ -148,6 +148,8 @@ urlpatterns = patterns('',
                        url(r'^cais_module/export_farmer/$', views_cais.export_farmer, name="export_farmer"),
                        url(r'^cais_module/export_farmer_by_status/$', views_cais.export_farmer_by_status, name="export_farmer_by_status"),
                         url(r'^cais_module/farmer_group_bulk_upload/$', views_cais.farmer_group_bulk_upload, name="farmer_group_bulk_upload"),
+                        url(r'^cais_module/delete_farmer/(?P<farmer_id>\d+)/$', views_cais.delete_farmer, name='delete_farmer'),
+                        url(r'^cais_module/check_for_delete_farmer/$', views_cais.check_for_delete_farmer, name="check_for_delete_farmer"),
                        ##**********************  CASI WORK (End) *******************
 
                        )

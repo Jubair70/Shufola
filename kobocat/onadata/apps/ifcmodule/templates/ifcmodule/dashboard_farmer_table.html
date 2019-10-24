@@ -14,6 +14,7 @@
              background-color:#FF6666;
              color: white;
         }
+    .datepicker datepicker-dropdown dropdown-menu datepicker-orient-left datepicker-orient-bottom{ position: relative; z-index: 1000; }
     </style>
 
 {% endblock %}
@@ -58,7 +59,7 @@
             <div class="row">
                 <div class="col-md-3">
                     <label>From Date: </label>
-                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                    <div class="input-group date form-group" data-date-orientation="bottom" data-provide="datepicker" data-date-autoclose="true" data-orientation="bottom" data-date-format="yyyy-mm-dd">
                         <input type="text" id="from_date" name="from_date" class="form-control"  readonly>
                         <div class="input-group-addon">
                             <span class="glyphicon glyphicon-th"></span>
@@ -67,7 +68,7 @@
                 </div>
                 <div class="col-md-3">
                     <label>To Date: </label>
-                    <div class="input-group date form-group" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
+                    <div class="input-group date form-group" data-date-orientation="bottom" data-provide="datepicker" data-date-autoclose="true" data-date-format="yyyy-mm-dd">
                         <input type="text" id="to_date" name="to_date" class="form-control" readonly>
                         <div class="input-group-addon">
                             <span class="glyphicon glyphicon-th"></span>
@@ -286,12 +287,50 @@
 
         </div>
      </div>
+{#    <div class="modal fade" id="confirm-delete" tabindex="-1" role="" aria-labelledby="myModalLabel"#}
+{#         aria-hidden="true">#}
+{#        <div class="modal-dialog">#}
+{#            <div class="modal-content">#}
+{##}
+{#                <div class="modal-header">#}
+{#                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>#}
+{#                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>#}
+{#                </div>#}
+{##}
+{#                <div class="modal-body">#}
+{#                    <p>You are about to delete a farmer, this procedure is irreversible.</p>#}
+{#                    <p>Do you want to proceed?</p>#}
+{#                    <p class="debug-url"></p>#}
+{#                </div>#}
+{##}
+{#                <div class="modal-footer">#}
+{#                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>#}
+{#                    <a href="#" class="btn btn-danger btn-ok">Delete</a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+
+     <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
 
 {% block additional-javascript %}
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>#}
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
@@ -305,10 +344,24 @@
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
     <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.1/build/alertify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/bd_admin_3.js"></script>
 
 
     <script type="text/javascript">
+            $('#from_date').datepicker({
+                format: "yyyy-mm-dd",
+                orientation: "bottom"
+            });
+
+            $('#to_date').datepicker({
+                format: "yyyy-mm-dd",
+
+            });
+             var dateObj = moment().format('YYYY-MM-DD');
+            var prevDateObj = moment().subtract(30, 'd').format('YYYY-MM-DD');
+            $('#from_date').val(prevDateObj);
+            $('#to_date').val(dateObj);
 
            $(document).ready(function () {
                 document.getElementById("active").style.visibility = "hidden";
@@ -671,8 +724,37 @@
         // End
 
 
+{# $('.delete-item').on('click', );#}
+        function load_href(farmer_id) {
+{#                console.log("okay");#}
+{#                var criteria_id = $(e).attr("data-href");#}
+{#                $('.btn-ok').attr("href", criteria_id);#}
+            $('.modal-body').html("");
+            $('.modal-footer').html("");
+                 $.ajax({
+                url: '/maxmodule/cais_module/check_for_delete_farmer/',
+                type: 'POST',
+                dataType: 'json',
+                data: {'farmer_id': farmer_id},
+                success: function (result) {
+                   if(result.dependency == 0 )
+                   {
 
+                       html_code="<p>You are about to delete a farmer, this procedure is irreversible.</p>\n" +
+                           "                    <p>Do you want to proceed?</p>\n" +
+                           "                    <p class=\"debug-url\"></p>";
+                       $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button><a href="/maxmodule/cais_module/delete_farmer/'+farmer_id+'/" class="btn btn-danger btn-ok">Delete</a>');
 
+                   }
+                   else {
+                        html_code = "<p>There is one or more sms sent for this farmer.</p>"
+                       $('.modal-footer').html('<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>');
+                   }
+                   $('.modal-body').html(html_code);
+                }
+            });
+
+        }
         function getEditId(id) {
 
             $('#isEdit').attr("value", id);
