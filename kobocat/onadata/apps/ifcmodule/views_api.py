@@ -180,16 +180,20 @@ import time
 @csrf_exempt
 def get_farmers_info(request):
     start = datetime.datetime.now()
-    if 'user_id' in request.GET:
-        print(request.GET.get('user_id'))
-        user_id = request.GET.get('user_id')
+    if 'username' in request.GET:
+        print(request.GET.get('username'))
+        username = request.GET.get('username')
+        try:
+            user_id = __db_fetch_single_value("select id from auth_user where username = '"+str(username)+"'")
+        except Exception:
+            return HttpResponse(json.dumps({'message': 'username not exists'}))
         farmer_tbl_qry = """ select id farmer_id,farmer_name "name",mobile_number mobile,
-        (select "name" from vwdistrict where id = district_id limit 1) district,
-        (select "name" from vwupazila where id = upazila_id limit 1) upazilla,
-        (select "name" from vwunion where id = union_id limit 1) "union"
-        from farmer where organization_id =any (select organisation_name_id from usermodule_usermoduleprofile where user_id =  """+str(user_id)+""") """
+        (select field_name from geo_data where id = district_id limit 1) district,
+        (select field_name from geo_data where id = upazila_id limit 1) upazilla,
+        (select field_name from geo_data where id = union_id limit 1) "union"
+        from farmer where union_id =any (select geoid from usermodule_catchment_area where user_id =  """+str(user_id)+""") """
         farmer_tbl_df = pandas.read_sql(farmer_tbl_qry, connection)
-        # print(farmer_tbl_df)
+        print(farmer_tbl_qry)
 
         # crop_tbl_qry = """ select farmer_id , (
         # select (json_agg(row_to_json(t))) crop
@@ -202,38 +206,43 @@ def get_farmers_info(request):
         # from farmer_crop_info s where s.farmer_id = h.farmer_id and s.farmer_id = any(select id from farmer where organization_id =any (select organisation_name_id from usermodule_usermoduleprofile where user_id =  """+str(user_id)+"""))
         # ) as t
         # ) from farmer_crop_info h """
-        crop_tbl_qry = """ select farmer_id,
+        crop_tbl_qry = """ select farmer_id,crop_id,
         (select crop_name from crop where id  = crop_id limit 1)  "name"
         ,(select season_name from cropping_season where id  = season_id limit 1) season
         ,(select variety_name FROM public.crop_variety x WHERE x.id = crop_variety_id limit 1) variety
         ,to_char(sowing_date,'YYYY-MM-DD') sowing_date
         ,land_size || ' ' || (SELECT unit_name FROM public.land_units x WHERE x.id = unit_id limit 1 ) land_size
-        from farmer_crop_info where farmer_id = any(select id from farmer where organization_id =any (select organisation_name_id from usermodule_usermoduleprofile where user_id =  """+str(user_id)+""" )) """
+        from farmer_crop_info where union_id =any (select geoid from usermodule_catchment_area where user_id =  """+str(user_id)+""") """
         crop_tbl_df = pandas.read_sql(crop_tbl_qry, connection)
-        # print(crop_tbl_df)
+        print(crop_tbl_qry)
         col = ['name','season','variety','sowing_date','land_size']
-        crop_tbl_df = crop_tbl_df.groupby("farmer_id").apply(lambda x: x.to_dict(orient='records')).reset_index(name="crop")
-        # [[' name', 'season', 'variety', 'sowing_date', 'land_size']]
-
-        result_df = farmer_tbl_df.merge(crop_tbl_df, on=['farmer_id'], how='left')
-        # print(result_df)
         data = {}
-        if not result_df.empty:
-            data = result_df.to_json(orient='records')
+        if not crop_tbl_df.empty:
+            crop_tbl_df = crop_tbl_df.groupby("farmer_id").apply(lambda x: x.to_dict(orient='records')).reset_index(name="crop")
+            # [[' name', 'season', 'variety', 'sowing_date', 'land_size']]
+
+            result_df = farmer_tbl_df.merge(crop_tbl_df, on=['farmer_id'], how='left')
+            # print(result_df)
+            data = {}
+            if not result_df.empty:
+                data = result_df.to_json(orient='records')
+        else:
+           data = farmer_tbl_df.to_json(orient='records')
         print(datetime.datetime.now()-start)
+        # print(data)
         return HttpResponse(data)
 
     elif 'farmer_id' in request.GET:
         print(request.GET.get('farmer_id'))
         farmer_id = request.GET.get('farmer_id')
         farmer_tbl_qry = """ select id farmer_id,farmer_name "name",mobile_number mobile,
-        (select "name" from vwdistrict where id = district_id limit 1) district,
-        (select "name" from vwupazila where id = upazila_id limit 1) upazilla,
-        (select "name" from vwunion where id = union_id limit 1) "union"
+        (select field_name from geo_data where id = district_id limit 1) district,
+        (select field_name from geo_data where id = upazila_id limit 1) upazilla,
+        (select field_name from geo_data where id = union_id limit 1) "union"
         from farmer where id =  """+str(farmer_id)
         farmer_tbl_df = pandas.read_sql(farmer_tbl_qry,connection)
         crop_tbl_qry = """ select """ + str(farmer_id) + """ farmer_id,json_agg(row_to_json(t)) crop
-                from (select 
+                from (select crop_id,
                 (select crop_name from crop where id  = crop_id limit 1) "name" 
                 ,(select season_name from cropping_season where id  = season_id limit 1) season
                 ,(select variety_name FROM public.crop_variety x WHERE x.id = crop_variety_id limit 1) variety
@@ -247,6 +256,66 @@ def get_farmers_info(request):
         if not result_df.empty:
             data = json.loads(result_df.to_json(orient='records'))[0]
         print(datetime.datetime.now() - start)
+        # print(data)
         return HttpResponse(json.dumps(data))
     else:
         return HttpResponse(json.dumps({'message': 'Wrong type parameter'}))
+
+
+from django.conf import settings
+import StringIO
+import zipfile
+@csrf_exempt
+def get_all_csv(request):
+    print("inside get_all_csv *********")
+    # username = self.kwargs.get('username')
+    # user_path_filename = os.path.join(settings.MEDIA_ROOT, username)
+    user_path_filename = os.path.join(settings.MEDIA_ROOT, 'formid-media')
+    if not os.path.isdir(user_path_filename):
+        os.makedirs(user_path_filename)
+    geo_q = "select division_id division_code,division_name,district_id district_code,district_name,upazila_id upazila_code ,upazila_name,union_id union_code,union_name from vwunion_new where division_id != 6"
+    geo_df = pandas.read_sql(geo_q, connection)
+    final_path = user_path_filename + '/geo.csv'
+    geo_df.to_csv(final_path, encoding='utf-8', index=False)
+
+    season_q = "select season_name season_label,id season_name from cropping_season"
+    season_df = pandas.read_sql(season_q, connection)
+    final_path = user_path_filename + '/season.csv'
+    season_df.to_csv(final_path, encoding='utf-8', index=False)
+
+    crop_q = "select crop_name crop_label, crop.id crop_name,coalesce(variety_name,'')    crop_variety_label,coalesce(crop_variety.id::text,'') crop_variety_name from crop left join crop_variety on crop.id = crop_variety.crop_id"
+    crop_df = pandas.read_sql(crop_q, connection)
+    final_path = user_path_filename + '/crop.csv'
+    crop_df.to_csv(final_path, encoding='utf-8', index=False)
+
+    try:
+        list_of_files = os.listdir(user_path_filename)
+    except Exception as e:
+        print(e)
+        return HttpResponse(status=404)
+
+    print(list_of_files)
+    print(user_path_filename)
+    zip_subdir = "itemsetfiles"
+    zip_filename = "%s.zip" % zip_subdir
+    s = StringIO.StringIO()
+    # The zip compressor
+    zf = zipfile.ZipFile(s, "w")
+    for fpath in list_of_files:
+        # Calculate path for file in zip
+        fpath = user_path_filename + '/' + fpath
+        print(fpath)
+        if os.path.exists(fpath):
+            fdir, fname = os.path.split(fpath)
+            zip_path = os.path.join(zip_subdir, fname)
+            print(zip_path)
+            # Add file, at correct path
+            zf.write(fpath, fname)
+    # Must close zip for all contents to be written
+    zf.close()
+    # Grab ZIP file from in-memory, make response with correct MIME-type
+    resp = HttpResponse(s.getvalue(), mimetype="application/x-zip-compressed")
+    # ..and correct content-disposition
+    resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+    resp["Access-Control-Allow-Origin"] = "*"
+    return resp

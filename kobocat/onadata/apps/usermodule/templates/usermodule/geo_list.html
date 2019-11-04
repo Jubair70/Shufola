@@ -54,5 +54,8 @@
     }
 
     $("#geo_def_table").find('tbody').html(tbody);
+     var table = $('#geo_def_table').DataTable({
+                "scrollX": true, "ordering": true
+            });
     </script>
 {% endblock %}
