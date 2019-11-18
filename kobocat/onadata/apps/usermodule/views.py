@@ -1355,6 +1355,7 @@ def delete_prev_catchment_record(user_id):
     database(query)
 
 
+@login_required
 def form_def(request):
     if request.POST:
         df = pandas.DataFrame()
@@ -1368,26 +1369,30 @@ def form_def(request):
             query = "INSERT INTO geo_definition(node_name)VALUES ('" + str(request.POST.get(
                 'node_name')) + "' )"
         database(query)
-	return HttpResponseRedirect('/usermodule/geo_def_data/')
+        return HttpResponseRedirect("/usermodule/geo_def_data/")
     check = pandas.DataFrame()
     option = "select * from geo_definition"
     check = pandas.read_sql(option, connection)
     node_val = check.node_name
     return render(request, "usermodule/form_definition.html", {"node_val": node_val})
 
+@login_required
 def form(request):
-    global parent
     if request.POST:
-        myfile = request.FILES['geojsonfile']
-        url = "onadata/media/uploaded_files/"
-        userName = request.user #"Jubair"
-        fs = FileSystemStorage(location=url)
-        myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
-        filename = fs.save(myfile.name, myfile)
-        full_file_path = "onadata/media/uploaded_files/" + myfile.name
-        file = open(full_file_path, 'r')
-        json_content = file.read()
-        file.close()
+        if request.FILES:
+            myfile = request.FILES['geojsonfile']
+            url = "onadata/media/uploaded_files/"
+            userName = request.user  # "Jubair"
+            fs = FileSystemStorage(location=url)
+            myfile.name = str(datetime.now()) + "_" + str(userName) + "_" + str(myfile.name)
+            filename = fs.save(myfile.name, myfile)
+            full_file_path = "onadata/media/uploaded_files/" + myfile.name
+            file = open(full_file_path, 'r')
+            json_content = file.read()
+            file.close()
+        else:
+            json_content = '{}'
+            full_file_path = 'cd'
         parent = int(request.POST.get("parent_id"))
         if parent != -1:
             query = "INSERT INTO geo_data(field_name, field_parent_id,field_type_id,geocode,geojson,uploaded_file_path) VALUES('" + str(
@@ -1397,8 +1402,8 @@ def form(request):
                 json_content) + "','" + str(full_file_path) + "')"
         else:
             query = "INSERT INTO geo_data(field_name, field_type_id,geocode,geojson,uploaded_file_path) VALUES('" + str(
-                request.POST.get('field_name')) + "'," + str(request.POST.get('field_type')) + "," + str(
-                request.POST.get('geocode')) + ",'" + str(json_content) + "','" + str(full_file_path) + "')"
+                request.POST.get('field_name')) + "'," + str(request.POST.get('field_type')) + ",'" + str(
+                request.POST.get('geocode')) + "','" + str(json_content) + "','" + str(full_file_path) + "')"
         database(query)
         return HttpResponseRedirect("/usermodule/geo_list/")
     check = pandas.DataFrame()
@@ -1408,7 +1413,16 @@ def form(request):
     node_id = check.id.tolist()
     node = json.dumps({"node_val": node_val, "node_id": node_id})
     list = zip(node_id, node_val)
-    return render(request, 'usermodule/form.html', {'node': list})
+    division_geocode_query = "select geocode from geo_data where field_parent_id  is null"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(division_geocode_query, connection)
+    division_geocode = df.geocode.tolist()
+
+    division_type_id_query = "select id from geo_definition where node_parent  is null"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(division_type_id_query, connection)
+    division_id = df.id.tolist()[0]
+    return render(request, 'usermodule/form.html', {'node': list, 'division_geocode': json.dumps(division_geocode),'division_id':division_id})
 
 
 def form_drop(request):
