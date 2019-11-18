@@ -442,7 +442,8 @@ def cropStageCreate(request):
 
     if isEdit != '':
         queryEditCropStage = "UPDATE public.crop_stage SET crop_id= " + str(crop_id) + ", stage_name='" + str(
-            stage_name) + "', start_day= " + str(start_day) + ", end_day= " + str(end_day) + "  WHERE id= " + str(
+            stage_name) + "', start_day= " + str(start_day) + ", end_day= " + str(end_day) + ",season_id = " + str(
+            season) + ",crop_variety_id=" + str(crop_variety) + "  WHERE id= " + str(
             isEdit)
         __db_commit_query(queryEditCropStage)  ## Query Execution Function
     else:
