@@ -395,6 +395,12 @@ def crop_Edit(request):
 
     return HttpResponse(jsonFetchSpecificCrop)
 
+@login_required
+def delete_crop(request,crop_id):
+    del_qry = "delete from crop where id = "+str(crop_id)
+    __db_commit_query(del_qry)
+    messages.success(request, '<i class="fa fa-check-circle"></i> Data has been deleted successfully!',extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect('/maxmodule/cais_module/crop/')
 
 """
 @@ **************  Crop (End)
@@ -711,7 +717,12 @@ def season_details_Edit(request):
 
     return HttpResponse(jsonFetchSpecificSeason)
 
-
+@login_required
+def delete_season(request,season_id):
+    del_qry = "delete from cropping_season where id = "+str(season_id)
+    __db_commit_query(del_qry)
+    messages.success(request, '<i class="fa fa-check-circle"></i> Data has been deleted successfully!',extra_tags='alert-success crop-both-side')
+    return HttpResponseRedirect('/maxmodule/cais_module/season/')
 """
 @@ **************  Season (End)
 """
@@ -928,7 +939,7 @@ def get_farmer_list_by_status(request):
             if filter_id == '1':
                 farmer_crop_query = " select distinct farmer_id from farmer_crop_info where sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
             if filter_id == '2':
-                farmer_crop_query = "select distinct farmer_id from farmer_crop_info"
+                farmer_crop_query = "select id farmer_id from farmer"
             df_fcq = pandas.read_sql(farmer_crop_query, connection)
         print(farmer_crop_query)
 
@@ -947,7 +958,8 @@ def get_farmer_list_by_status(request):
             farmer_list = df_gr.farmer_id.tolist()
 
     if filter_id == '2':
-        reg_query = " and farmer.created_at between symmetric '" + str(from_date) + "' and '" + str(to_date)+"'"
+        reg_query = " and farmer.created_at between symmetric '" + str(from_date) + " 00:00:00' and '" + str(
+            to_date) + " 23:59:59'"
     else:
         reg_query = ""
 
@@ -962,22 +974,22 @@ def get_farmer_list_by_status(request):
     data = []
     if stat_crop or stat_grp:
         farmer_list = str(farmer_list).replace('[', '{').replace(']', '}')
-        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">' ,farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>"+del_html+"' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where ( LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and farmer.id = any('"+str(farmer_list)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">' ,farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where ( LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and farmer.id = any('"+str(farmer_list)+"') and coalesce(organization_id::text,'%')  like '"+str(organization)+"' and coalesce(program_id::text,'%') like '"+str(program)+"' and coalesce(country_id::text,'%') like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
         data = multipleValuedQuryExecution(data_query)
-        print data_query
-        print data
-        total_count_query = "select count(*) total_farmer from farmer where ( LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and farmer.id = any('"+str(farmer_list)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"'and status::text like '"+str(status)+"' and upazila_id::text like '"+str(upazilla)+"' and union_id::text like '"+str(union)+"'"+reg_query
+        # print data_query
+        # print data
+        total_count_query = "select count(*) total_farmer from farmer where ( LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and farmer.id = any('"+str(farmer_list)+"') and coalesce(organization_id::text,'%')  like '"+str(organization)+"' and coalesce(program_id::text,'%') like '"+str(program)+"' and coalesce(country_id::text,'%') like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"'and status::text like '"+str(status)+"' and upazila_id::text like '"+str(upazilla)+"' and union_id::text like '"+str(union)+"'"+reg_query
         df = pandas.DataFrame()
         df = pandas.read_sql(total_count_query, connection)
         total_count = df.total_farmer.tolist()[0]
     else:
-        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">', farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number,farmer.created_at::timestamp::date::text reg_date,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>"+del_html+"' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id  where (LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and organization_id::text like '"+str(organization)+"' and program_id::text like '"+str(program)+"' and country_id::text like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
+        data_query = "SELECT '<input type=\"checkbox\" val=\"'|| farmer.id ||'\" id=\"'|| farmer.id ||'\">', farmer.id,case when status = 1 then '<a href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' else '<a style=\"color:red;\" href=\"/ifcmodule/farmer_profile_view/'|| farmer.id ||'\">'|| farmer_name ||'</a>' end , mobile_number,farmer.created_at::timestamp::date::text reg_date,(SELECT name FROM public.geo_country WHERE id = country_id) country_name, (SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,'<button onclick=\"getEditId(' || farmer.id || ')\" class=\"btn btn-primary\" role=\"button\" >Edit</button>' FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id  where (LOWER(farmer_name) like '"+str(search_val)+"' or mobile_number like '"+str(search_val)+"') and coalesce(organization_id::text,'%')  like '"+str(organization)+"' and coalesce(program_id::text,'%') like '"+str(program)+"' and coalesce(country_id::text,'%') like '"+str(country)+"' and zone_id::text like '"+str(division)+"' and district_id::text like '"+str(district)+"' and upazila_id::text like '"+str(upazilla)+"' and status::text like '"+str(status)+"' and union_id::text like '"+str(union)+"' "+reg_query+" ORDER BY id DESC limit "+str(length)+" offset "+str(start)
         data = multipleValuedQuryExecution(data_query)
-        print data_query
-        print data
+        # print data_query
+        # print data
         total_count_query = "select count(*) total_farmer from farmer where ( LOWER(farmer_name) like '" + str(
-            search_val) + "' or mobile_number like '"+str(search_val)+"' ) and organization_id::text like '" + str(
-            organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
+            search_val) + "' or mobile_number like '"+str(search_val)+"' ) and coalesce(organization_id::text,'%')  like '" + str(
+            organization) + "' and coalesce(program_id::text,'%') like '" + str(program) + "' and coalesce(country_id::text,'%') like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
             district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
             union) + "'"+reg_query
@@ -1067,7 +1079,7 @@ def export_farmer_by_status(request):
             if filter_id == '1':
                 farmer_crop_query = " select distinct farmer_id from farmer_crop_info where sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
             if filter_id == '2':
-                farmer_crop_query = "select distinct farmer_id from farmer_crop_info"
+                farmer_crop_query = "select id farmer_id from farmer where farmer.created_at between symmetric '" + str(from_date) + " 00:00:00' and '" + str(to_date)+" 23:59:59'"
             df_fcq = pandas.read_sql(farmer_crop_query, connection)
         print(farmer_crop_query)
 
@@ -1087,23 +1099,23 @@ def export_farmer_by_status(request):
 
 
     if filter_id == '2':
-        reg_query = " and farmer.created_at between symmetric '" + str(from_date) + "' and '" + str(to_date)+"'"
+        reg_query = " and farmer.created_at between symmetric '" + str(from_date) + " 00:00:00' and '" + str(to_date)+" 23:59:59'"
     else:
         reg_query = ""
 
     df = pandas.DataFrame()
     if stat_crop or stat_grp:
         farmer_list = str(farmer_list).replace('[', '{').replace(']', '}')
-        query = "with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where farmer.id = any('" + str(farmer_list) + "') and  organization_id::text like '" + str(
-            organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
+        query = "with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number, farmer.created_at::timestamp::date::text ,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,farmer.created_by FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where farmer.id = any('" + str(farmer_list) + "') and  coalesce(organization_id::text,'%') like '" + str(
+            organization) + "' and coalesce(program_id::text,'%') like '" + str(program) + "' and coalesce(country_id::text,'%') like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
             district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
             union) + "' "+reg_query+" ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
         df = pandas.read_sql(query, connection)
 
     else:
-        query = " with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where organization_id::text like '" + str(
-            organization) + "' and program_id::text like '" + str(program) + "' and country_id::text like '" + str(
+        query = " with t as (SELECT farmer.id farmer_id,farmer_name,status, mobile_number,(SELECT name FROM public.geo_country WHERE id = country_id) country_name,(SELECT name FROM public.geo_zone WHERE id = zone_id) zone_name, (SELECT name FROM public.geo_district WHERE id = district_id) district_name, (SELECT name FROM public.geo_upazilla WHERE id = upazila_id) upazila_name, (SELECT name FROM public.geo_union WHERE id = union_id) union_name, (SELECT organization FROM public.usermodule_organizations WHERE id = organization_id)organization_name, (SELECT program_name FROM public.usermodule_programs WHERE id = program_id) program_name,coalesce((select group_name  from group_details where id = group_id ),'') group_name,farmer.created_by FROM public.farmer left join farmer_group on farmer.id = farmer_group.farmer_id where coalesce(organization_id::text,'%') like '" + str(
+            organization) + "' and coalesce(program_id::text,'%') like '" + str(program) + "' and coalesce(country_id::text,'%') like '" + str(
             country) + "' and zone_id::text like '" + str(division) + "' and district_id::text like '" + str(
             district) + "' and upazila_id::text like '" + str(upazilla) + "' and status::text like '"+str(status)+"' and union_id::text like '" + str(
             union) + "' "+reg_query+" ORDER BY farmer.id desc)select t.*,farmer_crop_info.crop_id,(select crop_name from crop where id = farmer_crop_info.crop_id),farmer_crop_info.crop_variety_id,(select variety_name from crop_variety where id = farmer_crop_info.crop_variety_id),farmer_crop_info.season_id,(select season_name from cropping_season where id = farmer_crop_info.season_id),farmer_crop_info.sowing_date from t left join farmer_crop_info on farmer_crop_info.farmer_id = t.farmer_id"
@@ -1116,7 +1128,6 @@ def export_farmer_by_status(request):
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=Farmer.xls'
     return response
-
 
 def export_farmer(request):
     country = request.POST.get('country', '%')
@@ -1133,6 +1144,7 @@ def export_farmer(request):
     crop_variety = request.POST.get('crop_variety')
     season = request.POST.get('season')
     group = request.POST.get('group')
+    filter_id = request.POST.get('filter_id')
 
     if organization == '%':
         if not request.user.is_superuser:
@@ -1146,20 +1158,22 @@ def export_farmer(request):
 
     if crop != '%' or from_date != '':
         stat_crop = 1
-        if crop != '%' and from_date != '':
-            farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '" + str(
-                crop) + "' and crop_variety_id::text like '" + str(crop_variety) + "' and season_id::text like '" + str(
-                season) + "' and sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date) + "'"
-            df_fcq = pandas.read_sql(farmer_crop_query, connection)
+        if crop != '%' and from_date != '' :
+            if filter_id == '1':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop)+"' and crop_variety_id::text like '"+str(crop_variety)+"' and season_id::text like '"+str(season)+"' and sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
+            if filter_id == '2':
+                farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '" + str(crop) + "' and crop_variety_id::text like '" + str(crop_variety) + "' and season_id::text like '" + str(season)
+            df_fcq = pandas.read_sql(farmer_crop_query,connection)
         elif crop != '%':
-            farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '" + str(
-                crop) + "' and crop_variety_id::text like '" + str(crop_variety) + "' and season_id::text like '" + str(
-                season) + "'"
+            farmer_crop_query = "select distinct farmer_id from farmer_crop_info where crop_id::text like '"+str(crop)+"' and crop_variety_id::text like '"+str(crop_variety)+"' and season_id::text like '"+str(season)+"'"
             df_fcq = pandas.read_sql(farmer_crop_query, connection)
-        elif from_date != '':
-            farmer_crop_query = " select distinct farmer_id from farmer_crop_info where sowing_date::date  between '" + str(
-                from_date) + "' and '" + str(to_date) + "'"
+        elif from_date != '' :
+            if filter_id == '1':
+                farmer_crop_query = " select distinct farmer_id from farmer_crop_info where sowing_date::date  between '" + str(from_date) + "' and '" + str(to_date)+"'"
+            if filter_id == '2':
+                farmer_crop_query = "select id farmer_id from farmer"
             df_fcq = pandas.read_sql(farmer_crop_query, connection)
+        print(farmer_crop_query)
 
     if group != '%':
         stat_grp = 1

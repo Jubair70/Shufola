@@ -157,6 +157,30 @@
         </div>
     </div>
 
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to delete a crop, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-ok">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 {% endblock %}
 
@@ -200,7 +224,11 @@
 
         $(document).ready(function () {
 
-            getCropNameList()  // Getting the Table
+            getCropNameList();  // Getting the Table
+            $('.delete-item').on('click', function (e) {
+            var criteria_id = $(this).attr("data-href");
+            $('.btn-ok').attr("href", criteria_id);
+        });
 
         });
 
@@ -214,7 +242,7 @@
 
                 editlink = ''
 
-                tbody += '<tr><td>' + count + '</td><td>'+cropList[i][1]+'</td><td><button onclick="getEditId('+cropList[i][0]+')" class="btn btn-primary" role="button" >Edit</button></td></tr>'
+                tbody += '<tr><td>' + count + '</td><td>'+cropList[i][1]+'</td><td><button onclick="getEditId('+cropList[i][0]+')" class="btn btn-primary" role="button" >Edit</button><a class="btn btn-danger delete-item tooltips" style="margin-left:10px" data-placement="top" data-toggle="modal"  data-target="#confirm-delete" data-original-title="Delete" href="#" data-href="/maxmodule/cais_module/delete_crop/' + cropList[i][0] + '/"><i class="fa fa-2x fa-trash"></i>Delete</a></td></tr>'
 
                 count++;
             }
