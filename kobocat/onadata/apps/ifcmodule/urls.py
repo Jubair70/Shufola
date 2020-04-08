@@ -149,4 +149,13 @@ urlpatterns = patterns('',
                        url(r'^getMapData/$', views.getMapData, name='getMapData'),
                        url(r'^compare_aws_forecast/$', views.compare_aws_forecast, name='compare_aws_forecast'),
 
+                       url(r'^dose_configuration_list/$', views.dose_configuration_list, name='dose_configuration_list'),
+                       url(r'^dose_configuration_form/$', views.dose_configuration_form, name='dose_configuration_form'),
+                       url(r'^getCropBangla/$', views.getCropBangla, name='getCropBangla'),
+                       url(r'^getFrtlzrAmount/$', views.getFrtlzrAmount, name='getFrtlzrAmount'),
+                       url(r'^delete_dose_configuration/(?P<dose_id>\d+)/$', views.delete_dose_configuration, name='delete_dose_configuration'),
+                       url(r'^soil_type_list/$', views.soil_type_list, name='soil_type_list'),
+                       url(r'^get_soil_type/$', views.get_soil_type, name='get_soil_type'),
+                       url(r'^fertilizer_recom_list/$', views.fertilizer_recom_list, name='fertilizer_recom_list'),
+                       url(r'^get_fertilizer_recom/$', views.get_fertilizer_recom, name='get_fertilizer_recom'),
                        )

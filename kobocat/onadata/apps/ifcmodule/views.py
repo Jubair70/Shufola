@@ -77,6 +77,16 @@ def __db_fetch_values(query):
 
 
 def __db_fetch_single_value(query):
+    """
+            function __db_fetch_single_value
+            execute query and returns a single row's value a specific column
+            Args:
+                query: query to be executed
+                dbname: intended database for this operation
+
+            Returns:
+                return text/numeric/null
+    """
     cursor = connection.cursor()
     cursor.execute(query)
     fetchVal = cursor.fetchone()
@@ -85,6 +95,16 @@ def __db_fetch_single_value(query):
 
 
 def __db_fetch_values_dict(query):
+    """
+                Function __db_fetch_values_dict return data as dictionary from select queries
+                where key are corresponding column names
+                Args:
+                    query: the query to be executed
+                    dbname: intended database for this operation
+
+                Returns:
+                    select query return data as dictionary
+    """
     cursor = connection.cursor()
     cursor.execute(query)
     fetchVal = dictfetchall(cursor)
@@ -103,6 +123,15 @@ def __db_fetch_values_dict_exception(query):
 
 
 def __db_commit_query(query):
+    """
+            function __db_commit_query executes the query in intended database
+            Args:
+                query: query to be executed
+                dbname: intended database for this operation
+
+            Returns:
+                Nothing
+    """
     cursor = connection.cursor()
     cursor.execute(query)
     connection.commit()
@@ -1380,7 +1409,7 @@ def getStage(request):
     season_id = request.POST.get('season_id')
     crop_id = request.POST.get('crop_id')
     var_id = request.POST.get('var_id')
-    query = "select id,stage_name from crop_stage where season_id::int ="+str(season_id)+" and crop_variety_id::int = " + str(var_id)+" and crop_id = "+str(crop_id)
+    query = "select id,stage_name from crop_stage where season_id::text like '"+str(season_id)+"' and crop_variety_id::int = " + str(var_id)+" and crop_id = "+str(crop_id)
     data = json.dumps(__db_fetch_values_dict(query))
     return HttpResponse(data)
 
@@ -4807,3 +4836,319 @@ def check_null(data):
         return ''
     else:
         return data
+
+########################### dose_configuration #######################
+@login_required
+def dose_configuration_list(request):
+    """
+        :param request:
+        :return: dose configuration list
+    """
+    _org = '%'
+    _crop = '%'
+    _variety_crop = '%'
+    _season = '%'
+    _stage = '%'
+    _content = '%'
+    _program = '%'
+    _land = '%'
+
+    if request.method == 'POST':
+        _org = request.POST.get('org_id')
+        _crop = request.POST.get('crop')
+        _variety_crop = request.POST.get('crop_variety')
+        _season = request.POST.get('season')
+        _stage = request.POST.get('crop_stage')
+        _content = request.POST.get('content_type')
+        _program = request.POST.get('program')
+        _land = request.POST.get('land_type')
+
+    org_list = getOrgList(request)
+    query = "select id,crop_name from crop"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop_list = zip(crop_id, crop_name)
+
+    query = "select id,season_name from cropping_season"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+
+    org_list_data = __db_fetch_values_dict("select id,organization from usermodule_organizations where id = any('{" + str(org_list).strip('[]') + " }')")
+    print org_list_data
+
+    org_list = getOrgList(request)
+    query = """ SELECT frd.id, CASE WHEN category::int = 1 THEN 'Management' 
+         WHEN category::int = 2 THEN 'Promotional' END AS category, sms_description,
+         CASE WHEN organization_id = 0 THEN 'ALL' ELSE( SELECT organization FROM usermodule_organizations WHERE id = organization_id limit 1) END AS organization, 
+         CASE WHEN program_id = 0 THEN 'ALL' ELSE ( SELECT program_name FROM usermodule_programs WHERE id = program_id limit 1) END AS program,
+         CASE WHEN crop_id = 0 THEN 'ALL' ELSE ( SELECT crop_name FROM crop WHERE id = crop_id limit 1) END AS crop, 
+         CASE WHEN season = 0 THEN 'ALL' ELSE ( SELECT season_name FROM cropping_season WHERE id = season limit 1) END AS season,
+         CASE WHEN variety_id = 0 THEN 'ALL' ELSE ( SELECT variety_name FROM crop_variety WHERE id = variety_id limit 1) END AS variety,
+         CASE WHEN variety_id = 0 THEN 'ALL' ELSE ( SELECT stage_name FROM crop_stage WHERE id = stage_id limit 1) END AS stage,
+         substring(voice_sms_file_path FROM 8) voice_sms_file_path, content_type, land_type, soil_texture,offset_days,dose_no
+         FROM fertilizer_recommend fr inner join fertilizer_recommend_detail frd on fr.id = frd.fertilizer_recommendation_id
+         WHERE organization_id = ANY('{"""+str(org_list).strip('[]')+"""}') AND program_id::text LIKE '"""+str(_program)+"""' 
+         AND crop_id::text LIKE '"""+str(_crop)+"""' AND variety_id::text LIKE '"""+str(_variety_crop)+"""'
+         AND season::text LIKE '"""+str(_season)+"""' AND stage_id::text LIKE '"""+str(_stage)+"""'
+         AND content_type LIKE '"""+str(_content)+"""' AND land_type LIKE '"""+str(_land)+"""' ORDER BY fr.id DESC """
+    dose_configuration_list = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+
+    if _org is None or _org == '%':
+        org_for_template = 0
+    else:
+        org_for_template = int(_org)
+
+    if _program is None or _program == '%':
+        program_for_template = 0
+    else:
+        program_for_template = int(_program)
+
+    if _crop is None or _crop == '%':
+        crop_for_template = 0
+    else:
+        crop_for_template = int(_crop)
+
+    if _season is None or _season == '%':
+        season_for_template = 0
+    else:
+        season_for_template = int(_season)
+
+    if _variety_crop is None or _variety_crop == '%':
+        variety_crop_for_template = 0
+    else:
+        variety_crop_for_template = int(_variety_crop)
+
+    if _stage is None or _stage == '%':
+        stage_for_template = 0
+    else:
+        stage_for_template = int(_stage)
+
+    content_for_template = 0
+    if _content != '%':
+        if _content == 'text':
+            content_for_template = 1
+        else:
+            content_for_template = 2
+
+    land_for_template = 0
+    opt = ['HL','MHL','MLL','LL','VLL']
+    if _land != '%':
+        for eac in range(5):
+            print(opt[eac])
+            if _land == opt[eac]:
+                land_for_template = opt[eac]
+
+    return render(request, 'ifcmodule/dose_configuration_list.html', {
+        'dose_configuration_list': dose_configuration_list,
+        'season': season,
+        'crop_list': crop_list,
+        'org_list': org_list_data,
+        'org_for_template': org_for_template,
+        'program_for_template': program_for_template,
+        'crop_for_template': crop_for_template,
+        'season_for_template': season_for_template,
+        'variety_crop_for_template': variety_crop_for_template,
+        'content_for_template': content_for_template,
+        'stage_for_template': stage_for_template,
+        'land_for_template': land_for_template
+    })
+
+@login_required
+def delete_dose_configuration(request, dose_id):
+    """
+        :param request:
+        :param file_id  , dose_id
+        :function : delete dose conf list from tables fertilizer_recommend and fertilizer_recommend_detail
+        :return: deleted list of fertilizer data
+    """
+    # first fetch the fertilizer table id
+    qry = "select fertilizer_recommendation_id from fertilizer_recommend_detail where id = "+str(dose_id)
+    df = pandas.read_sql(qry,connection)
+    if not df.empty:
+        frt_re_id = df.fertilizer_recommendation_id.tolist()[0]
+        delete_query = "delete from fertilizer_recommend_detail where id = " + str(dose_id)
+        __db_commit_query(delete_query)
+        # check
+        qry = "select id from fertilizer_recommend_detail where fertilizer_recommendation_id = " + str(frt_re_id)
+        df1 = pandas.read_sql(qry,connection)
+        if df1.empty:
+            del_qry = "delete from fertilizer_recommend where id = " + str(frt_re_id)
+            __db_commit_query(del_qry)
+
+
+        messages.success(request, '<i class="fa fa-check-circle"></i> Info has been deleted successfully!',
+                         extra_tags='alert-success crop-both-side')
+
+    return HttpResponseRedirect("/ifcmodule/dose_configuration_list/")
+
+@login_required
+def dose_configuration_form(request):
+    if request.POST:
+        category = request.POST.get('category')
+        organization = request.POST.get('organization')
+        program = request.POST.get('program')
+        crop = request.POST.get('crop')
+        crop_variety = request.POST.get('crop_variety')
+        season = request.POST.get('season')
+        land_type = request.POST.get('land_type')
+        soil_texture = request.POST.get('soil_texture')
+        created_by = request.user.id
+        updated_by = request.user.id
+
+        dose_no_list = request.POST.getlist('dose_no')
+        crop_stage_list = request.POST.getlist('crop_stage')
+        offset_days_list = request.POST.getlist('offset_days')
+        urea_list = request.POST.getlist('urea')
+        tsp_list = request.POST.getlist('tsp')
+        mop_list = request.POST.getlist('mop')
+        gypsum_list = request.POST.getlist('gypsum')
+        mgso4_list = request.POST.getlist('mgso4')
+        znso4_list = request.POST.getlist('znso4')
+        boric_list = request.POST.getlist('boric')
+        sms_description_list = request.POST.getlist('sms_description')
+        content_list = request.POST.getlist('content_id')
+
+        insert_qry = """ INSERT INTO public.fertilizer_recommend
+        (organization_id, program_id, crop_id, variety_id,
+        category, land_type, soil_texture,  created_by, updated_by, season)
+        VALUES(""" +str(organization)+ """, """ +str(program)+ """, """ +str(crop)+ """, """ +str(crop_variety)+ """, 
+        '""" +str(category)+ """', '""" +str(land_type)+ """', '""" +str(soil_texture)+ """', """ +str(created_by)+ """, 
+        """ +str(updated_by)+ """, """ +str(season)+ """) returning id """
+        fertilizer_recommendation_id = __db_fetch_single_value(insert_qry)
+
+        for dose_no, crop_stage, offset_days, urea, tsp,mop,gypsum, mgso4, znso4, boric, sms_description, content_id in \
+                                                                                      zip(dose_no_list,
+                                                                                      crop_stage_list,
+                                                                                      offset_days_list,
+                                                                                      urea_list,
+                                                                                      tsp_list,
+                                                                                      mop_list,
+                                                                                      gypsum_list,
+                                                                                      mgso4_list,
+                                                                                      znso4_list,
+                                                                                      boric_list,
+                                                                                      sms_description_list,
+                                                                                      content_list):
+            sms_description = sms_description.encode('utf-8').strip()
+            ins_qry = """ INSERT INTO public.fertilizer_recommend_detail
+                    (fertilizer_recommendation_id, stage_id, dose_no, urea,
+                    tsp, mop, gypsum, mgso4, znso4, boric,  created_by, updated_by,
+                    offset_days, sms_description,content_id)
+                    VALUES(""" +str(fertilizer_recommendation_id)+ """, """ +str(crop_stage)+ """, """ +str(dose_no)+ """, '""" +str(urea)+ """',
+                    '""" +str(tsp)+ """', '""" +str(mop)+ """', '""" +str(gypsum)+ """', '""" +str(mgso4)+ """',
+                    '""" +str(znso4)+ """', '""" +str(boric)+ """', """ +str(created_by)+ """, """ +str(updated_by)+ """,
+                    """ +str(offset_days)+ """, '""" +str(sms_description)+ """', '""" +str(content_id)+ """') """
+            __db_commit_query(ins_qry)
+
+        return HttpResponseRedirect('/ifcmodule/dose_configuration_list/')
+
+    org_list = getOrgList(request)
+    query = "select id,crop_name from crop"
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+    query = "select id,organization from usermodule_organizations where id = any('{" + str(org_list).strip('[]') + " }')"
+    df = pandas.read_sql(query, connection)
+    org_id = df.id.tolist()
+    org_name = df.organization.tolist()
+    organization = zip(org_id, org_name)
+    query = "select id,season_name from cropping_season"
+    df = pandas.read_sql(query, connection)
+    season_id = df.id.tolist()
+    season_name = df.season_name.tolist()
+    season = zip(season_id, season_name)
+    return render(request, 'ifcmodule/dose_configuration_form.html',
+                  {'organization': organization, 'crop': crop, 'season': season})
+
+
+@login_required
+def soil_type_list(request):
+    query = "select distinct geo_country_id,country_name from vwunion"
+    df = pandas.read_sql(query, connection)
+    country_id = df.geo_country_id.tolist()
+    country_name = df.country_name.tolist()
+    country = zip(country_id, country_name)
+    return render(request, 'ifcmodule/soil_type_list.html', {'country':country})
+
+@csrf_exempt
+def get_soil_type(request):
+    country = request.POST.get('country')
+    division = request.POST.get('division')
+    district = request.POST.get('district')
+    upazilla = request.POST.get('upazilla')
+    union = request.POST.get('union')
+    soil_texture = request.POST.get('soil_texture')
+    query = """ select (select name from geo_country gc where id = country_id) country,
+    (select name from geo_zone gz where id = zone_id ) division,
+    (select name from geo_district gz where id = district_id ) district,
+    (select name from geo_upazilla gz where id = upazila_id ) upazila,
+    (select name from geo_union gz where id = union_id ) "union",
+    soil_texture
+    from geo_soil_type gst where country_id::text like '"""+str(country)+"""' and 
+    zone_id	::text like '"""+str(division)+"""' and 
+    district_id::text like '"""+str(district)+"""' and 
+    upazila_id::text like '"""+str(upazilla)+"""' and 
+    union_id::text like '"""+str(union)+"""' and 
+    soil_texture::text like '"""+str(soil_texture)+"""' """
+    print(query)
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return HttpResponse(data)
+
+@login_required
+def fertilizer_recom_list(request):
+    query = "select id,crop_name from crop"
+    df = pandas.read_sql(query, connection)
+    crop_id = df.id.tolist()
+    crop_name = df.crop_name.tolist()
+    crop = zip(crop_id, crop_name)
+    return render(request, 'ifcmodule/fertilizer_recom_list.html', {'crop':crop})
+
+@csrf_exempt
+def get_fertilizer_recom(request):
+    crop_id = request.POST.get('crop_id')
+    variety_id = request.POST.get('variety_id')
+    land_type = request.POST.get('land_type')
+    soil_texture = request.POST.get('soil_texture')
+    query = """ select (select crop_name from crop c2 where id = crop_id ) crop,
+    (select variety_name from crop_variety cv where id = variety_id ) variety,
+    soil_texture,land_type,ntrnt_status_n,ntrnt_status_p, 
+    ntrnt_status_k, ntrnt_status_s, ntrnt_status_mg, ntrnt_status_zn,
+    ntrnt_status_b, ntrnt_status_mo, ntrnt_recom_n, ntrnt_recom_p,
+    ntrnt_recom_k, ntrnt_recom_s, ntrnt_recom_mg, ntrnt_recom_zn,
+    ntrnt_recom_b, frtlzr_recom_urea, frtlzr_recom_tsp, frtlzr_recom_mop,
+    frtlzr_recom_gypsum, frtlzr_recom_mgso4, frtlzr_recom_znso4, frtlzr_recom_boric	
+    from nutrient_status where crop_id::text like '"""+str(crop_id)+"""' and 
+    variety_id::text like '"""+str(variety_id)+"""' and 
+    land_type::text like '"""+str(land_type)+"""' and 
+    soil_texture::text like '"""+str(soil_texture)+"""' """
+    print(query)
+    data = json.dumps(__db_fetch_values_dict(query), default=decimal_date_default)
+    return HttpResponse(data)
+
+def getCropBangla(request):
+    crop_id = request.POST.get('crop_id')
+    query = "select crop_name_bangla from crop where id = " + str(crop_id)
+    data = json.dumps(__db_fetch_values_dict(query))
+    return HttpResponse(data)
+
+def getFrtlzrAmount(request):
+    soil_texture = request.POST.get('soil_texture')
+    crop_id = request.POST.get('crop_id')
+    crop_variety_id = request.POST.get('crop_variety_id')
+    land_type = request.POST.get('land_type')
+    qry = " select round(frtlzr_recom_urea::numeric,2) frtlzr_recom_urea," \
+          "round(frtlzr_recom_tsp::numeric,2) frtlzr_recom_tsp," \
+          "round(frtlzr_recom_mop::numeric,2) frtlzr_recom_mop," \
+          "round(frtlzr_recom_gypsum::numeric,2) frtlzr_recom_gypsum," \
+          "round(frtlzr_recom_mgso4::numeric,2) frtlzr_recom_mgso4," \
+          "round(frtlzr_recom_znso4::numeric,2) frtlzr_recom_znso4," \
+          "round(frtlzr_recom_boric::numeric,2) frtlzr_recom_boric from  nutrient_status where crop_id  = "+str(crop_id)+" and variety_id  = "+str(crop_variety_id)+" and soil_texture = '"+str(soil_texture)+"' and land_type = '"+str(land_type)+"' limit 1"
+    print(qry)
+    data = json.dumps(__db_fetch_values_dict(qry),default=decimal_date_default)
+    return HttpResponse(data)

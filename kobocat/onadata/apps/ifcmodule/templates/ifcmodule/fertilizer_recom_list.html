@@ -1,0 +1,366 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Fertilizer Recommendation</div>
+        </div>
+        <div class="portlet-body">
+            <div class="row">
+                <div class="col-md-3">
+                        <div class="form-group">
+                            <label >Crop:</label>
+                            <select class="form-control" name="crop" id="crop" onclick="load_variety(this)" >
+                                <option value="%">Select One</option>
+                                {% for crop_id,crop_name in crop %}
+                                    <option value="{{ crop_id }}" >{{ crop_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+            <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Variety of the Crop: </label>
+                            <select class="form-control" name="crop_variety" id="crop_variety"  required>
+                                <option value="%">Select One</option>
+
+                            </select>
+
+                        </div>
+                    </div>
+           <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Land Type: </label>
+                                <select class="form-control" name="land_type" id="land_type" >
+                                    <option value="%">Select One</option>
+                                    <option value="HL" >HL</option>
+                                    <option value="MHL">MHL</option>
+                                    <option value="MLL">MLL</option>
+                                    <option value="LL" >LL</option>
+                                    <option value="VLL">VLL</option>
+                                </select>
+                            </div>
+                        </div>
+
+             <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Soil Type: </label>
+                         <select class="form-control" id="soil_texture" name="soil_texture"  required>
+                                    <option value="%">Select One</option>
+                                    <option value="Poly">Poly</option>
+                                    <option value="Sandy">Sandy</option>
+                                    <option value="Clay">Clay</option>
+                                </select>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-info pull-left" id="generate_report" style="margin-right: 10px" id="generate_report"
+                            title=""><i class="fa fa-2x fa fa-search"></i>Search
+                    </button>
+<!--                    <a href="" class="pull-right">-->
+
+<!--                        <button type="submit" class="btn btn-info pull-left" id="add_new" data-original-title=""-->
+<!--                                title=""><i class="fa fa-2x fa-plus"></i>New Case-->
+<!--                        </button>-->
+<!--                    </a>-->
+                </div>
+            </div>
+            <br>
+        <div style="display:none;" id="container"><img style=" width: 86px; margin-left: 434px;" src="/static/images/Spinner.gif"></div>
+            <table id="all_info_table" class="table table-bordered table-striped table-condensed flip-content nowrap">
+                <thead class="flip-content">
+                <tr>
+                    <th colspan="4" class="td-center">Crop and Land Type</th>
+                    <th colspan="8" class="td-center">Nutrient Status</th>
+                    <th colspan="7" class="td-center">Total Nutrient Recommendation (gm/decimal)</th>
+                    <th colspan="7" class="td-center">Fertilizer Recommendation (gm/decimal)</th>
+                </tr>
+                <tr>
+                    <th>Crop</th>
+                    <th>Variety</th>
+                    <th>Soil Texture</th>
+                    <th>Land Type</th>
+
+                    <th>N</th>
+                    <th>P</th>
+                    <th>K</th>
+                    <th>S</th>
+                    <th>Mg</th>
+                    <th>Zn</th>
+                    <th>B</th>
+                    <th>Mo</th>
+
+                    <th>N</th>
+                    <th>P</th>
+                    <th>K</th>
+                    <th>S</th>
+                    <th>Mg</th>
+                    <th>Zn</th>
+                    <th>B</th>
+
+                    <th>Urea</th>
+                    <th>TSP/DAP</th>
+                    <th>MoP</th>
+                    <th>Gypsum</th>
+                    <th>MgSo4</th>
+                    <th>ZnSo4</th>
+                    <th>Boric Acid</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to delete a facility info, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-ok">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block additional-javascript %}
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+
+
+    <script>
+
+
+
+
+            var table = $('#all_info_table').DataTable({
+                "scrollX": true, "ordering": false,
+                deferRender: true,
+                {#            dom: 'Bfrtip'#}
+                {#            ,#}
+                {#            buttons: [#}
+                {#                {#}
+                {#                    filename: "Fo",#}
+                {#                    title: "",#}
+                {#                    text: "<strong>Export</strong>",#}
+                {#                    extend: 'excel'#}
+                {#                }#}
+                {#            ]#}
+
+            });
+
+
+
+
+
+
+
+        $('.delete-item').on('click', function (e) {
+            var criteria_id = $(this).attr("data-href");
+            $('.btn-ok').attr("href", criteria_id);
+        });
+
+        if ($('.alert-block').is(':visible')) {
+            window.setTimeout(function () {
+                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+
+        $('#generate_report').on('click', function (e) {
+
+                table.destroy();
+
+            var crop_id = $('#crop option:selected').val();
+            var variety_id = $('#crop_variety option:selected').val();
+            var land_type = $('#land_type option:selected').val();
+            var soil_texture = $('#soil_texture option:selected').val();
+
+
+
+                $.ajax({
+                    url: '/ifcmodule/get_fertilizer_recom/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+
+                       'crop_id':crop_id
+                            ,'variety_id':variety_id
+                            ,'land_type':land_type
+                            ,'soil_texture':soil_texture
+
+                    },
+                    beforeSend: function () {
+                        $('#container').show();
+
+                    },
+                    success: function (case_list) {
+                        $('#container').hide();
+                        console.log(case_list)
+                            var tbody = '';
+                        for (var idx in case_list) {
+                            tbody += '<tr>'
+                            for( var idx1 in case_list[idx])
+                                tbody += '<td>' + case_list[idx][idx1] + '</td>';
+                            tbody += '</tr>'
+                        }
+                        $("#all_info_table").find('tbody').html(tbody);
+                        table = datatable_reinitialize();
+
+
+                    }
+                });
+
+
+            });
+        $('#generate_report').trigger('click');
+        function datatable_reinitialize() {
+            return $('#all_info_table').DataTable({
+                "scrollX": true, "ordering": false,"iDisplayLength": 50,
+                deferRender: true,
+{#                dom: 'Bfrtip'#}
+{#                ,#}
+{#                buttons: [#}
+{#                    {#}
+{#                        filename: "CSA Report",#}
+{#                        title: "",#}
+{#                        text: "<strong>Export</strong>",#}
+{#                        extend: 'excelHtml5'#}
+{#                    }#}
+{#                ]#}
+
+            });
+        }
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+
+
+        function load_union(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+
+                $('#union').html("<option value=\"%\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getUnions/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        var html_code = "<option value=\"%\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#union').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+        function load_variety(object) {
+            ajaxcall();
+            obj = parseInt(object.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#crop_variety').html("<option value=\"%\">Select One</option>");
+                $('#crop_stage').html("<option value=\"%\">Select One</option>");
+            }
+
+            else {
+
+                $.ajax({
+                    url: '/ifcmodule/getVariety/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+
+                        var html_code = "<option value=\"%\">Select One</option>";
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].variety_name + "</option>";
+                        }
+                        $('#crop_variety').html(html_code);
+                    }
+                });
+            }
+
+        }
+    </script>
+{% endblock %}
